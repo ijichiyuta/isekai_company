@@ -39,4 +39,13 @@ void main() {
       expect(v, inInclusiveRange(0, 10));
     }
   });
+
+  test('nextInt rejects bound <= 0 WITHOUT drawing (no desync)', () {
+    final a = Pcg32(1, 1);
+    final before = a.drawCount;
+    expect(() => a.nextInt(0), throwsArgumentError);
+    expect(() => a.nextInt(-3), throwsArgumentError);
+    // Crucially, the stream did not advance — a caught throw can't desync.
+    expect(a.drawCount, before);
+  });
 }

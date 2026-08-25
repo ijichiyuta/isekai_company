@@ -101,6 +101,20 @@ int _reqInt(Map<String, dynamic> m, String key, String file) {
   return v;
 }
 
+String _reqStr(Map<String, dynamic> m, String key, String file) {
+  final v = m[key];
+  if (v is! String) {
+    throw BalanceException('$file: "$key" must be string, got $v');
+  }
+  return v;
+}
+
+bool _reqBool(Map<String, dynamic> m, String key, String file) {
+  final v = m[key];
+  if (v is! bool) throw BalanceException('$file: "$key" must be bool, got $v');
+  return v;
+}
+
 class Balance {
   final EconomyDef economy;
   final List<MaterialDef> materials;
@@ -164,11 +178,16 @@ class Balance {
     final materials = <MaterialDef>[];
     for (final raw in materialsJson['materials'] as List) {
       final m = raw as Map<String, dynamic>;
+      final cost = _reqInt(m, 'cost', 'materials.json');
+      if (cost < 0) throw BalanceException('materials.json: cost must be >= 0');
       materials.add(MaterialDef(
         id: _reqInt(m, 'id', 'materials.json'),
-        name: m['name'] as String,
-        cost: _reqInt(m, 'cost', 'materials.json'),
+        name: _reqStr(m, 'name', 'materials.json'),
+        cost: cost,
       ));
+    }
+    if (materials.isEmpty) {
+      throw BalanceException('materials.json: must define at least one material');
     }
     for (var i = 0; i < materials.length; i++) {
       if (materials[i].id != i) {
@@ -194,20 +213,38 @@ class Balance {
       if (band < 1 || band > 3) {
         throw BalanceException('recipes.json: band must be 1..3');
       }
+      final basePrice = _reqInt(m, 'base_price', 'recipes.json');
+      if (basePrice < 0) {
+        throw BalanceException('recipes.json: base_price must be >= 0');
+      }
       recipes.add(RecipeDef(
         id: _reqInt(m, 'id', 'recipes.json'),
-        name: m['name'] as String,
+        name: _reqStr(m, 'name', 'recipes.json'),
         matA: a <= b ? a : b,
         matB: a <= b ? b : a,
         method: method,
-        basePrice: _reqInt(m, 'base_price', 'recipes.json'),
-        invention: m['invention'] as bool,
+        basePrice: basePrice,
+        invention: _reqBool(m, 'invention', 'recipes.json'),
         band: band,
       ));
+    }
+    if (recipes.isEmpty) {
+      throw BalanceException('recipes.json: must define at least one recipe');
     }
     for (var i = 0; i < recipes.length; i++) {
       if (recipes[i].id != i) {
         throw BalanceException('recipes.json: ids must be sequential');
+      }
+    }
+    // Duplicate (matA, matB, method) would make findRecipe order-dependent.
+    for (var i = 0; i < recipes.length; i++) {
+      for (var j = i + 1; j < recipes.length; j++) {
+        if (recipes[i].matA == recipes[j].matA &&
+            recipes[i].matB == recipes[j].matB &&
+            recipes[i].method == recipes[j].method) {
+          throw BalanceException(
+              'recipes.json: duplicate combo (recipes ${i} and ${j})');
+        }
       }
     }
 
@@ -216,22 +253,34 @@ class Balance {
       final m = raw as Map<String, dynamic>;
       ranks.add(RankDef(
         id: _reqInt(m, 'id', 'ranks.json'),
-        name: m['name'] as String,
+        name: _reqStr(m, 'name', 'ranks.json'),
         minAssets: _reqInt(m, 'min_assets', 'ranks.json'),
         minFame: _reqInt(m, 'min_fame', 'ranks.json'),
         minRecipes: _reqInt(m, 'min_recipes', 'ranks.json'),
         minEmployees: _reqInt(m, 'min_employees', 'ranks.json'),
         weeklyFixedCost: _reqInt(m, 'weekly_fixed_cost', 'ranks.json'),
         taxBp: _reqInt(m, 'tax_bp', 'ranks.json'),
-        enabled: m['enabled'] as bool,
+        enabled: _reqBool(m, 'enabled', 'ranks.json'),
       ));
+    }
+    if (ranks.isEmpty) {
+      throw BalanceException('ranks.json: must define at least one rank');
     }
     for (var i = 0; i < ranks.length; i++) {
       if (ranks[i].id != i) {
         throw BalanceException('ranks.json: ids must be sequential');
       }
-      if (i > 0 && ranks[i].minAssets < ranks[i - 1].minAssets) {
-        throw BalanceException('ranks.json: min_assets must be nondecreasing');
+      // The primary progression axes (assets, fame) must be nondecreasing so a
+      // higher rank is never cheaper on them (§10.3). min_recipes/min_employees
+      // are situational gates that legitimately drop at higher ranks (e.g. 御用達
+      // needs 0 employees but a royal-event clear instead), so they're exempt.
+      if (i > 0) {
+        final prev = ranks[i - 1];
+        final cur = ranks[i];
+        if (cur.minAssets < prev.minAssets || cur.minFame < prev.minFame) {
+          throw BalanceException(
+              'ranks.json: min_assets/min_fame must be nondecreasing (rank $i)');
+        }
       }
     }
 

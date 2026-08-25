@@ -110,6 +110,8 @@ class Engine {
     // --- 2. sales ---
     // Demand per discovered product, with ±5% weekly jitter from the economy
     // stream (exercises RNG serialization; refined demand model lands in M2).
+    // fame is clamped (below), so demand stays bounded and demand*jitter and
+    // sold*basePrice cannot overflow int64 (requirements §10.5).
     var demand = (eco.baseDemandX100 + s.fame * eco.demandPerFameX100) ~/ 100;
     final jitter = 95 + s.rng.economy.nextInt(11);
     demand = demand * jitter ~/ 100;
@@ -122,14 +124,18 @@ class Engine {
       weeklyRevenue += sold * balance.recipes[i].basePrice;
     }
     s.funds += weeklyRevenue;
-    s.totalRevenue += weeklyRevenue;
-    s.fame += weeklyRevenue ~/ eco.famePerSalesG;
+    s.totalRevenue = clampCap(s.totalRevenue + weeklyRevenue);
+    s.fame = clampCap(s.fame + weeklyRevenue ~/ eco.famePerSalesG);
 
     // --- 3. weekly costs (rank fixed cost, wages, tax on revenue) ---
     final rankDef = balance.ranks[s.rank];
     s.funds -= rankDef.weeklyFixedCost;
     s.funds -= s.employees * eco.wageLv1;
     s.funds -= applyBp(weeklyRevenue, rankDef.taxBp);
+
+    // Clamp funds to ±cap: keeps the negative side meaningful for bankruptcy
+    // while preventing positive runaway overflow (requirements §10.5).
+    s.funds = clampCap(s.funds);
 
     // --- 4. bankruptcy (requirements §8.1: funds<0 for grace weeks) ---
     if (s.funds < 0) {

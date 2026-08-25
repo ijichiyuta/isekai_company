@@ -85,9 +85,12 @@ class GameState {
         'alive': alive,
         'end_reason': endReason,
         'allowed_band_max': allowedBandMax,
-        'material_stock': materialStock,
-        'product_stock': productStock,
-        'discovered': discovered,
+        // Defensive copies: a snapshot must not alias the live lists, or a
+        // later tick's in-place mutation would corrupt it (snapshot+journal
+        // save, requirements §17.1). fromJson already copies on the way in.
+        'material_stock': List<int>.of(materialStock),
+        'product_stock': List<int>.of(productStock),
+        'discovered': List<bool>.of(discovered),
         'discoveries': discoveries,
         'inventions': inventions,
         'rank_ups': rankUps,

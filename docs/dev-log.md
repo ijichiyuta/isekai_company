@@ -47,6 +47,28 @@ tool/check_forbidden.sh   §2.2禁止則の静的検査
 - 名声は販売額ベースのみ（発明・イベント・昇格ボーナスは実装済みだがイベント未実装）
 - 大陸商会ランクは enabled:false（v1.0）
 
+### M0 ハードニング（並列専門家レビュー反映・2026-08-26）
+
+Opus 4.8 の並列エージェント3体（決定論/数値・セーブ整合性・エンジン論理）でコアを敵対的レビュー。1体は PCG32 を24万ドローで参照実装と照合、1体は約95週目の int64 オーバーフロー発火を特定。発見した実バグを修正:
+
+| 重大度 | 発見 | 修正 |
+|---|---|---|
+| Critical | `money.dart` の `value*bp` が割り算前に int64 オーバーフロー→税額が負に化ける | 打ち切り除算で乗算分割（`remainder`使用で負値もゼロ方向丸め維持）＋入力を1e15クランプ |
+| Critical | §10.5 の1e15上限クランプがエンジンに皆無→fame→demand→revenueの複利で桁膨張 | `clampCap` を fame/totalRevenue/funds に適用。demandはfame経由で連動収束 |
+| Critical | セーブ checksum が schema_version/balance_hash を保護外・`decodeSave`が生TypeErrorを漏らす・マイグレーション枠なし | checksum をドキュメント全体に拡大／全例外を `SaveCorruptException` に正規化／`saveMigrations` チェーンの器を導入（AC-15） |
+| High | `nextInt(0)` がRNG消費後にクラッシュ→リプレイずれの時限爆弾 | ドロー前に `bound<=0` を弾く |
+| High | `toJson` が可変Listを共有参照→スナップショット汚染（§17.1の時限爆弾） | `List.of` で防御的コピー |
+| High | balanceローダが String/bool 欠損で生例外・空配列/重複レシピ未検査 | `_reqStr`/`_reqBool`＋空配列・重複combo・負値・名声/資産単調性を検証 |
+
+検証: 全30テスト（core 26＋headless 6）通過。バランスハッシュ・1000周中央値・リプレイが修正前と完全一致＝**正常系を保ったまま穴だけ閉塞**。オーバーフロー修正は money_test・engine_test で境界値を直接実証。
+
+**繰り越し（accepted risk / 仕様確認）**:
+- 需要モデルが「全商品共通1変数×商品数」で疑似無限需要（High）→ M2で共有プール配分or商品別需要へ（コード内コメントで明示済み。上限クランプで当面のオーバーフローは断った）
+- 昇格判定が週次コスト控除後の funds を参照＝閾値ちょうどで1週遅延（Medium）→ 「資産」の精算前/後定義を要件で確定（未決）
+- 寿命tickでの昇格可否（Medium）→ 生涯スコアδ項の再現性のため仕様固定（未決）
+- 攻め型/放置型/回収型ボット未実装 → AC-09/10 検証に必要、M2前半で追加
+- dart2js（Web）はintがdoubleになり全ハッシュ/RNG破綻 → コアは非Webにピン留め。check_forbidden.sh が dart:html を既に禁止。ADR-1に「Web禁止」を明記予定
+
 ### 次（M1・W4〜, 目標2026-11-08）
 
 Flutter appパッケージ／第1層vertical slice（発注→開発→生産→販売→再投資）／プリン発明演出／主要4画面／アートバイブル確定＋AI生成→量子化パイプライン→顔グラ1種族＋アイコン20点の量産テスト（/game-visual-qa合格がゲート）／デバッグメニュー（ビルドフレーバー分離でAC-14）／Build in Public開始。

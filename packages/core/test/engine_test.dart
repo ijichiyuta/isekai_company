@@ -152,4 +152,27 @@ void main() {
     Engine(b).tick(s, [Grant(500, 'offline_reward')]);
     expect(s.funds, 600);
   });
+
+  test('extreme fame stays clamped, no int64 wrap (Critical #2)', () {
+    final b = _balance();
+    final s = GameState.initial(b, 1);
+    final engine = Engine(b);
+    engine.tick(s, [OrderMaterial(0, 1), OrderMaterial(1, 1), Develop(0, 1, 0)]);
+    s.fame = gameValueCap; // pin fame at the ceiling
+    for (var i = 0; i < 5; i++) {
+      engine.tick(
+          s, [OrderMaterial(0, 100), OrderMaterial(1, 100), Produce(0, 100)]);
+      expect(s.fame, lessThanOrEqualTo(gameValueCap));
+      expect(s.fame, greaterThanOrEqualTo(0)); // never wrapped negative
+      expect(s.funds, inInclusiveRange(-gameValueCap, gameValueCap));
+      expect(s.totalRevenue, inInclusiveRange(0, gameValueCap));
+    }
+  });
+
+  test('huge grant is clamped, not wrapped', () {
+    final b = _balance();
+    final s = GameState.initial(b, 1);
+    Engine(b).tick(s, [Grant(gameValueCap * 2, 'exploit_attempt')]);
+    expect(s.funds, gameValueCap);
+  });
 }

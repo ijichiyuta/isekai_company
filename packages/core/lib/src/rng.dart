@@ -35,7 +35,15 @@ class Pcg32 {
 
   /// Uniform-ish int in [0, bound). Modulo bias is accepted: determinism is
   /// the requirement, statistical perfection is not (gameplay RNG).
-  int nextInt(int bound) => nextUint32() % bound;
+  ///
+  /// Rejects bound <= 0 BEFORE drawing, so a bad call can never advance the
+  /// stream by a half-step and desync a replay (requirements §2.2).
+  int nextInt(int bound) {
+    if (bound <= 0) {
+      throw ArgumentError.value(bound, 'bound', 'must be > 0');
+    }
+    return nextUint32() % bound;
+  }
 
   Map<String, dynamic> toJson() =>
       {'state': _state, 'inc': _inc, 'draws': drawCount};

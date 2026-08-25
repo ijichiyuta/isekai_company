@@ -1,0 +1,17 @@
+{
+  "schema_version": 1,
+  "methods": ["cooling", "heating", "fermentation", "drying", "grinding", "precision", "sewing", "compounding"],
+  "recipes": [
+    { "id": 0,  "name": "プリン",       "mat_a": 0, "mat_b": 1, "method": "cooling",     "base_price": 12, "invention": true,  "band": 1 },
+    { "id": 1,  "name": "素朴なパン",   "mat_a": 0, "mat_b": 0, "method": "heating",     "base_price": 7,  "invention": false, "band": 1 },
+    { "id": 2,  "name": "焼き菓子",     "mat_a": 0, "mat_b": 2, "method": "heating",     "base_price": 9,  "invention": false, "band": 1 },
+    { "id": 3,  "name": "ミルク粥",     "mat_a": 0, "mat_b": 3, "method": "heating",     "base_price": 8,  "invention": false, "band": 1 },
+    { "id": 4,  "name": "薬草茶",       "mat_a": 4, "mat_b": 4, "method": "drying",      "base_price": 13, "invention": false, "band": 1 },
+    { "id": 5,  "name": "保存食セット", "mat_a": 0, "mat_b": 4, "method": "drying",      "base_price": 14, "invention": false, "band": 1 },
+    { "id": 6,  "name": "鉄の器具",     "mat_a": 5, "mat_b": 6, "method": "precision",   "base_price": 22, "invention": false, "band": 1 },
+    { "id": 7,  "name": "石鹸",         "mat_a": 7, "mat_b": 4, "method": "compounding", "base_price": 16, "invention": true,  "band": 1 },
+    { "id": 8,  "name": "木の食器",     "mat_a": 6, "mat_b": 6, "method": "grinding",    "base_price": 10, "invention": false, "band": 1 },
+    { "id": 9,  "name": "ラムネ",       "mat_a": 2, "mat_b": 2, "method": "compounding", "base_price": 15, "invention": true,  "band": 2 },
+    { "id": 10, "name": "マヨネーズ",   "mat_a": 1, "mat_b": 7, "method": "compounding", "base_price": 18, "invention": true,  "band": 2 }
+  ]
+}

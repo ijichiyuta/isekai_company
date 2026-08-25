@@ -1,0 +1,17 @@
+{
+  "schema_version": 1,
+  "start_funds": 100,
+  "lifespan_weeks": 2880,
+  "bankruptcy_grace_weeks": 4,
+  "invention_cash_mult_x100": 2500,
+  "invention_fame_mult_x100": 250,
+  "fame_per_sales_g": 20,
+  "wage_lv1": 8,
+  "hire_cost": 20,
+  "artisan_output_per_week": 3,
+  "base_capacity_per_week": 2,
+  "base_demand_x100": 300,
+  "demand_per_fame_x100": 4,
+  "rank_up_fame_bonus": 50,
+  "max_employees": 30
+}

@@ -1,0 +1,11 @@
+{
+  "schema_version": 1,
+  "ranks": [
+    { "id": 0, "name": "行商人",     "min_assets": 0,         "min_fame": 0,     "min_recipes": 0, "min_employees": 0, "weekly_fixed_cost": 2,   "tax_bp": 0,   "enabled": true },
+    { "id": 1, "name": "露店",       "min_assets": 2000,      "min_fame": 30,    "min_recipes": 5, "min_employees": 0, "weekly_fixed_cost": 6,   "tax_bp": 0,   "enabled": true },
+    { "id": 2, "name": "店舗",       "min_assets": 40000,     "min_fame": 200,   "min_recipes": 0, "min_employees": 3, "weekly_fixed_cost": 20,  "tax_bp": 0,   "enabled": true },
+    { "id": 3, "name": "商会",       "min_assets": 800000,    "min_fame": 900,   "min_recipes": 0, "min_employees": 8, "weekly_fixed_cost": 120, "tax_bp": 500, "enabled": true },
+    { "id": 4, "name": "王国御用達", "min_assets": 15000000,  "min_fame": 3000,  "min_recipes": 0, "min_employees": 0, "weekly_fixed_cost": 800, "tax_bp": 800, "enabled": true },
+    { "id": 5, "name": "大陸商会",   "min_assets": 300000000, "min_fame": 12000, "min_recipes": 0, "min_employees": 0, "weekly_fixed_cost": 4000, "tax_bp": 1000, "enabled": false }
+  ]
+}

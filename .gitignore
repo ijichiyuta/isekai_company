@@ -1,0 +1,13 @@
+# Dart / Flutter
+.dart_tool/
+.packages
+build/
+pubspec.lock
+*.log
+
+# Headless output
+packages/headless/*.csv
+packages/headless/hashes-*.txt
+
+# macOS
+.DS_Store

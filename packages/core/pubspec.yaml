@@ -1,0 +1,8 @@
+name: isekai_core
+description: Pure Dart deterministic simulation core for Isekai Company. No Flutter, no IO, no wall-clock, integer-only math (see docs/requirements.md §2.2).
+version: 0.1.0
+publish_to: none
+environment:
+  sdk: ^3.5.0
+dev_dependencies:
+  test: ^1.25.0

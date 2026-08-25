@@ -1,0 +1,11 @@
+name: isekai_headless
+description: Headless autoplay bots and statistics runner for balance verification (docs/requirements.md §18).
+version: 0.1.0
+publish_to: none
+environment:
+  sdk: ^3.5.0
+dependencies:
+  isekai_core:
+    path: ../core
+dev_dependencies:
+  test: ^1.25.0

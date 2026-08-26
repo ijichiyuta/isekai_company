@@ -10,6 +10,7 @@ import 'package:isekai_app/game/providers.dart';
 import 'package:isekai_app/game/tick_clock.dart';
 import 'package:isekai_app/ui/invention_overlay.dart';
 import 'package:isekai_app/ui/main_screen.dart';
+import 'package:isekai_app/ui/onboarding.dart';
 import 'package:isekai_app/ui/theme.dart';
 
 import 'helpers.dart';
@@ -62,6 +63,33 @@ void main() {
     await expectLater(
       find.byType(MainScreen),
       matchesGoldenFile('goldens/main_screen.png'),
+    );
+  });
+
+  testWidgets('golden: onboarding intro (転生カットイン)', (tester) async {
+    if (!Platform.isMacOS) return;
+    await _loadHiragino();
+    tester.view.physicalSize = const Size(780, 1688);
+    tester.view.devicePixelRatio = 2.0;
+    addTearDown(tester.view.resetPhysicalSize);
+    addTearDown(tester.view.resetDevicePixelRatio);
+
+    await tester.pumpWidget(MaterialApp(
+      debugShowCheckedModeBanner: false,
+      theme: buildTheme().copyWith(
+        textTheme: buildTheme().textTheme.apply(
+              fontFamily: 'Hiragino',
+              bodyColor: const Color(0xFFFFFFFF),
+              displayColor: const Color(0xFFFFFFFF),
+            ),
+      ),
+      home: OnboardingFlow(onDone: () {}),
+    ));
+    await tester.pumpAndSettle();
+
+    await expectLater(
+      find.byType(OnboardingFlow),
+      matchesGoldenFile('goldens/onboarding.png'),
     );
   });
 

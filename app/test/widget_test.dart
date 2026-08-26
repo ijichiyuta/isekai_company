@@ -4,10 +4,11 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:isekai_app/game/providers.dart';
 import 'package:isekai_app/game/tick_clock.dart';
 import 'package:isekai_app/ui/app.dart';
+import 'package:isekai_app/ui/game_root.dart';
 
 import 'helpers.dart';
 
-Widget _app() {
+Widget _app({bool tutorial = false}) {
   final balance = loadTestBalance();
   // Pump the real IsekaiApp so its bootstrap gate (loading → data) runs; this
   // avoids the requireValue race a bare MainScreen would hit before load.
@@ -15,6 +16,7 @@ Widget _app() {
     overrides: [
       balanceProvider.overrideWith((ref) => Future.value(balance)),
       tickClockProvider.overrideWithValue(FakeTickClock()),
+      tutorialActiveProvider.overrideWith((ref) => tutorial),
     ],
     child: const IsekaiApp(),
   );
@@ -59,5 +61,33 @@ void main() {
     await tester.tap(find.text('タップして続ける'));
     await tester.pumpAndSettle();
     expect(find.text('「プリン」を発明！'), findsNothing);
+  });
+
+  testWidgets('onboarding: intro → guided develop → guaranteed invention',
+      (tester) async {
+    await tester.pumpWidget(_app(tutorial: true));
+    await tester.pumpAndSettle();
+
+    // Intro plays first.
+    expect(find.text('スキップ'), findsOneWidget);
+    // Walk to the last intro card, then start.
+    for (var i = 0; i < 3; i++) {
+      await tester.tap(find.text('次へ'));
+      await tester.pumpAndSettle();
+    }
+    await tester.tap(find.text('はじめる'));
+    await tester.pumpAndSettle();
+
+    // The guided develop screen opens with pudding pre-selected + a hint.
+    expect(find.text('PB開発'), findsOneWidget);
+    expect(find.textContaining('小麦 × 卵'), findsOneWidget);
+
+    // Just press the develop button (unique "素材費" label) — materials are
+    // pre-selected.
+    await tester.tap(find.textContaining('素材費'));
+    await tester.pumpAndSettle();
+
+    // Auto-returns to main and plays the invention overlay.
+    expect(find.text('「プリン」を発明！'), findsOneWidget);
   });
 }

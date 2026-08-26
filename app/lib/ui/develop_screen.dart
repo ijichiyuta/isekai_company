@@ -9,7 +9,12 @@ import '../game/providers.dart';
 /// materials are auto-ordered so the loop stays smooth for new players. The
 /// invention overlay (if any) is driven by the controller after the step.
 class DevelopScreen extends ConsumerStatefulWidget {
-  const DevelopScreen({super.key});
+  const DevelopScreen({super.key, this.tutorial = false});
+
+  /// When true, pre-selects the pudding recipe (小麦×卵＋冷却) and shows a hint,
+  /// guaranteeing the first-invention beat of the onboarding (§13, first_invention).
+  final bool tutorial;
+
   @override
   ConsumerState<DevelopScreen> createState() => _DevelopScreenState();
 }
@@ -18,6 +23,16 @@ class _DevelopScreenState extends ConsumerState<DevelopScreen> {
   int? _matA;
   int? _matB;
   int _method = 0;
+
+  @override
+  void initState() {
+    super.initState();
+    if (widget.tutorial) {
+      _matA = 0; // 小麦
+      _matB = 1; // 卵
+      _method = 0; // 冷却
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -35,6 +50,22 @@ class _DevelopScreenState extends ConsumerState<DevelopScreen> {
       body: ListView(
         padding: const EdgeInsets.all(16),
         children: [
+          if (widget.tutorial)
+            Container(
+              width: double.infinity,
+              margin: const EdgeInsets.only(bottom: 12),
+              padding: const EdgeInsets.all(10),
+              decoration: BoxDecoration(
+                color: const Color(0xFFFFF2CC),
+                borderRadius: BorderRadius.circular(8),
+                border: Border.all(color: const Color(0xFFC8991F)),
+              ),
+              child: const Text(
+                '前世の記憶がひらめく——「小麦 × 卵 ＋ 冷却」で作れるはず！\n'
+                '下の「開発する」を押してみよう。',
+                style: TextStyle(fontSize: 13),
+              ),
+            ),
           _slot('素材スロット 1', _matA, (i) => setState(() => _matA = i), b),
           const SizedBox(height: 12),
           _slot('素材スロット 2', _matB, (i) => setState(() => _matB = i), b),

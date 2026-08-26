@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../game/providers.dart';
-import 'main_screen.dart';
+import 'game_root.dart';
 import 'theme.dart';
 
 class IsekaiApp extends StatelessWidget {
@@ -37,7 +37,7 @@ class _Bootstrap extends ConsumerWidget {
               textAlign: TextAlign.center),
         )),
       ),
-      data: (_) => const MainScreen(),
+      data: (_) => const GameRoot(),
     );
   }
 }

@@ -44,7 +44,8 @@ void main() {
   // Events ON — matches the app (§3.7) and the --gate measurement. Events boost
   // fame/funds, which igniting the demand loop earlier, so this is the config
   // AC-09 actually scores against.
-  final b = loadBalanceFromDir('../../assets/balance', withEvents: true);
+  final b = loadBalanceFromDir('../../assets/balance',
+      withEvents: true, withMarket: true);
   const seeds = [1, 2, 999];
   print('§10.2 checkpoints (ticks): $_cp');
   for (final seed in seeds) {

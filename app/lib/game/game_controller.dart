@@ -12,17 +12,17 @@ enum GameSpeed { paused, x1, x2, x3 }
 extension GameSpeedX on GameSpeed {
   /// Real time per in-game week (requirements §2.1: ×1 = 1.5s/tick).
   Duration? get interval => switch (this) {
-        GameSpeed.paused => null,
-        GameSpeed.x1 => const Duration(milliseconds: 1500),
-        GameSpeed.x2 => const Duration(milliseconds: 750),
-        GameSpeed.x3 => const Duration(milliseconds: 500),
-      };
+    GameSpeed.paused => null,
+    GameSpeed.x1 => const Duration(milliseconds: 1500),
+    GameSpeed.x2 => const Duration(milliseconds: 750),
+    GameSpeed.x3 => const Duration(milliseconds: 500),
+  };
   String get label => switch (this) {
-        GameSpeed.paused => 'II',
-        GameSpeed.x1 => '×1',
-        GameSpeed.x2 => '×2',
-        GameSpeed.x3 => '×3',
-      };
+    GameSpeed.paused => 'II',
+    GameSpeed.x1 => '×1',
+    GameSpeed.x2 => '×2',
+    GameSpeed.x3 => '×3',
+  };
 }
 
 /// A discovery that just happened, surfaced to the UI so it can play the
@@ -32,7 +32,12 @@ class InventionEvent {
   final String name;
   final int cashBonus;
   final int fameBonus;
-  const InventionEvent(this.recipeId, this.name, this.cashBonus, this.fameBonus);
+  const InventionEvent(
+    this.recipeId,
+    this.name,
+    this.cashBonus,
+    this.fameBonus,
+  );
 }
 
 /// The whole app-facing game state. Owns the deterministic [GameState] and the
@@ -67,12 +72,12 @@ class GameController extends ChangeNotifier {
     Entitlements? entitlements,
     IapClient? iap,
     AnalyticsClient? analytics,
-  })  : _baseSeed = seed,
-        _store = store,
-        _entitlements = entitlements ?? Entitlements(),
-        _iap = iap ?? StubIapClient(),
-        _analytics = analytics ?? const NoopAnalytics(),
-        engine = Engine(balance) {
+  }) : _baseSeed = seed,
+       _store = store,
+       _entitlements = entitlements ?? Entitlements(),
+       _iap = iap ?? StubIapClient(),
+       _analytics = analytics ?? const NoopAnalytics(),
+       engine = Engine(balance) {
     if (restored != null) {
       _state = restored.state; // meta already baked into the saved state
       _meta = restored.meta;
@@ -95,10 +100,31 @@ class GameController extends ChangeNotifier {
   /// MetaState's storage.
   MetaReader get metaReader => MetaView(_meta, balance.unlocks);
 
+  // --- Season / trend (v0.9 §6/§7) ---
+  /// Current trending category name, or null when no trend is running/announced.
+  String? get trendCategoryName {
+    final m = balance.market;
+    final c = _state.trendCategory;
+    return (m != null && c >= 0 && c < m.categories.length)
+        ? m.categories[c]
+        : null;
+  }
+
+  /// A trend is live (multiplier applied) vs merely announced (forecast).
+  bool get trendActive =>
+      _state.trendActiveWeeks > 0 && _state.trendForecastWeeks == 0;
+
+  /// Weeks until a forecast trend starts, or weeks a live trend has left.
+  int get trendWeeksLeft =>
+      trendActive ? _state.trendActiveWeeks : _state.trendForecastWeeks;
+
+  int get trendMultPercent => _state.trendMultX100;
+
   /// ×3 speed is unlocked by 時の加速 (§8.4 #14). Until then the speed control
   /// tops out at ×2 (the tree UI + paywall surface the upgrade).
-  bool get speedX3Unlocked =>
-      balance.unlocks.any((u) => u.modType == 'speed3' && _meta.isUnlocked(u.id));
+  bool get speedX3Unlocked => balance.unlocks.any(
+    (u) => u.modType == 'speed3' && _meta.isUnlocked(u.id),
+  );
 
   // --- Monetization (P3) ---
   bool get isFull => _entitlements.isFull;
@@ -133,6 +159,7 @@ class GameController extends ChangeNotifier {
     }
     return ok;
   }
+
   GameSpeed get speed => _speed;
   List<Command> get pending => List.unmodifiable(_pending);
   InventionEvent? get pendingInvention =>
@@ -175,8 +202,9 @@ class GameController extends ChangeNotifier {
   }
 
   /// Soul-memory points this finished life is worth (§8.2/§8.4).
-  int get pendingSoulPoints =>
-      _lifeScore == null ? 0 : soulPointsFromScore(_lifeScore!.total, _scoreParams);
+  int get pendingSoulPoints => _lifeScore == null
+      ? 0
+      : soulPointsFromScore(_lifeScore!.total, _scoreParams);
 
   /// End the life immediately by choice (引退, §8.1). The early-retire penalty
   /// modelling lands in M2 balance; for now retirement just closes the life.
@@ -207,8 +235,12 @@ class GameController extends ChangeNotifier {
     // A fresh, deterministic seed per life, with 魂の記憶 applied as start-state
     // bonuses (§8.4 — this is what shortens 2周目, C-6). lifeNumber threads into
     // the state so cycle events (min_life >= 2) can fire on later lives (§3.7).
-    _state = GameState.fromMeta(balance, _baseSeed + lifeNumber, _meta,
-        lifeNumber: lifeNumber);
+    _state = GameState.fromMeta(
+      balance,
+      _baseSeed + lifeNumber,
+      _meta,
+      lifeNumber: lifeNumber,
+    );
     _analytics.event(AnalyticsEvents.rebirth, {'life': lifeNumber});
     _persist(); // bank the new soul points + fresh life
     notifyListeners();
@@ -231,10 +263,13 @@ class GameController extends ChangeNotifier {
   /// one-shot/infinite in core. Returns true on purchase, and persists.
   bool purchaseUnlock(int id) {
     if (id < 0 || id >= balance.unlocks.length) return false;
-    if (!_entitlements.canPurchase(balance.unlocks[id])) return false; // paywall
+    if (!_entitlements.canPurchase(balance.unlocks[id]))
+      return false; // paywall
     if (!tryPurchaseUnlock(_meta, balance.unlocks, id)) return false;
-    _analytics.event(AnalyticsEvents.unlockBought,
-        {'id': id, 'key': balance.unlocks[id].key});
+    _analytics.event(AnalyticsEvents.unlockBought, {
+      'id': id,
+      'key': balance.unlocks[id].key,
+    });
     _persist();
     notifyListeners();
     return true;
@@ -292,7 +327,8 @@ class GameController extends ChangeNotifier {
   /// Weekly production capacity WITH the equipment multiplier (matches engine).
   int get weeklyCapacity {
     final eco = balance.economy;
-    final base = eco.baseCapacityPerWeek + _state.employees * eco.artisanOutputPerWeek;
+    final base =
+        eco.baseCapacityPerWeek + _state.employees * eco.artisanOutputPerWeek;
     var cap = base * (100 + _state.equipmentLevel * eco.equipStepX100) ~/ 100;
     if (_state.productionBonusX100 != 0) {
       cap = cap * (100 + _state.productionBonusX100) ~/ 100;
@@ -371,12 +407,14 @@ class GameController extends ChangeNotifier {
     // Queue them so simultaneous inventions each get their moment (§12.5).
     if (result.inventions.isNotEmpty) {
       for (final inv in result.inventions) {
-        _inventionQueue.add(InventionEvent(
-          inv.recipeId,
-          balance.recipes[inv.recipeId].name,
-          inv.cashBonus,
-          inv.fameBonus,
-        ));
+        _inventionQueue.add(
+          InventionEvent(
+            inv.recipeId,
+            balance.recipes[inv.recipeId].name,
+            inv.cashBonus,
+            inv.fameBonus,
+          ),
+        );
       }
       // Auto-pause so the overlay isn't undercut by a running clock (§12.5).
       _speed = GameSpeed.paused;
@@ -386,6 +424,13 @@ class GameController extends ChangeNotifier {
     // An event needs a decision → auto-pause and let the UI show the dialog
     // (§3.7 / §12.1). Inventions take priority (shown first).
     if (result.firedEventId >= 0) {
+      _speed = GameSpeed.paused;
+      clock.stop();
+    }
+
+    // A trend was just announced (§7 予告): auto-pause so the player can plan —
+    // produce the trending category to capitalize on the ×2-3 demand.
+    if (result.trendOnset) {
       _speed = GameSpeed.paused;
       clock.stop();
     }

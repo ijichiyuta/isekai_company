@@ -19,6 +19,7 @@ void main(List<String> args) {
   var compare = false;
   var gate = false;
   var withEvents = false;
+  var withMarket = false;
   var botName = 'steady';
   String? csvPath;
 
@@ -38,6 +39,8 @@ void main(List<String> args) {
         gate = true;
       case '--with-events':
         withEvents = true;
+      case '--with-market':
+        withMarket = true;
       case '--verify-replay':
         verify = true;
       case '--hash-only':
@@ -56,7 +59,8 @@ void main(List<String> args) {
   }
   // --with-events loads the real game config so its determinism (incl. events)
   // can be cross-arch verified in CI (audit H-1).
-  final balance = loadBalanceFromDir(balanceDir, withEvents: withEvents);
+  final balance = loadBalanceFromDir(balanceDir,
+      withEvents: withEvents, withMarket: withMarket);
 
   if (compare) {
     _runCompare(balance, lives, seed);
@@ -64,8 +68,9 @@ void main(List<String> args) {
   }
 
   if (gate) {
-    // Gates measure the REAL game, so load events (reward pacing / AC-05).
-    final gateBalance = loadBalanceFromDir(balanceDir, withEvents: true);
+    // Gates measure the REAL game, so load events + market (§6/§7 season/trend).
+    final gateBalance =
+        loadBalanceFromDir(balanceDir, withEvents: true, withMarket: true);
     final report = evaluateGate(gateBalance, lives: lives, seedBase: seed);
     print('=== balance gate (${lives} lives/bot, balance ${report.balanceHash}) ===');
     print('AC     metric                     actual        threshold        '

@@ -1,0 +1,16 @@
+{
+  "schema_version": 1,
+  "categories": ["food", "tool", "clothing", "medicine", "luxury"],
+  "season_category_mult": {
+    "food":     [130, 110, 140, 120],
+    "tool":     [100, 100, 120, 100],
+    "clothing": [100, 70, 100, 150],
+    "medicine": [120, 100, 100, 130],
+    "luxury":   [100, 150, 100, 90]
+  },
+  "trend": {
+    "avg_interval_weeks": 96, "forecast_weeks": 4,
+    "min_active_weeks": 8, "max_active_weeks": 12,
+    "mult_min_x100": 200, "mult_max_x100": 300
+  }
+}

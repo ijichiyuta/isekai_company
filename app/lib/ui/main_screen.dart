@@ -36,6 +36,7 @@ class MainScreen extends ConsumerWidget {
               children: [
                 _Hud(game: game),
                 _NextRankBar(game: game),
+                if (game.trendCategoryName != null) _TrendBar(game: game),
                 Expanded(child: _ShopView(game: game)),
                 _WeeklyResult(game: game),
                 _SpeedBar(game: game),
@@ -79,10 +80,14 @@ class _Hud extends StatelessWidget {
           Column(
             crossAxisAlignment: CrossAxisAlignment.end,
             children: [
-              Text(rank.name,
-                  style: const TextStyle(fontWeight: FontWeight.bold)),
-              Text('${cal.year}年 ${seasonNames[cal.season]} ${cal.weekOfSeason}週',
-                  style: const TextStyle(fontSize: 12)),
+              Text(
+                rank.name,
+                style: const TextStyle(fontWeight: FontWeight.bold),
+              ),
+              Text(
+                '${cal.year}年 ${seasonNames[cal.season]} ${cal.weekOfSeason}週',
+                style: const TextStyle(fontSize: 12),
+              ),
             ],
           ),
           IconButton(
@@ -91,8 +96,9 @@ class _Hud extends StatelessWidget {
             visualDensity: VisualDensity.compact,
             onPressed: () {
               game.pauseForScreen();
-              Navigator.of(context).push(MaterialPageRoute(
-                  builder: (_) => const SettingsScreen()));
+              Navigator.of(
+                context,
+              ).push(MaterialPageRoute(builder: (_) => const SettingsScreen()));
             },
           ),
         ],
@@ -101,14 +107,41 @@ class _Hud extends StatelessWidget {
   }
 
   Widget _stat(IconData icon, String value, Color color) => Row(
-        children: [
-          Icon(icon, size: 18, color: color),
-          const SizedBox(width: 4),
-          Text(value,
-              style:
-                  const TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
-        ],
-      );
+    children: [
+      Icon(icon, size: 18, color: color),
+      const SizedBox(width: 4),
+      Text(
+        value,
+        style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
+      ),
+    ],
+  );
+}
+
+/// Season/trend indicator (§7): forecast (予告) then live (流行中). Prompts the
+/// player to produce the trending category and capture the ×2-3 demand.
+class _TrendBar extends StatelessWidget {
+  const _TrendBar({required this.game});
+  final GameController game;
+
+  @override
+  Widget build(BuildContext context) {
+    final active = game.trendActive;
+    final cat = game.trendCategoryName!;
+    final weeks = game.trendWeeksLeft;
+    final mult = (game.trendMultPercent / 100).toStringAsFixed(1);
+    return Container(
+      width: double.infinity,
+      color: active ? const Color(0xFFFFE0B2) : const Color(0xFFE1F5FE),
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
+      child: Text(
+        active
+            ? '🔥 流行中: $cat（需要×$mult・あと$weeks週）'
+            : '📣 流行予告: $cat（あと$weeks週で開始）',
+        style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w600),
+      ),
+    );
+  }
 }
 
 class _NextRankBar extends StatelessWidget {
@@ -123,18 +156,19 @@ class _NextRankBar extends StatelessWidget {
       return const SizedBox.shrink();
     }
     final next = ranks[s.rank + 1];
-    final assetsRatio =
-        next.minAssets == 0 ? 1.0 : (s.funds / next.minAssets).clamp(0.0, 1.0);
-    final fameRatio =
-        next.minFame == 0 ? 1.0 : (s.fame / next.minFame).clamp(0.0, 1.0);
+    final assetsRatio = next.minAssets == 0
+        ? 1.0
+        : (s.funds / next.minAssets).clamp(0.0, 1.0);
+    final fameRatio = next.minFame == 0
+        ? 1.0
+        : (s.fame / next.minFame).clamp(0.0, 1.0);
     final ratio = assetsRatio < fameRatio ? assetsRatio : fameRatio;
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text('次のランク: ${next.name}',
-              style: const TextStyle(fontSize: 12)),
+          Text('次のランク: ${next.name}', style: const TextStyle(fontSize: 12)),
           const SizedBox(height: 2),
           ClipRRect(
             borderRadius: BorderRadius.circular(4),
@@ -159,8 +193,10 @@ class _ShopView extends StatelessWidget {
         children: [
           const Text('🏪', style: TextStyle(fontSize: 72)),
           const SizedBox(height: 8),
-          Text('従業員 ${s.employees}人 ・ 発見レシピ ${s.discoveries}種',
-              style: const TextStyle(fontSize: 13)),
+          Text(
+            '従業員 ${s.employees}人 ・ 発見レシピ ${s.discoveries}種',
+            style: const TextStyle(fontSize: 13),
+          ),
           if (s.pendingHintCount(game) > 0)
             Padding(
               padding: const EdgeInsets.only(top: 8),
@@ -185,8 +221,9 @@ class _ShopView extends StatelessWidget {
             // resolves it.
             onPressed: () {
               game.pauseForScreen();
-              Navigator.of(context)
-                  .push(MaterialPageRoute(builder: (_) => b.screen));
+              Navigator.of(
+                context,
+              ).push(MaterialPageRoute(builder: (_) => b.screen));
             },
           ),
       ],
@@ -210,8 +247,10 @@ class _WeeklyResult extends StatelessWidget {
           if (game.lastRankedUp)
             const Padding(
               padding: EdgeInsets.only(right: 8),
-              child: Text('🎉 昇格！',
-                  style: TextStyle(fontWeight: FontWeight.bold, color: kGold)),
+              child: Text(
+                '🎉 昇格！',
+                style: TextStyle(fontWeight: FontWeight.bold, color: kGold),
+              ),
             ),
           Text(
             r > 0 ? '先週の売上 +${formatG(r)}（${game.lastWeekSold}個）' : '先週の売上 —',
@@ -287,7 +326,11 @@ class _BottomNav extends StatelessWidget {
   }
 
   Widget _navItem(
-      BuildContext context, IconData icon, String label, Widget screen) {
+    BuildContext context,
+    IconData icon,
+    String label,
+    Widget screen,
+  ) {
     return Expanded(
       child: InkWell(
         onTap: () => _open(context, screen),
@@ -329,33 +372,52 @@ class _LifeEndBanner extends StatelessWidget {
                 child: Column(
                   mainAxisSize: MainAxisSize.min,
                   children: [
-                    Text('${game.lifeNumber}周目の人生が終わった（$reason）',
-                        style: const TextStyle(
-                            fontSize: 18, fontWeight: FontWeight.bold)),
+                    Text(
+                      '${game.lifeNumber}周目の人生が終わった（$reason）',
+                      style: const TextStyle(
+                        fontSize: 18,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
                     const SizedBox(height: 4),
-                    Text('到達ランク: ${game.balance.ranks[game.state.rank].name}',
-                        style: const TextStyle(fontSize: 13)),
+                    Text(
+                      '到達ランク: ${game.balance.ranks[game.state.rank].name}',
+                      style: const TextStyle(fontSize: 13),
+                    ),
                     const Divider(height: 24),
                     if (sc != null) ...[
                       _row('最終資産', sc.assetsPart),
                       _row('累積名声', sc.famePart),
-                      _row('発見レシピ (${game.state.discoveries}種)', sc.recipesPart),
+                      _row(
+                        '発見レシピ (${game.state.discoveries}種)',
+                        sc.recipesPart,
+                      ),
                       _row('到達ランク', sc.rankPart),
                       const Divider(height: 16),
                       _row('生涯スコア', sc.total, bold: true),
                       const SizedBox(height: 8),
-                      Text('✨ 魂の記憶 +${game.pendingSoulPoints} pt',
-                          style: const TextStyle(
-                              color: kFame, fontWeight: FontWeight.bold)),
-                      Text('（累計 ${game.soulPointsTotal + game.pendingSoulPoints} pt）',
-                          style: const TextStyle(
-                              fontSize: 12, color: Colors.grey)),
+                      Text(
+                        '✨ 魂の記憶 +${game.pendingSoulPoints} pt',
+                        style: const TextStyle(
+                          color: kFame,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                      Text(
+                        '（累計 ${game.soulPointsTotal + game.pendingSoulPoints} pt）',
+                        style: const TextStyle(
+                          fontSize: 12,
+                          color: Colors.grey,
+                        ),
+                      ),
                     ],
                     const SizedBox(height: 20),
                     OutlinedButton.icon(
                       onPressed: () => Navigator.of(context).push(
-                          MaterialPageRoute(
-                              builder: (_) => const SoulMemoryScreen())),
+                        MaterialPageRoute(
+                          builder: (_) => const SoulMemoryScreen(),
+                        ),
+                      ),
                       icon: const Icon(Icons.auto_awesome),
                       label: const Text('魂の記憶ツリー（恒久アンロック）'),
                     ),
@@ -387,8 +449,9 @@ class _LifeEndBanner extends StatelessWidget {
 
   Widget _row(String label, int pts, {bool bold = false}) {
     final style = TextStyle(
-        fontWeight: bold ? FontWeight.bold : FontWeight.normal,
-        fontSize: bold ? 16 : 14);
+      fontWeight: bold ? FontWeight.bold : FontWeight.normal,
+      fontSize: bold ? 16 : 14,
+    );
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 2),
       child: Row(

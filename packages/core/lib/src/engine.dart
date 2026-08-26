@@ -26,12 +26,14 @@ class TickResult {
   final int weeklySold;
   final bool rankedUp;
   final int firedEventId; // event that fired this tick, or -1
+  final bool trendOnset; // a trend was just announced this tick (v0.9 §7)
   const TickResult({
     required this.inventions,
     required this.weeklyRevenue,
     required this.weeklySold,
     required this.rankedUp,
     this.firedEventId = -1,
+    this.trendOnset = false,
   });
 
   static const empty = TickResult(
@@ -180,18 +182,35 @@ class Engine {
       }
     }
 
-    // --- 2. sales ---
-    // Shared weekly demand POOL (requirements §6: the market is finite). Total
-    // sales across all products are capped by the pool. Allocation is a FAIR
-    // water-fill: every in-stock product gets an equal share each round, and
-    // shares freed by products that sell out redistribute to the rest. This
-    // fixes the old id-order drain where high-id (premium / high-band) goods
-    // never sold because low-id staples emptied the pool first (M2 audit D-2).
-    // Price/season/trend weighting of the shares is a later refinement.
-    // One jitter draw keeps the RNG draw count per tick constant (§2.2). The
-    // running revenue sum is clampCap'd each step (§10.5) so it can't wrap even
-    // if quality×premium pushes a unit price high — the funds/fame/tax that
-    // derive from it stay bounded regardless of balance values.
+    // --- 2. market (v0.9 §6/§7): season is week-derived (deterministic);
+    // trends onset via RNG, announce for forecastWeeks, then run for
+    // activeWeeks. ONLY when a market config exists — otherwise no draws and
+    // uniform weights keep the tick byte-identical to the pre-v0.9 build (§2.2).
+    final market = balance.market;
+    final season = (s.week % 48) ~/ 12; // 48wk/yr, 12/season (matches app cal)
+    var trendOnset = false;
+
+    /// Demand weight (x100) of a product: season × active-trend multipliers.
+    /// 100 everywhere when there's no market (→ uniform water-fill).
+    int weightOf(int recipeId) {
+      if (market == null) return 100;
+      final cat = market.categoryIndex(balance.recipes[recipeId].category);
+      var w = market.seasonMultOf(cat, season);
+      if (s.trendForecastWeeks == 0 &&
+          s.trendActiveWeeks > 0 &&
+          s.trendCategory == cat) {
+        w = w * s.trendMultX100 ~/ 100;
+      }
+      return w < 1 ? 1 : w;
+    }
+
+    // --- 2b. sales ---
+    // Shared weekly demand POOL (requirements §6: the market is finite). A
+    // WEIGHTED water-fill: each product's share is proportional to its demand
+    // weight (season/trend), and shares freed by sell-outs redistribute. Equal
+    // weights (no market) reduce this exactly to the fair uniform fill (M2
+    // audit D-2). One jitter draw keeps the RNG structure stable (§2.2). The
+    // running revenue sum is clampCap'd each step (§10.5).
     var pool = (eco.baseDemandX100 + s.fame * eco.demandPerFameX100) ~/ 100;
     final jitter = 95 + s.rng.economy.nextInt(11);
     pool = pool * jitter ~/ 100;
@@ -202,8 +221,17 @@ class Engine {
       if (s.productStock[i] > 0) active.add(i);
     }
     while (pool > 0 && active.isNotEmpty) {
-      final share = pool ~/ active.length;
-      if (share == 0) {
+      final roundPool = pool;
+      var totalW = 0;
+      for (final i in active) {
+        totalW += weightOf(i);
+      }
+      var maxShare = 0;
+      for (final i in active) {
+        final sh = totalW == 0 ? 0 : roundPool * weightOf(i) ~/ totalW;
+        if (sh > maxShare) maxShare = sh;
+      }
+      if (maxShare == 0) {
         // Fewer units of demand than active products: give one unit each in id
         // order until the pool is gone (bounded, deterministic).
         for (final i in active) {
@@ -217,6 +245,7 @@ class Engine {
       }
       final next = <int>[];
       for (final i in active) {
+        final share = roundPool * weightOf(i) ~/ totalW;
         final stock = s.productStock[i];
         final sold = stock < share ? stock : share;
         s.productStock[i] -= sold;
@@ -227,6 +256,32 @@ class Engine {
         if (s.productStock[i] > 0) next.add(i);
       }
       active = next;
+    }
+
+    // Advance the trend AFTER this week's sales (so a live trend applies for its
+    // full run): count down forecast→active→end, or roll a new onset. Only with
+    // a market (no draws otherwise → byte-identical, §2.2).
+    if (market != null) {
+      if (s.trendForecastWeeks > 0) {
+        s.trendForecastWeeks--; // announced, counting down to activation
+      } else if (s.trendActiveWeeks > 0) {
+        s.trendActiveWeeks--;
+        if (s.trendActiveWeeks == 0) {
+          s.trendCategory = -1;
+          s.trendMultX100 = 0;
+        }
+      } else if (s.rng.economy.nextInt(market.trendAvgIntervalWeeks) == 0) {
+        // Onset: pick category / duration / multiplier, forecast first.
+        s.trendCategory = s.rng.economy.nextInt(market.categories.length);
+        final span = market.trendMaxActiveWeeks - market.trendMinActiveWeeks + 1;
+        s.trendActiveWeeks =
+            market.trendMinActiveWeeks + s.rng.economy.nextInt(span);
+        final mspan = market.trendMultMaxX100 - market.trendMultMinX100 + 1;
+        s.trendMultX100 =
+            market.trendMultMinX100 + s.rng.economy.nextInt(mspan);
+        s.trendForecastWeeks = market.trendForecastWeeks;
+        trendOnset = true;
+      }
     }
     s.funds += weeklyRevenue;
     s.totalRevenue = clampCap(s.totalRevenue + weeklyRevenue);
@@ -323,6 +378,7 @@ class Engine {
       weeklySold: weeklySold,
       rankedUp: rankedUp,
       firedEventId: firedEventId,
+      trendOnset: trendOnset,
     );
   }
 

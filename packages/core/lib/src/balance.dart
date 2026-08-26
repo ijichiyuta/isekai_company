@@ -29,6 +29,7 @@ class RecipeDef {
   final int basePrice;
   final bool invention;
   final int band; // 1=life1, 2=life2+, 3=full version
+  final String category; // market category (v0.9 season/trend); '' if absent
   const RecipeDef({
     required this.id,
     required this.name,
@@ -38,6 +39,7 @@ class RecipeDef {
     required this.basePrice,
     required this.invention,
     required this.band,
+    this.category = '',
   });
 }
 
@@ -123,6 +125,63 @@ int _reqInt(Map<String, dynamic> m, String key, String file) {
   final v = m[key];
   if (v is! int) throw BalanceException('$file: "$key" must be int, got $v');
   return v;
+}
+
+/// Season/trend market (v0.9 §6/§7). Absent → null (byte-identical pre-v0.9).
+/// Validates: categories cover every recipe category, each season array has 4
+/// entries, multipliers positive, trend windows sane.
+MarketDef? _parseMarket(Map<String, dynamic>? json, List<RecipeDef> recipes) {
+  if (json == null) return null;
+  const f = 'market.json';
+  if (json['schema_version'] != 1) {
+    throw BalanceException('$f: unsupported schema_version');
+  }
+  final cats = <String>[];
+  for (final c in _reqList(json, 'categories', f)) {
+    if (c is! String) throw BalanceException('$f: categories must be strings');
+    cats.add(c);
+  }
+  if (cats.isEmpty) throw BalanceException('$f: categories empty');
+  // Every recipe's (non-empty) category must be known.
+  for (final r in recipes) {
+    if (r.category.isNotEmpty && !cats.contains(r.category)) {
+      throw BalanceException('$f: recipe "${r.name}" category "${r.category}" '
+          'not in categories');
+    }
+  }
+  final scmRaw = _reqMap(json['season_category_mult'], f);
+  final seasonMult = <List<int>>[];
+  for (final cat in cats) {
+    final arr = scmRaw[cat];
+    if (arr is! List || arr.length != 4) {
+      throw BalanceException('$f: season_category_mult["$cat"] must have 4 ints');
+    }
+    final row = <int>[];
+    for (final v in arr) {
+      if (v is! int || v < 1 || v > 100000) {
+        throw BalanceException('$f: season mult must be int in [1,100000]');
+      }
+      row.add(v);
+    }
+    seasonMult.add(row);
+  }
+  final t = _reqMap(json['trend'], f);
+  final minA = _rangedInt(t, 'min_active_weeks', f, min: 1);
+  final maxA = _rangedInt(t, 'max_active_weeks', f, min: 1);
+  if (maxA < minA) throw BalanceException('$f: max_active < min_active');
+  final minM = _rangedInt(t, 'mult_min_x100', f, min: 100);
+  final maxM = _rangedInt(t, 'mult_max_x100', f, min: 100);
+  if (maxM < minM) throw BalanceException('$f: mult_max < mult_min');
+  return MarketDef(
+    categories: cats,
+    seasonMult: seasonMult,
+    trendAvgIntervalWeeks: _rangedInt(t, 'avg_interval_weeks', f, min: 1),
+    trendForecastWeeks: _rangedInt(t, 'forecast_weeks', f),
+    trendMinActiveWeeks: minA,
+    trendMaxActiveWeeks: maxA,
+    trendMultMinX100: minM,
+    trendMultMaxX100: maxM,
+  );
 }
 
 /// 魂の記憶 tree (§8.4). Absent → empty (headless / pre-M3 keep their hash).
@@ -236,6 +295,41 @@ int _rangedInt(Map<String, dynamic> m, String key, String file,
   return v;
 }
 
+/// Season/trend market config (v0.9, §6/§7). Seasons multiply per-category
+/// demand (±30-50%); trends spike one category (×2-3) for a stretch with a
+/// forecast lead. All multipliers are x100 (100 = neutral).
+class MarketDef {
+  final List<String> categories;
+  // seasonMult[categoryIndex][season 0..3] — demand multiplier, x100.
+  final List<List<int>> seasonMult;
+  final int trendAvgIntervalWeeks; // mean weeks between trends
+  final int trendForecastWeeks; // announced this many weeks before it starts
+  final int trendMinActiveWeeks;
+  final int trendMaxActiveWeeks;
+  final int trendMultMinX100;
+  final int trendMultMaxX100;
+  const MarketDef({
+    required this.categories,
+    required this.seasonMult,
+    required this.trendAvgIntervalWeeks,
+    required this.trendForecastWeeks,
+    required this.trendMinActiveWeeks,
+    required this.trendMaxActiveWeeks,
+    required this.trendMultMinX100,
+    required this.trendMultMaxX100,
+  });
+
+  /// Category index for [category], or -1 (neutral) if unknown/empty.
+  int categoryIndex(String category) => categories.indexOf(category);
+
+  /// Season demand multiplier (x100) for [categoryIndex] in [season] (0..3).
+  /// Neutral (100) for an out-of-range category.
+  int seasonMultOf(int categoryIndex, int season) =>
+      categoryIndex >= 0 && categoryIndex < seasonMult.length
+          ? seasonMult[categoryIndex][season]
+          : 100;
+}
+
 class Balance {
   final EconomyDef economy;
   final List<MaterialDef> materials;
@@ -248,6 +342,10 @@ class Balance {
   /// pre-M3 tests pass none, keeping the content hash unchanged — like events).
   final List<UnlockDef> unlocks;
 
+  /// Season/trend market config (v0.9, §6/§7). null unless market.json is
+  /// supplied — absent = no season/trend (byte-identical to the pre-v0.9 build).
+  final MarketDef? market;
+
   /// Replay-compatibility boundary (requirements §2.2 rule 7).
   final String contentHash;
 
@@ -259,6 +357,7 @@ class Balance {
     required this.methods,
     required this.events,
     required this.unlocks,
+    required this.market,
     required this.contentHash,
   });
 
@@ -275,6 +374,7 @@ class Balance {
     required Map<String, dynamic> ranksJson,
     Map<String, dynamic>? eventsJson,
     Map<String, dynamic>? unlocksJson,
+    Map<String, dynamic>? marketJson,
   }) {
     try {
       return Balance._build(
@@ -284,6 +384,7 @@ class Balance {
         ranksJson: ranksJson,
         eventsJson: eventsJson,
         unlocksJson: unlocksJson,
+        marketJson: marketJson,
       );
     } on BalanceException {
       rethrow;
@@ -301,6 +402,7 @@ class Balance {
     required Map<String, dynamic> ranksJson,
     Map<String, dynamic>? eventsJson,
     Map<String, dynamic>? unlocksJson,
+    Map<String, dynamic>? marketJson,
   }) {
     for (final (name, m) in [
       ('economy.json', economyJson),
@@ -429,6 +531,8 @@ class Balance {
         basePrice: basePrice,
         invention: _reqBool(m, 'invention', 'recipes.json'),
         band: band,
+        category:
+            m.containsKey('category') ? _reqStr(m, 'category', 'recipes.json') : '',
       ));
     }
     if (recipes.isEmpty) {
@@ -508,9 +612,10 @@ class Balance {
     }
 
     final unlocks = _parseUnlocks(unlocksJson);
+    final market = _parseMarket(marketJson, recipes);
 
-    // Content hash covers events/unlocks ONLY when present, so a world without
-    // them (headless) keeps the exact pre-feature hash (audit A-D1).
+    // Content hash covers events/unlocks/market ONLY when present, so a world
+    // without them (headless) keeps the exact pre-feature hash (audit A-D1).
     final hashInput = <String, dynamic>{
       'economy': economyJson,
       'materials': materialsJson,
@@ -519,6 +624,7 @@ class Balance {
     };
     if (events.isNotEmpty) hashInput['events'] = eventsJson;
     if (unlocks.isNotEmpty) hashInput['unlocks'] = unlocksJson;
+    if (market != null) hashInput['market'] = marketJson;
     final contentHash = hashHex(fnv1a64(canonicalJson(hashInput)));
 
     return Balance._(
@@ -529,6 +635,7 @@ class Balance {
       methods: methods,
       events: events,
       unlocks: unlocks,
+      market: market,
       contentHash: contentHash,
     );
   }

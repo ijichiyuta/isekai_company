@@ -38,6 +38,15 @@ class GameState {
   int salesBonusX100;
   int orderDiscountX100;
 
+  // Trend state (v0.9 §7). All default (no trend) so a market-less world is
+  // byte-identical. trendCategory = the category id trending or announced (-1 =
+  // none); forecastWeeks>0 = announced-not-yet-active; activeWeeks>0 = live
+  // with trendMultX100 applied to that category's demand.
+  int trendCategory;
+  int trendForecastWeeks;
+  int trendActiveWeeks;
+  int trendMultX100;
+
   final List<int> materialStock; // by material id
   final List<int> productStock; // by recipe id
   final List<bool> discovered; // by recipe id
@@ -75,6 +84,10 @@ class GameState {
     required this.productionBonusX100,
     required this.salesBonusX100,
     required this.orderDiscountX100,
+    required this.trendCategory,
+    required this.trendForecastWeeks,
+    required this.trendActiveWeeks,
+    required this.trendMultX100,
     required this.materialStock,
     required this.productStock,
     required this.discovered,
@@ -108,6 +121,10 @@ class GameState {
         productionBonusX100: 0,
         salesBonusX100: 0,
         orderDiscountX100: 0,
+        trendCategory: -1,
+        trendForecastWeeks: 0,
+        trendActiveWeeks: 0,
+        trendMultX100: 0,
         materialStock: List<int>.filled(b.materials.length, 0),
         productStock: List<int>.filled(b.recipes.length, 0),
         discovered: List<bool>.filled(b.recipes.length, false),
@@ -218,6 +235,10 @@ class GameState {
         if (productionBonusX100 != 0) 'production_bonus': productionBonusX100,
         if (salesBonusX100 != 0) 'sales_bonus': salesBonusX100,
         if (orderDiscountX100 != 0) 'order_discount': orderDiscountX100,
+        if (trendCategory != -1) 'trend_cat': trendCategory,
+        if (trendForecastWeeks != 0) 'trend_fc': trendForecastWeeks,
+        if (trendActiveWeeks != 0) 'trend_act': trendActiveWeeks,
+        if (trendMultX100 != 0) 'trend_mult': trendMultX100,
         // Defensive copies: a snapshot must not alias the live lists, or a
         // later tick's in-place mutation would corrupt it (snapshot+journal
         // save, requirements §17.1). fromJson already copies on the way in.
@@ -254,6 +275,10 @@ class GameState {
         productionBonusX100: (m['production_bonus'] as int?) ?? 0,
         salesBonusX100: (m['sales_bonus'] as int?) ?? 0,
         orderDiscountX100: (m['order_discount'] as int?) ?? 0,
+        trendCategory: (m['trend_cat'] as int?) ?? -1,
+        trendForecastWeeks: (m['trend_fc'] as int?) ?? 0,
+        trendActiveWeeks: (m['trend_act'] as int?) ?? 0,
+        trendMultX100: (m['trend_mult'] as int?) ?? 0,
         materialStock: (m['material_stock'] as List).cast<int>().toList(),
         productStock: (m['product_stock'] as List).cast<int>().toList(),
         discovered: (m['discovered'] as List).cast<bool>().toList(),

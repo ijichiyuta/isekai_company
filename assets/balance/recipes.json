@@ -19,7 +19,8 @@
       "method": "cooling",
       "base_price": 12,
       "invention": true,
-      "band": 1
+      "band": 1,
+      "category": "food"
     },
     {
       "id": 1,
@@ -29,7 +30,8 @@
       "method": "heating",
       "base_price": 7,
       "invention": false,
-      "band": 1
+      "band": 1,
+      "category": "food"
     },
     {
       "id": 2,
@@ -39,7 +41,8 @@
       "method": "heating",
       "base_price": 9,
       "invention": false,
-      "band": 1
+      "band": 1,
+      "category": "food"
     },
     {
       "id": 3,
@@ -49,7 +52,8 @@
       "method": "heating",
       "base_price": 8,
       "invention": false,
-      "band": 1
+      "band": 1,
+      "category": "food"
     },
     {
       "id": 4,
@@ -59,7 +63,8 @@
       "method": "drying",
       "base_price": 13,
       "invention": false,
-      "band": 1
+      "band": 1,
+      "category": "medicine"
     },
     {
       "id": 5,
@@ -69,7 +74,8 @@
       "method": "drying",
       "base_price": 14,
       "invention": false,
-      "band": 1
+      "band": 1,
+      "category": "food"
     },
     {
       "id": 6,
@@ -79,7 +85,8 @@
       "method": "precision",
       "base_price": 22,
       "invention": false,
-      "band": 1
+      "band": 1,
+      "category": "tool"
     },
     {
       "id": 7,
@@ -89,7 +96,8 @@
       "method": "compounding",
       "base_price": 16,
       "invention": true,
-      "band": 1
+      "band": 1,
+      "category": "medicine"
     },
     {
       "id": 8,
@@ -99,7 +107,8 @@
       "method": "grinding",
       "base_price": 10,
       "invention": false,
-      "band": 1
+      "band": 1,
+      "category": "tool"
     },
     {
       "id": 9,
@@ -109,7 +118,8 @@
       "method": "compounding",
       "base_price": 15,
       "invention": true,
-      "band": 2
+      "band": 2,
+      "category": "luxury"
     },
     {
       "id": 10,
@@ -119,7 +129,8 @@
       "method": "compounding",
       "base_price": 18,
       "invention": true,
-      "band": 2
+      "band": 2,
+      "category": "food"
     },
     {
       "id": 11,
@@ -129,7 +140,8 @@
       "method": "grinding",
       "base_price": 24,
       "invention": true,
-      "band": 2
+      "band": 2,
+      "category": "food"
     },
     {
       "id": 12,
@@ -139,7 +151,8 @@
       "method": "heating",
       "base_price": 9,
       "invention": true,
-      "band": 2
+      "band": 2,
+      "category": "food"
     },
     {
       "id": 13,
@@ -149,7 +162,8 @@
       "method": "precision",
       "base_price": 14,
       "invention": true,
-      "band": 3
+      "band": 3,
+      "category": "tool"
     },
     {
       "id": 14,
@@ -159,7 +173,8 @@
       "method": "drying",
       "base_price": 12,
       "invention": true,
-      "band": 3
+      "band": 3,
+      "category": "tool"
     },
     {
       "id": 15,
@@ -169,7 +184,8 @@
       "method": "drying",
       "base_price": 13,
       "invention": false,
-      "band": 1
+      "band": 1,
+      "category": "food"
     },
     {
       "id": 16,
@@ -179,7 +195,8 @@
       "method": "drying",
       "base_price": 11,
       "invention": false,
-      "band": 1
+      "band": 1,
+      "category": "food"
     },
     {
       "id": 17,
@@ -189,7 +206,8 @@
       "method": "heating",
       "base_price": 10,
       "invention": false,
-      "band": 1
+      "band": 1,
+      "category": "food"
     },
     {
       "id": 18,
@@ -199,7 +217,8 @@
       "method": "heating",
       "base_price": 14,
       "invention": false,
-      "band": 1
+      "band": 1,
+      "category": "food"
     },
     {
       "id": 19,
@@ -209,7 +228,8 @@
       "method": "fermentation",
       "base_price": 16,
       "invention": false,
-      "band": 1
+      "band": 1,
+      "category": "luxury"
     },
     {
       "id": 20,
@@ -219,7 +239,8 @@
       "method": "fermentation",
       "base_price": 15,
       "invention": false,
-      "band": 1
+      "band": 1,
+      "category": "luxury"
     },
     {
       "id": 21,
@@ -229,7 +250,8 @@
       "method": "grinding",
       "base_price": 12,
       "invention": false,
-      "band": 1
+      "band": 1,
+      "category": "food"
     },
     {
       "id": 22,
@@ -239,7 +261,8 @@
       "method": "fermentation",
       "base_price": 12,
       "invention": false,
-      "band": 1
+      "band": 1,
+      "category": "food"
     },
     {
       "id": 23,
@@ -249,7 +272,8 @@
       "method": "heating",
       "base_price": 8,
       "invention": false,
-      "band": 1
+      "band": 1,
+      "category": "food"
     },
     {
       "id": 24,
@@ -259,7 +283,8 @@
       "method": "cooling",
       "base_price": 13,
       "invention": false,
-      "band": 1
+      "band": 1,
+      "category": "luxury"
     },
     {
       "id": 25,
@@ -269,7 +294,8 @@
       "method": "cooling",
       "base_price": 14,
       "invention": false,
-      "band": 1
+      "band": 1,
+      "category": "luxury"
     },
     {
       "id": 26,
@@ -279,7 +305,8 @@
       "method": "drying",
       "base_price": 15,
       "invention": false,
-      "band": 1
+      "band": 1,
+      "category": "luxury"
     },
     {
       "id": 27,
@@ -289,7 +316,8 @@
       "method": "sewing",
       "base_price": 12,
       "invention": false,
-      "band": 1
+      "band": 1,
+      "category": "clothing"
     },
     {
       "id": 28,
@@ -299,7 +327,8 @@
       "method": "sewing",
       "base_price": 16,
       "invention": false,
-      "band": 1
+      "band": 1,
+      "category": "clothing"
     },
     {
       "id": 29,
@@ -309,7 +338,8 @@
       "method": "sewing",
       "base_price": 18,
       "invention": false,
-      "band": 1
+      "band": 1,
+      "category": "clothing"
     },
     {
       "id": 30,
@@ -319,7 +349,8 @@
       "method": "precision",
       "base_price": 24,
       "invention": false,
-      "band": 1
+      "band": 1,
+      "category": "clothing"
     },
     {
       "id": 31,
@@ -329,7 +360,8 @@
       "method": "sewing",
       "base_price": 16,
       "invention": false,
-      "band": 1
+      "band": 1,
+      "category": "clothing"
     },
     {
       "id": 32,
@@ -339,7 +371,8 @@
       "method": "precision",
       "base_price": 18,
       "invention": false,
-      "band": 1
+      "band": 1,
+      "category": "tool"
     },
     {
       "id": 33,
@@ -349,7 +382,8 @@
       "method": "heating",
       "base_price": 24,
       "invention": false,
-      "band": 1
+      "band": 1,
+      "category": "tool"
     },
     {
       "id": 34,
@@ -359,7 +393,8 @@
       "method": "heating",
       "base_price": 20,
       "invention": false,
-      "band": 1
+      "band": 1,
+      "category": "tool"
     },
     {
       "id": 35,
@@ -369,7 +404,8 @@
       "method": "precision",
       "base_price": 24,
       "invention": false,
-      "band": 1
+      "band": 1,
+      "category": "tool"
     },
     {
       "id": 36,
@@ -379,7 +415,8 @@
       "method": "precision",
       "base_price": 22,
       "invention": false,
-      "band": 1
+      "band": 1,
+      "category": "luxury"
     },
     {
       "id": 37,
@@ -389,7 +426,8 @@
       "method": "compounding",
       "base_price": 17,
       "invention": false,
-      "band": 1
+      "band": 1,
+      "category": "medicine"
     },
     {
       "id": 38,
@@ -399,7 +437,8 @@
       "method": "compounding",
       "base_price": 16,
       "invention": false,
-      "band": 1
+      "band": 1,
+      "category": "medicine"
     },
     {
       "id": 39,
@@ -409,7 +448,8 @@
       "method": "compounding",
       "base_price": 18,
       "invention": false,
-      "band": 1
+      "band": 1,
+      "category": "medicine"
     },
     {
       "id": 40,
@@ -419,7 +459,8 @@
       "method": "compounding",
       "base_price": 17,
       "invention": false,
-      "band": 1
+      "band": 1,
+      "category": "medicine"
     },
     {
       "id": 41,
@@ -429,7 +470,8 @@
       "method": "heating",
       "base_price": 8,
       "invention": false,
-      "band": 1
+      "band": 1,
+      "category": "tool"
     },
     {
       "id": 42,
@@ -439,7 +481,8 @@
       "method": "compounding",
       "base_price": 12,
       "invention": false,
-      "band": 1
+      "band": 1,
+      "category": "medicine"
     },
     {
       "id": 43,
@@ -449,7 +492,8 @@
       "method": "heating",
       "base_price": 10,
       "invention": false,
-      "band": 1
+      "band": 1,
+      "category": "food"
     },
     {
       "id": 44,
@@ -459,7 +503,8 @@
       "method": "heating",
       "base_price": 13,
       "invention": false,
-      "band": 1
+      "band": 1,
+      "category": "food"
     },
     {
       "id": 45,
@@ -469,7 +514,8 @@
       "method": "drying",
       "base_price": 12,
       "invention": false,
-      "band": 1
+      "band": 1,
+      "category": "luxury"
     },
     {
       "id": 46,
@@ -479,7 +525,8 @@
       "method": "drying",
       "base_price": 9,
       "invention": false,
-      "band": 1
+      "band": 1,
+      "category": "food"
     },
     {
       "id": 47,
@@ -489,7 +536,8 @@
       "method": "heating",
       "base_price": 9,
       "invention": false,
-      "band": 1
+      "band": 1,
+      "category": "food"
     },
     {
       "id": 48,
@@ -499,7 +547,8 @@
       "method": "fermentation",
       "base_price": 13,
       "invention": false,
-      "band": 1
+      "band": 1,
+      "category": "luxury"
     },
     {
       "id": 49,
@@ -509,7 +558,8 @@
       "method": "fermentation",
       "base_price": 14,
       "invention": true,
-      "band": 1
+      "band": 1,
+      "category": "food"
     },
     {
       "id": 50,
@@ -519,7 +569,8 @@
       "method": "fermentation",
       "base_price": 14,
       "invention": true,
-      "band": 1
+      "band": 1,
+      "category": "food"
     },
     {
       "id": 51,
@@ -529,7 +580,8 @@
       "method": "fermentation",
       "base_price": 11,
       "invention": false,
-      "band": 1
+      "band": 1,
+      "category": "food"
     },
     {
       "id": 52,
@@ -539,7 +591,8 @@
       "method": "drying",
       "base_price": 18,
       "invention": false,
-      "band": 1
+      "band": 1,
+      "category": "food"
     },
     {
       "id": 53,
@@ -549,7 +602,8 @@
       "method": "drying",
       "base_price": 13,
       "invention": false,
-      "band": 1
+      "band": 1,
+      "category": "food"
     },
     {
       "id": 54,
@@ -559,7 +613,8 @@
       "method": "precision",
       "base_price": 16,
       "invention": false,
-      "band": 1
+      "band": 1,
+      "category": "tool"
     },
     {
       "id": 55,
@@ -569,7 +624,8 @@
       "method": "sewing",
       "base_price": 22,
       "invention": false,
-      "band": 1
+      "band": 1,
+      "category": "clothing"
     },
     {
       "id": 56,
@@ -579,7 +635,8 @@
       "method": "sewing",
       "base_price": 18,
       "invention": false,
-      "band": 1
+      "band": 1,
+      "category": "clothing"
     },
     {
       "id": 57,
@@ -589,7 +646,8 @@
       "method": "fermentation",
       "base_price": 16,
       "invention": true,
-      "band": 2
+      "band": 2,
+      "category": "food"
     },
     {
       "id": 58,
@@ -599,7 +657,8 @@
       "method": "grinding",
       "base_price": 14,
       "invention": false,
-      "band": 2
+      "band": 2,
+      "category": "food"
     },
     {
       "id": 59,
@@ -609,7 +668,8 @@
       "method": "fermentation",
       "base_price": 15,
       "invention": true,
-      "band": 2
+      "band": 2,
+      "category": "food"
     },
     {
       "id": 60,
@@ -619,7 +679,8 @@
       "method": "compounding",
       "base_price": 26,
       "invention": true,
-      "band": 2
+      "band": 2,
+      "category": "food"
     },
     {
       "id": 61,
@@ -629,7 +690,8 @@
       "method": "heating",
       "base_price": 18,
       "invention": false,
-      "band": 2
+      "band": 2,
+      "category": "food"
     },
     {
       "id": 62,
@@ -639,7 +701,8 @@
       "method": "heating",
       "base_price": 20,
       "invention": true,
-      "band": 2
+      "band": 2,
+      "category": "food"
     },
     {
       "id": 63,
@@ -649,7 +712,8 @@
       "method": "compounding",
       "base_price": 28,
       "invention": true,
-      "band": 2
+      "band": 2,
+      "category": "luxury"
     },
     {
       "id": 64,
@@ -659,7 +723,8 @@
       "method": "heating",
       "base_price": 14,
       "invention": false,
-      "band": 2
+      "band": 2,
+      "category": "tool"
     },
     {
       "id": 65,
@@ -669,7 +734,8 @@
       "method": "compounding",
       "base_price": 16,
       "invention": true,
-      "band": 2
+      "band": 2,
+      "category": "tool"
     },
     {
       "id": 66,
@@ -679,7 +745,8 @@
       "method": "grinding",
       "base_price": 13,
       "invention": false,
-      "band": 2
+      "band": 2,
+      "category": "tool"
     },
     {
       "id": 67,
@@ -689,7 +756,8 @@
       "method": "drying",
       "base_price": 17,
       "invention": false,
-      "band": 2
+      "band": 2,
+      "category": "food"
     },
     {
       "id": 68,
@@ -699,7 +767,8 @@
       "method": "precision",
       "base_price": 26,
       "invention": true,
-      "band": 2
+      "band": 2,
+      "category": "tool"
     },
     {
       "id": 69,
@@ -709,7 +778,8 @@
       "method": "precision",
       "base_price": 40,
       "invention": true,
-      "band": 3
+      "band": 3,
+      "category": "luxury"
     },
     {
       "id": 70,
@@ -719,7 +789,8 @@
       "method": "compounding",
       "base_price": 38,
       "invention": true,
-      "band": 3
+      "band": 3,
+      "category": "medicine"
     },
     {
       "id": 71,
@@ -729,7 +800,8 @@
       "method": "precision",
       "base_price": 42,
       "invention": true,
-      "band": 3
+      "band": 3,
+      "category": "tool"
     },
     {
       "id": 72,
@@ -739,7 +811,8 @@
       "method": "precision",
       "base_price": 36,
       "invention": true,
-      "band": 3
+      "band": 3,
+      "category": "luxury"
     },
     {
       "id": 73,
@@ -749,7 +822,8 @@
       "method": "sewing",
       "base_price": 35,
       "invention": true,
-      "band": 3
+      "band": 3,
+      "category": "clothing"
     },
     {
       "id": 74,
@@ -759,7 +833,8 @@
       "method": "compounding",
       "base_price": 34,
       "invention": true,
-      "band": 3
+      "band": 3,
+      "category": "medicine"
     }
   ]
 }

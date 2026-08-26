@@ -19,5 +19,6 @@ Future<Balance> loadBundledBalance() async {
     ranksJson: await read('ranks.json'),
     eventsJson: await read('events.json'), // the app plays with events (§3.7)
     unlocksJson: await read('unlocks.json'), // 魂の記憶 tree (§8.4)
+    marketJson: await read('market.json'), // 季節・流行 (§6/§7, v0.9)
   );
 }

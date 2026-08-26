@@ -115,7 +115,7 @@ GateReport evaluateGate(Balance balance, {int lives = 300, int seedBase = 1}) {
 // --gate uses 10 lives, where event RNG can swing a checkpoint ±40% — the ±50%
 // band absorbs it, and 300+ lives converge near the targets (AC-09 is soft).
 const _curveTicks = [400, 1000, 1800, 2600];
-const _curveTargets = [18500, 320000, 8300000, 41000000];
+const _curveTargets = [15500, 275000, 6000000, 38000000];
 
 GateResult _ac09(Balance balance, int lives, int seedBase) {
   final steady = botRegistry['steady']!;

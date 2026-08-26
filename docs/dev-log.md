@@ -185,6 +185,10 @@ M1残（画像生成環境が必要／M3以降）: 実AIアセット量産テス
   - **バランス調整**: event_fire_permille=15・event_pity_ticks=58。bot はイベントで survival-best 選択（royalは受諾＝資金+）。costly災害に min_fame ゲート。
   - **AC-05が PASS に**（p50=19/p90=58/maxGap=58 ≤ 26/60/120）＝events+pity で報酬間隔問題を解決。AC-04/07も PASS で **GATE OK**。AC-08/10 は soft のまま（#5/M3）。
   - テスト: EV-01〜12（決定論・RNGドロー不変・hash条件付き・royal確定発火・御用達ゲート・効果適用・events-less回帰・堅牢化）＋events-loaded決定論＋app event flow＋event golden。core58+headless21+app17=96通過。
+- **#5 ゲート最終校正**: 生産capacityと需要スケールを引き上げ（artisan_output 3→10, base_demand 300→600）。steady中央資産 2M→約8M（商会中位を厚く）。全hardゲート（AC-04/05/07）PASS＝**GATE OK**。CIに balance-gate はevents込みで判定。
+  - **AC-08（御用達到達80%）はsoftのまま繰越**: 御用達=15M（§10.2の65分カーブ）に届かせるには更なる増産が要るが、artisan=16/perFame=10まで上げると攻め型が過拡大で98%破産（多目的トレードオフ）。**御用達到達の校正は専用のバランス反復（要件の「1万周オートプレイ」）が必要な深い課題**として M3/専用セッションへ。§10.2カーブ改訂 or economyオーバーホールの ADR 判断を伴う。
+  - **AC-10（手動優位+10〜20%）もsoft**: 放置型が頼る自動値付け#15・自動発注#16が M3実装物のため構造的に未達（現+609%）。
+  - **M2まとめ**: 第2層ループ（生涯評価＋転生）・商品43種・イベント30本・バランスゲート（hard=AC-01/02/03/04/05/07 PASS、soft=AC-06/08/09/10）・「1周72分（=2880tick）」成立。実測でGATE OK。残soft校正はM3。
 
 ### 旧・M1計画メモ
 

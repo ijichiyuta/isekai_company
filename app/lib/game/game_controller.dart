@@ -1,6 +1,8 @@
 import 'package:flutter/foundation.dart';
 import 'package:isekai_core/isekai_core.dart';
 
+import 'entitlements.dart';
+import 'iap_stub.dart';
 import 'save_store.dart';
 import 'tick_clock.dart';
 
@@ -43,6 +45,8 @@ class GameController extends ChangeNotifier {
   late GameState _state;
   late MetaState _meta;
   final SaveStore? _store;
+  final Entitlements _entitlements;
+  final IapClient _iap;
   final List<Command> _pending = [];
   GameSpeed _speed = GameSpeed.paused;
   final List<InventionEvent> _inventionQueue = [];
@@ -58,8 +62,12 @@ class GameController extends ChangeNotifier {
     int seed = 1,
     SaveStore? store,
     SaveData? restored,
+    Entitlements? entitlements,
+    IapClient? iap,
   })  : _baseSeed = seed,
         _store = store,
+        _entitlements = entitlements ?? Entitlements(),
+        _iap = iap ?? StubIapClient(),
         engine = Engine(balance) {
     if (restored != null) {
       _state = restored.state; // meta already baked into the saved state
@@ -82,6 +90,38 @@ class GameController extends ChangeNotifier {
   /// Read-only meta progression for the paywall / tree UI (P3), decoupled from
   /// MetaState's storage.
   MetaReader get metaReader => MetaView(_meta, balance.unlocks);
+
+  // --- Monetization (P3) ---
+  bool get isFull => _entitlements.isFull;
+  bool get iapAvailable => _iap.available;
+
+  /// Dynamic unlock accounting for the paywall / tree (AC-16 — from balance).
+  UnlockSummary get unlockSummary => UnlockSummary.compute(metaReader);
+
+  /// Buy 完全版 through the IAP client. On success flips the entitlement and
+  /// persists it (separate file — survives balance changes). Returns success.
+  Future<bool> purchaseFull() async {
+    if (_entitlements.isFull) return true;
+    final ok = await _iap.purchaseFull();
+    if (ok) {
+      _entitlements.isFull = true;
+      await _store?.saveEntitlements(_entitlements);
+      notifyListeners();
+    }
+    return ok;
+  }
+
+  /// Restore a prior 完全版 purchase (App Store 3.1.1 / §14.4). Returns whether
+  /// a purchase was restored.
+  Future<bool> restorePurchases() async {
+    final ok = await _iap.restore();
+    if (ok && !_entitlements.isFull) {
+      _entitlements.isFull = true;
+      await _store?.saveEntitlements(_entitlements);
+      notifyListeners();
+    }
+    return ok;
+  }
   GameSpeed get speed => _speed;
   List<Command> get pending => List.unmodifiable(_pending);
   InventionEvent? get pendingInvention =>
@@ -173,11 +213,13 @@ class GameController extends ChangeNotifier {
     }
   }
 
-  /// Buy the next level of soul-memory unlock [id] (§8.4). Enforces
-  /// prerequisites + affordability + one-shot/infinite in core; the completion-
-  /// tier paywall gate is layered on in the app UI (P3). Returns true on
-  /// purchase, and persists.
+  /// Buy the next level of soul-memory unlock [id] (§8.4). Enforces the 完全版
+  /// tier gate (P3 — 'full' nodes need the purchase; free/auto never gated,
+  /// so #16 自動発注 is always buyable) then prerequisites + affordability +
+  /// one-shot/infinite in core. Returns true on purchase, and persists.
   bool purchaseUnlock(int id) {
+    if (id < 0 || id >= balance.unlocks.length) return false;
+    if (!_entitlements.canPurchase(balance.unlocks[id])) return false; // paywall
     if (!tryPurchaseUnlock(_meta, balance.unlocks, id)) return false;
     _persist();
     notifyListeners();

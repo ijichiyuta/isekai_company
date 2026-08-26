@@ -62,9 +62,12 @@ class _BootstrapState extends ConsumerState<_Bootstrap>
     // way that doesn't chain through balance).
     final balance = ref.watch(balanceProvider);
     final restored = ref.watch(restoredSaveProvider);
+    final entitlements = ref.watch(entitlementsProvider);
     final err = balance.hasError
         ? balance.error
-        : (restored.hasError ? restored.error : null);
+        : (restored.hasError
+            ? restored.error
+            : (entitlements.hasError ? entitlements.error : null));
     if (err != null) {
       return Scaffold(
         body: Center(child: Padding(
@@ -73,7 +76,7 @@ class _BootstrapState extends ConsumerState<_Bootstrap>
         )),
       );
     }
-    if (balance.isLoading || restored.isLoading) {
+    if (balance.isLoading || restored.isLoading || entitlements.isLoading) {
       return const Scaffold(body: Center(child: CircularProgressIndicator()));
     }
     return const GameRoot();

@@ -2,7 +2,9 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:isekai_core/isekai_core.dart';
 
 import 'balance_loader.dart';
+import 'entitlements.dart';
 import 'game_controller.dart';
+import 'iap_stub.dart';
 import 'save_store.dart';
 import 'tick_clock.dart';
 
@@ -32,6 +34,18 @@ final restoredSaveProvider = FutureProvider<SaveData?>((ref) async {
   return store.load();
 });
 
+/// The IAP client. StubIapClient for MVP; swap for RevenueCat in M4. Overridden
+/// in tests with a fake.
+final iapClientProvider = Provider<IapClient>((ref) => StubIapClient());
+
+/// The completion-purchase entitlements, restored from their separate file
+/// (balance-hash-independent). Defaults to not-purchased.
+final entitlementsProvider = FutureProvider<Entitlements>((ref) async {
+  final store = await ref.watch(saveStoreProvider.future);
+  if (store == null) return Entitlements();
+  return store.loadEntitlements();
+});
+
 /// The live game. ChangeNotifierProvider disposes the returned controller
 /// automatically (which stops its clock) — no explicit ref.onDispose, or the
 /// controller would be disposed twice. Reads the loaded balance/store/save via
@@ -42,10 +56,13 @@ final gameControllerProvider =
   final balance = ref.watch(balanceProvider).requireValue;
   final store = ref.watch(saveStoreProvider).requireValue;
   final restored = ref.watch(restoredSaveProvider).requireValue;
+  final entitlements = ref.watch(entitlementsProvider).requireValue;
   return GameController(
     balance: balance,
     clock: ref.watch(tickClockProvider),
     store: store,
     restored: restored,
+    entitlements: entitlements,
+    iap: ref.watch(iapClientProvider),
   );
 });

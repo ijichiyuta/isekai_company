@@ -41,10 +41,13 @@ Widget _framed(Widget child) => ProviderScope(
         ),
         home: Consumer(builder: (c, ref, _) {
           // The child's gameControllerProvider requireValue's balance + store +
-          // restored — wait for balance AND the restored save before building.
+          // restored + entitlements — wait for all before building.
           final b = ref.watch(balanceProvider);
           final r = ref.watch(restoredSaveProvider);
-          if (b.isLoading || r.isLoading) return const SizedBox.shrink();
+          final e = ref.watch(entitlementsProvider);
+          if (b.isLoading || r.isLoading || e.isLoading) {
+            return const SizedBox.shrink();
+          }
           if (b.hasError) return Text('${b.error}');
           return child;
         }),

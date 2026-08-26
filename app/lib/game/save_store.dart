@@ -1,8 +1,11 @@
 import 'dart:async';
+import 'dart:convert';
 import 'dart:io';
 
 import 'package:path_provider/path_provider.dart';
 import 'package:isekai_core/isekai_core.dart';
+
+import 'entitlements.dart';
 
 /// App-layer save persistence — the dart:io boundary (core never touches IO,
 /// §2.2). Writes are ATOMIC (temp file → rename) and keep [generations] rolling
@@ -53,6 +56,26 @@ class SaveStore {
     final tmp = File('${dir.path}/save.tmp');
     await tmp.writeAsString(text, flush: true);
     await tmp.rename(_gen(0).path);
+  }
+
+  // --- Entitlements: a SEPARATE file, deliberately NOT gated by balance_hash
+  // (audit P3 High-2). An economy/balance change rejects the game save but must
+  // never wipe a purchase record. Atomic write; missing/corrupt → not-purchased.
+  File get _entFile => File('${dir.path}/entitlements.json');
+
+  Future<void> saveEntitlements(Entitlements e) async {
+    final tmp = File('${dir.path}/entitlements.tmp');
+    await tmp.writeAsString(canonicalJson(e.toJson()), flush: true);
+    await tmp.rename(_entFile.path);
+  }
+
+  Future<Entitlements> loadEntitlements() async {
+    if (!await _entFile.exists()) return Entitlements();
+    try {
+      final m = jsonDecode(await _entFile.readAsString());
+      if (m is Map<String, dynamic>) return Entitlements.fromJson(m);
+    } catch (_) {/* fall through to default */}
+    return Entitlements();
   }
 
   /// The newest decodable save, falling back across generations on corruption.

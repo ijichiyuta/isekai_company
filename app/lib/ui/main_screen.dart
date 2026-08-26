@@ -11,8 +11,11 @@ import 'develop_screen.dart';
 import 'event_dialog.dart';
 import 'invention_overlay.dart';
 import 'order_screen.dart';
+import 'paywall.dart';
 import 'production_screen.dart';
 import 'sales_screen.dart';
+import 'settings_screen.dart';
+import 'soul_memory_screen.dart';
 import 'theme.dart';
 
 class MainScreen extends ConsumerWidget {
@@ -81,6 +84,16 @@ class _Hud extends StatelessWidget {
               Text('${cal.year}年 ${seasonNames[cal.season]} ${cal.weekOfSeason}週',
                   style: const TextStyle(fontSize: 12)),
             ],
+          ),
+          IconButton(
+            icon: const Icon(Icons.settings, size: 20),
+            tooltip: '設定',
+            visualDensity: VisualDensity.compact,
+            onPressed: () {
+              game.pauseForScreen();
+              Navigator.of(context).push(MaterialPageRoute(
+                  builder: (_) => const SettingsScreen()));
+            },
           ),
         ],
       ),
@@ -337,14 +350,29 @@ class _LifeEndBanner extends StatelessWidget {
                               fontSize: 12, color: Colors.grey)),
                     ],
                     const SizedBox(height: 20),
+                    OutlinedButton.icon(
+                      onPressed: () => Navigator.of(context).push(
+                          MaterialPageRoute(
+                              builder: (_) => const SoulMemoryScreen())),
+                      icon: const Icon(Icons.auto_awesome),
+                      label: const Text('魂の記憶ツリー（恒久アンロック）'),
+                    ),
+                    // Main paywall touchpoint (§14): surfaced from the 2nd life
+                    // onward, and only when 完全版 isn't already owned.
+                    if (!game.isFull && game.lifeNumber >= 2) ...[
+                      const SizedBox(height: 8),
+                      TextButton.icon(
+                        onPressed: () => showPaywall(context),
+                        icon: const Icon(Icons.workspace_premium, size: 18),
+                        label: const Text('完全版で恒久強化を全解放'),
+                      ),
+                    ],
+                    const SizedBox(height: 8),
                     FilledButton.icon(
                       onPressed: game.rebirth,
                       icon: const Icon(Icons.autorenew),
                       label: const Text('転生する（次の人生へ）'),
                     ),
-                    const SizedBox(height: 4),
-                    const Text('※ 魂の記憶ツリー（恒久アンロック）は M3 で実装',
-                        style: TextStyle(fontSize: 11, color: Colors.grey)),
                   ],
                 ),
               ),

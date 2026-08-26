@@ -36,6 +36,10 @@ class DebugMenu extends ConsumerWidget {
             }
             game.debugStep();
           }),
+          _btn('引退（人生終了→評価）', () {
+            game.retire();
+            Navigator.of(context).maybePop();
+          }),
         ],
       ),
     );

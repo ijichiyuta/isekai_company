@@ -43,9 +43,12 @@ class GameController extends ChangeNotifier {
   final List<Command> _pending = [];
   GameSpeed _speed = GameSpeed.paused;
   final List<InventionEvent> _inventionQueue = [];
+  final int _baseSeed;
+  final ScoreParams _scoreParams = ScoreParams.defaults();
 
   GameController({required this.balance, required this.clock, int seed = 1})
-      : engine = Engine(balance) {
+      : _baseSeed = seed,
+        engine = Engine(balance) {
     _state = GameState.initial(balance, seed);
   }
 
@@ -60,6 +63,53 @@ class GameController extends ChangeNotifier {
   int lastWeekRevenue = 0;
   int lastWeekSold = 0;
   bool lastRankedUp = false;
+
+  // --- Second-layer loop: life evaluation & rebirth (§8, requirements §24) ---
+  int lifeNumber = 1;
+  int soulPointsTotal = 0;
+  LifetimeScore? _lifeScore;
+
+  /// The finished life's score, available once the life has ended.
+  LifetimeScore? get lifeScore => _lifeScore;
+
+  /// Soul-memory points this finished life is worth (§8.2/§8.4).
+  int get pendingSoulPoints =>
+      _lifeScore == null ? 0 : soulPointsFromScore(_lifeScore!.total, _scoreParams);
+
+  /// End the life immediately by choice (引退, §8.1). The early-retire penalty
+  /// modelling lands in M2 balance; for now retirement just closes the life.
+  void retire() {
+    if (!_state.alive) return;
+    _state.alive = false;
+    _state.endReason = 'retire';
+    _onLifeEnded();
+    notifyListeners();
+  }
+
+  /// Start the next life (転生). Accumulates soul points; the soul-memory tree
+  /// and meta persistence are M3 — for now it just banks points and resets.
+  void rebirth() {
+    if (_state.alive) return;
+    soulPointsTotal += pendingSoulPoints;
+    lifeNumber++;
+    _lifeScore = null;
+    _inventionQueue.clear();
+    _pending.clear();
+    lastWeekRevenue = 0;
+    lastWeekSold = 0;
+    lastRankedUp = false;
+    _speed = GameSpeed.paused;
+    clock.stop();
+    // A fresh, deterministic seed per life.
+    _state = GameState.initial(balance, _baseSeed + lifeNumber);
+    notifyListeners();
+  }
+
+  void _onLifeEnded() {
+    _lifeScore ??= computeLifetimeScore(_state, balance, _scoreParams);
+    _speed = GameSpeed.paused;
+    clock.stop();
+  }
 
   RecipeDef? recipeById(int id) =>
       id >= 0 && id < balance.recipes.length ? balance.recipes[id] : null;
@@ -124,6 +174,9 @@ class GameController extends ChangeNotifier {
       _speed = GameSpeed.paused;
       clock.stop();
     }
+
+    // Life ended this tick (lifespan/bankruptcy) → compute the score once.
+    if (!_state.alive) _onLifeEnded();
     notifyListeners();
   }
 

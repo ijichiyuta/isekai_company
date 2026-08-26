@@ -86,4 +86,32 @@ void main() {
     expect(clock.isRunning, isFalse);
     expect(g.state.week, lessThanOrEqualTo(balance.economy.lifespanWeeks));
   });
+
+  test('life end computes a lifetime score (§8.2)', () {
+    final g = GameController(balance: balance, clock: FakeTickClock(), seed: 1);
+    expect(g.lifeScore, isNull);
+    g.retire();
+    expect(g.isAlive, isFalse);
+    expect(g.lifeScore, isNotNull);
+    expect(g.lifeScore!.total, greaterThanOrEqualTo(0));
+    expect(g.pendingSoulPoints, greaterThanOrEqualTo(0));
+  });
+
+  test('rebirth banks soul points and starts a fresh, later life', () {
+    final g = GameController(balance: balance, clock: FakeTickClock(), seed: 1);
+    // Develop pudding so the finished life has a non-zero score.
+    developPudding(g);
+    g.acknowledgeInvention();
+    g.retire();
+    final earned = g.pendingSoulPoints;
+    expect(g.lifeNumber, 1);
+
+    g.rebirth();
+    expect(g.lifeNumber, 2);
+    expect(g.soulPointsTotal, earned);
+    expect(g.isAlive, isTrue);
+    expect(g.state.week, 0);
+    expect(g.state.discoveries, 0); // fresh life
+    expect(g.lifeScore, isNull);
+  });
 }

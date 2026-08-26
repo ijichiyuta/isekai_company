@@ -13,4 +13,5 @@ export 'src/hash.dart';
 export 'src/money.dart';
 export 'src/rng.dart';
 export 'src/save.dart';
+export 'src/score.dart';
 export 'src/state.dart';

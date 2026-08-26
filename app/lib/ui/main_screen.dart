@@ -283,37 +283,85 @@ class _BottomNav extends StatelessWidget {
   }
 }
 
+/// 人生終了・評価画面 (requirements §8.2, screen #16). Shows the lifetime score
+/// breakdown and the soul points earned, then offers 転生 (rebirth).
 class _LifeEndBanner extends StatelessWidget {
   const _LifeEndBanner({required this.game});
   final GameController game;
 
   @override
   Widget build(BuildContext context) {
-    final reason = game.state.endReason == 'bankrupt' ? '破産' : '寿命';
+    final reason = switch (game.state.endReason) {
+      'bankrupt' => '破産',
+      'retire' => '引退',
+      _ => '寿命',
+    };
+    final sc = game.lifeScore;
     return Positioned.fill(
       child: Container(
         color: Colors.black54,
         child: Center(
-          child: Card(
-            child: Padding(
-              padding: const EdgeInsets.all(24),
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  Text('人生終了（$reason）',
-                      style: const TextStyle(
-                          fontSize: 20, fontWeight: FontWeight.bold)),
-                  const SizedBox(height: 8),
-                  Text('到達ランク: ${game.balance.ranks[game.state.rank].name}'),
-                  Text('発見レシピ: ${game.state.discoveries}種'),
-                  const SizedBox(height: 4),
-                  const Text('（転生システムは M3 で実装）',
-                      style: TextStyle(fontSize: 12, color: Colors.grey)),
-                ],
+          child: SingleChildScrollView(
+            child: Card(
+              margin: const EdgeInsets.all(24),
+              child: Padding(
+                padding: const EdgeInsets.all(24),
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Text('${game.lifeNumber}周目の人生が終わった（$reason）',
+                        style: const TextStyle(
+                            fontSize: 18, fontWeight: FontWeight.bold)),
+                    const SizedBox(height: 4),
+                    Text('到達ランク: ${game.balance.ranks[game.state.rank].name}',
+                        style: const TextStyle(fontSize: 13)),
+                    const Divider(height: 24),
+                    if (sc != null) ...[
+                      _row('最終資産', sc.assetsPart),
+                      _row('累積名声', sc.famePart),
+                      _row('発見レシピ (${game.state.discoveries}種)', sc.recipesPart),
+                      _row('到達ランク', sc.rankPart),
+                      const Divider(height: 16),
+                      _row('生涯スコア', sc.total, bold: true),
+                      const SizedBox(height: 8),
+                      Text('✨ 魂の記憶 +${game.pendingSoulPoints} pt',
+                          style: const TextStyle(
+                              color: kFame, fontWeight: FontWeight.bold)),
+                      Text('（累計 ${game.soulPointsTotal + game.pendingSoulPoints} pt）',
+                          style: const TextStyle(
+                              fontSize: 12, color: Colors.grey)),
+                    ],
+                    const SizedBox(height: 20),
+                    FilledButton.icon(
+                      onPressed: game.rebirth,
+                      icon: const Icon(Icons.autorenew),
+                      label: const Text('転生する（次の人生へ）'),
+                    ),
+                    const SizedBox(height: 4),
+                    const Text('※ 魂の記憶ツリー（恒久アンロック）は M3 で実装',
+                        style: TextStyle(fontSize: 11, color: Colors.grey)),
+                  ],
+                ),
               ),
             ),
           ),
         ),
+      ),
+    );
+  }
+
+  Widget _row(String label, int pts, {bool bold = false}) {
+    final style = TextStyle(
+        fontWeight: bold ? FontWeight.bold : FontWeight.normal,
+        fontSize: bold ? 16 : 14);
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 2),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        children: [
+          Text(label, style: style),
+          Text('$pts pt', style: style),
+        ],
       ),
     );
   }

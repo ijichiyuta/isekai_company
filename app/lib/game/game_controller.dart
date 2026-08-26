@@ -114,8 +114,10 @@ class GameController extends ChangeNotifier {
     lastRankedUp = false;
     _speed = GameSpeed.paused;
     clock.stop();
-    // A fresh, deterministic seed per life.
-    _state = GameState.initial(balance, _baseSeed + lifeNumber);
+    // A fresh, deterministic seed per life. Thread lifeNumber into the state so
+    // cycle events (min_life >= 2) can actually fire on later lives (§3.7).
+    _state = GameState.initial(balance, _baseSeed + lifeNumber,
+        lifeNumber: lifeNumber);
     notifyListeners();
   }
 

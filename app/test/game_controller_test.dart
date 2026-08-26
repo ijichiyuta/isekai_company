@@ -125,5 +125,8 @@ void main() {
     expect(g.state.week, 0);
     expect(g.state.discoveries, 0); // fresh life
     expect(g.lifeScore, isNull);
+    // lifeNumber must be threaded into the new GameState so cycle events work
+    // (audit D-2 fix).
+    expect(g.state.lifeNumber, 2);
   });
 }

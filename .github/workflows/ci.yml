@@ -36,12 +36,14 @@ jobs:
           cd packages/headless
           dart run bin/run.dart --balance ../../assets/balance \
             --lives 200 --seed 1 --verify-replay
-      - name: Final hashes for cross-arch comparison
+      - name: Final hashes for cross-arch comparison (events-less AND events)
         run: |
           cd packages/headless
           dart run bin/run.dart --balance ../../assets/balance \
             --lives 5 --seed 777 --hash-only > hashes-${{ matrix.os }}.txt
-          cat hashes-${{ matrix.os }}.txt
+          dart run bin/run.dart --balance ../../assets/balance --with-events \
+            --lives 5 --seed 777 --hash-only > hashes-events-${{ matrix.os }}.txt
+          cat hashes-${{ matrix.os }}.txt hashes-events-${{ matrix.os }}.txt
       - uses: actions/upload-artifact@v4
         with:
           name: hashes-${{ matrix.os }}
@@ -137,11 +139,13 @@ jobs:
         with:
           pattern: hashes-*
           merge-multiple: false
-      - name: Compare
+      - name: Compare (events-less AND events-loaded)
         run: |
           diff hashes-ubuntu-latest/hashes-ubuntu-latest.txt \
                hashes-macos-latest/hashes-macos-latest.txt
-          echo "cross-arch determinism: OK"
+          diff hashes-ubuntu-latest/hashes-events-ubuntu-latest.txt \
+               hashes-macos-latest/hashes-events-macos-latest.txt
+          echo "cross-arch determinism (with and without events): OK"
 
   nightly-10k:
     name: nightly 10k lives

@@ -93,6 +93,51 @@ GateReport evaluateGate(Balance balance, {int lives = 300, int seedBase = 1}) {
     // (structurally unreachable until #15/#16 automation in M3).
     GateResult('AC-10', 'attack vs idle rev/wk', '+$advPct%', '+10..20%',
         advPct >= 10 && advPct <= 20, false),
+    // AC-09 (soft): the §10.2 funds curve within ±50% at checkpoints. Measured
+    // honestly (not hidden) — currently far off, which is the economy-shape
+    // problem carried to M3 (the near-geometric §10.2 curve vs the capacity-
+    // limited linear economy). Reported so the deviation is visible.
+    _ac09(balance, lives, seedBase),
   ];
   return GateReport(results, balance.contentHash);
+}
+
+// §10.2 checkpoints: 10/25/45/65 min → ticks 400/1000/1800/2600, targets in G.
+const _curveTicks = [400, 1000, 1800, 2600];
+const _curveTargets = [2000, 40000, 800000, 15000000];
+
+GateResult _ac09(Balance balance, int lives, int seedBase) {
+  final steady = botRegistry['steady']!;
+  // Median funds at each checkpoint across lives.
+  final samplesByCp = List.generate(_curveTicks.length, (_) => <int>[]);
+  for (var i = 0; i < lives; i++) {
+    final s = GameState.initial(balance, seedBase + i);
+    final engine = Engine(balance);
+    final bot = steady(balance);
+    var ci = 0;
+    while (s.alive) {
+      engine.tick(s, bot.decide(s));
+      while (ci < _curveTicks.length && s.week >= _curveTicks[ci]) {
+        samplesByCp[ci].add(s.funds);
+        ci++;
+      }
+    }
+    for (; ci < _curveTicks.length; ci++) {
+      samplesByCp[ci].add(s.funds);
+    }
+  }
+  var worstRatioPct = 100; // 100 = on target
+  final parts = <String>[];
+  for (var c = 0; c < _curveTicks.length; c++) {
+    final med = median(samplesByCp[c]);
+    final target = _curveTargets[c];
+    final ratioPct = target == 0 ? 100 : med * 100 ~/ target;
+    parts.add('${_curveTicks[c]}w:${ratioPct}%');
+    if ((ratioPct - 100).abs() > (worstRatioPct - 100).abs()) {
+      worstRatioPct = ratioPct;
+    }
+  }
+  final within = (worstRatioPct - 100).abs() <= 50;
+  return GateResult('AC-09', 'curve vs §10.2 (${parts.join(" ")})',
+      'worst ${worstRatioPct}%', '±50%', within, false);
 }

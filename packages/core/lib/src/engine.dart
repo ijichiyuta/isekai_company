@@ -241,7 +241,7 @@ class Engine {
           // long reward-free run can't happen (§10.4 reward pacing / AC-05).
           final pity = eco.eventPityTicks > 0 && s.eventDry >= eco.eventPityTicks;
           if (roll < eco.eventFirePermille || pity) {
-            firedEventId = _selectWeighted(s, pick);
+            firedEventId = _selectWeighted(s, pick, pity);
             if (firedEventId >= 0) {
               s.pendingEventId = firedEventId;
               s.firedThisLife.add(firedEventId);
@@ -315,9 +315,15 @@ class Engine {
   /// the fired set resets so events keep flowing all life (no back-to-back
   /// repeats — §3.7 "same event not repeated"). Returns -1 only if nothing is
   /// eligible even after a reset (e.g. all gated by fame the player lacks).
-  int _selectWeighted(GameState s, int pick) {
+  int _selectWeighted(GameState s, int pick, bool pityForced) {
     var total = _eligibleWeight(s);
     if (total <= 0) {
+      // Normal firing respects §3.7 (no repeat within a life): reset the bag
+      // ONLY when every non-forced event has genuinely fired. A pool emptied by
+      // fame-gating is NOT a full bag → skip firing. BUT a pity-forced fire may
+      // reset early to guarantee reward pacing (a rare re-show at the pity
+      // cadence beats a long dead stretch — AC-05).
+      if (!_bagFull(s) && !pityForced) return -1;
       s.firedThisLife.clear();
       total = _eligibleWeight(s);
       if (total <= 0) return -1;
@@ -337,6 +343,14 @@ class Engine {
       if (_eligible(s, e)) t += e.weight;
     }
     return t;
+  }
+
+  /// True when every non-forced event has already fired this life.
+  bool _bagFull(GameState s) {
+    for (final e in balance.events) {
+      if (!e.forcedFameReached && !s.firedThisLife.contains(e.id)) return false;
+    }
+    return true;
   }
 
   bool _eligible(GameState s, EventDef e) =>

@@ -18,6 +18,7 @@ void main(List<String> args) {
   var hashOnly = false;
   var compare = false;
   var gate = false;
+  var withEvents = false;
   var botName = 'steady';
   String? csvPath;
 
@@ -35,6 +36,8 @@ void main(List<String> args) {
         compare = true;
       case '--gate':
         gate = true;
+      case '--with-events':
+        withEvents = true;
       case '--verify-replay':
         verify = true;
       case '--hash-only':
@@ -51,7 +54,9 @@ void main(List<String> args) {
       Directory('../../$balanceDir').existsSync()) {
     balanceDir = '../../$balanceDir';
   }
-  final balance = loadBalanceFromDir(balanceDir);
+  // --with-events loads the real game config so its determinism (incl. events)
+  // can be cross-arch verified in CI (audit H-1).
+  final balance = loadBalanceFromDir(balanceDir, withEvents: withEvents);
 
   if (compare) {
     _runCompare(balance, lives, seed);

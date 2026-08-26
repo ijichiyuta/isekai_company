@@ -40,6 +40,14 @@ void main() {
     expect(g.state.funds, balance.economy.startFunds + s1.modValue);
   });
 
+  test('speed3 unlock gates the ×3 speed control (§8.4 #14)', () {
+    final g = GameController(balance: balance, clock: FakeTickClock(), seed: 1);
+    expect(g.speedX3Unlocked, isFalse);
+    final s3 = balance.unlocks.firstWhere((u) => u.modType == 'speed3');
+    g.meta.unlockLevels[s3.id] = 1; // arrange (full-tier → granted directly)
+    expect(g.speedX3Unlocked, isTrue);
+  });
+
   test('unlocks + soul points persist across a relaunch', () async {
     final tmp = Directory.systemTemp.createTempSync('isekai_meta');
     addTearDown(() => tmp.deleteSync(recursive: true));

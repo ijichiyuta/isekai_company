@@ -142,7 +142,7 @@ class GameState {
     final s = GameState.initial(b, seed,
         allowedBandMax: allowedBandMax, lifeNumber: lifeNumber);
     var addFunds = 0, addEmp = 0, addRank = 0, addEquip = 0, addQuality = 0;
-    var fundsPct = 0, prod = 0, sales = 0, order = 0;
+    var fundsPct = 0, prod = 0, sales = 0, order = 0, grantRecipes = 0;
     for (final u in b.unlocks) {
       final lvl = meta.levelOf(u.id);
       if (lvl <= 0) continue;
@@ -165,8 +165,23 @@ class GameState {
           sales += u.modValue * lvl;
         case 'order_discount':
           order += u.modValue * lvl;
+        case 'grant_recipes':
+          grantRecipes += u.modValue * lvl;
         default:
           break; // feature-gated; no effect until its feature exists
+      }
+    }
+    // 基本レシピの継承 (§8.4 #5): pre-discover the first N band-1 staples so 2周目
+    // starts with a working product line. Discovered (not invented) — no bonus.
+    if (grantRecipes > 0) {
+      var granted = 0;
+      for (final r in b.recipes) {
+        if (granted >= grantRecipes) break;
+        if (r.band == 1 && !r.invention && !s.discovered[r.id]) {
+          s.discovered[r.id] = true;
+          s.discoveries++;
+          granted++;
+        }
       }
     }
     // ADD phase, each clamped to its valid range.

@@ -91,6 +91,11 @@ class GameController extends ChangeNotifier {
   /// MetaState's storage.
   MetaReader get metaReader => MetaView(_meta, balance.unlocks);
 
+  /// ×3 speed is unlocked by 時の加速 (§8.4 #14). Until then the speed control
+  /// tops out at ×2 (the tree UI + paywall surface the upgrade).
+  bool get speedX3Unlocked =>
+      balance.unlocks.any((u) => u.modType == 'speed3' && _meta.isUnlocked(u.id));
+
   // --- Monetization (P3) ---
   bool get isFull => _entitlements.isFull;
   bool get iapAvailable => _iap.available;

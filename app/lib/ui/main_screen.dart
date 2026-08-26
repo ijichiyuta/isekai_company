@@ -243,14 +243,16 @@ class _SpeedBar extends StatelessWidget {
             ),
           const Spacer(),
           for (final sp in GameSpeed.values)
-            Padding(
-              padding: const EdgeInsets.only(left: 6),
-              child: ChoiceChip(
-                label: Text(sp.label),
-                selected: game.speed == sp,
-                onSelected: game.isAlive ? (_) => game.setSpeed(sp) : null,
+            // ×3 is gated behind 時の加速 (§8.4 #14) — hidden until unlocked.
+            if (sp != GameSpeed.x3 || game.speedX3Unlocked)
+              Padding(
+                padding: const EdgeInsets.only(left: 6),
+                child: ChoiceChip(
+                  label: Text(sp.label),
+                  selected: game.speed == sp,
+                  onSelected: game.isAlive ? (_) => game.setSpeed(sp) : null,
+                ),
               ),
-            ),
         ],
       ),
     );

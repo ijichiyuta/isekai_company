@@ -121,6 +121,8 @@ const Set<String> functionalModTypes = {
   'production_bonus',
   'sales_bonus',
   'order_discount',
+  'grant_recipes', // pre-discovers staple recipes at life start (fromMeta)
+  'speed3', // unlocks the ×3 speed control (app-level effect)
 };
 
 /// Whether [u]'s effect is wired into the simulation today (see

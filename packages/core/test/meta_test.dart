@@ -234,6 +234,21 @@ void main() {
     expect(r.unlocksOfTier('full').map((u) => u.id), [5, 6]);
   });
 
+  test('grant_recipes pre-discovers band-1 staples (§8.4 #5)', () {
+    final b = testBalanceFull();
+    final gr = b.unlocks.firstWhere((u) => u.modType == 'grant_recipes');
+    final meta = MetaState.initial()..ensureUnlockSlots(b.unlocks.length);
+    meta.unlockLevels[gr.id] = 1;
+    final s = GameState.fromMeta(b, 1, meta);
+    expect(s.discoveries, gr.modValue); // 3
+    final discovered = [
+      for (var i = 0; i < s.discovered.length; i++)
+        if (s.discovered[i]) b.recipes[i]
+    ];
+    expect(discovered.length, gr.modValue);
+    expect(discovered.every((r) => r.band == 1 && !r.invention), isTrue);
+  });
+
   test('fromMeta-applied state replays bit-identically', () {
     final b = _b();
     final meta = _meta(levels: [1, 1, 1, 1, 1, 2, 0]);

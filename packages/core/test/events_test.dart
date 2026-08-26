@@ -129,8 +129,9 @@ void main() {
       return fires;
     }
 
-    // Cycle events are ids 26-29 (min_life:2).
-    bool hasCycle(List<int> f) => f.any((id) => id >= 26 && id <= 29);
+    // Cycle events are those with min_life>=2 (generalized so new cycle events
+    // are covered, not just the original 26-29).
+    bool hasCycle(List<int> f) => f.any((id) => eventful.events[id].minLife >= 2);
     expect(hasCycle(firesOverLife(1)), isFalse, reason: 'life 1: no cycle');
     expect(hasCycle(firesOverLife(2)), isTrue, reason: 'life 2: cycle appears');
   });

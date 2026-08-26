@@ -127,6 +127,7 @@ class GameController extends ChangeNotifier {
     final ok = await _iap.restore();
     if (ok && !_entitlements.isFull) {
       _entitlements.isFull = true;
+      _analytics.event(AnalyticsEvents.restore);
       await _store?.saveEntitlements(_entitlements);
       notifyListeners();
     }

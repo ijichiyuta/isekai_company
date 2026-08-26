@@ -47,10 +47,20 @@ void main() {
     final s = UnlockSummary.compute(reader);
     expect(s.total, balance.unlocks.length); // 24, from balance
     expect(s.owned, 0);
-    expect(s.fullLocked, balance.unlocks.where((u) => u.tier == 'full').length);
-    expect(s.freeReachable,
-        balance.unlocks.where((u) => u.tier != 'full').length);
+    // Only FUNCTIONAL (shipped) nodes count as buyable — feature-gated nodes
+    // are excluded so the paywall doesn't overstate its value (景表法).
+    final funcFull = balance.unlocks
+        .where((u) => u.tier == 'full' && isUnlockFunctional(u))
+        .length;
+    final funcOther = balance.unlocks
+        .where((u) => u.tier != 'full' && isUnlockFunctional(u))
+        .length;
+    expect(s.fullLocked, funcFull);
+    expect(s.freeReachable, funcOther);
     expect(s.unlockedByFull, s.fullLocked);
+    // Guard: the buyable-full count is the functional subset, not all full.
+    expect(s.fullLocked,
+        lessThan(balance.unlocks.where((u) => u.tier == 'full').length));
 
     // A smaller tree yields smaller counts — proves it's not a constant.
     final tiny = Balance.fromJsonMaps(

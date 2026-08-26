@@ -56,7 +56,7 @@ class _PaywallSheet extends ConsumerWidget {
               ),
               const SizedBox(height: 8),
               const Text(
-                '※ 種族・自動化・倍速×3 などの高度な機能は、今後の'
+                '※ 種族・自動化・流行予測 などの高度な機能は、今後の'
                 'アップデートで順次有効化されます。',
                 style: TextStyle(fontSize: 11, color: Colors.grey),
               ),

@@ -54,7 +54,13 @@ class UnlockSummary {
       total++;
       if (meta.isUnlocked(u.id)) {
         owned++;
-      } else if (u.tier == 'full') {
+        continue;
+      }
+      // Feature-gated (今後有効化) nodes aren't buyable yet — exclude them from
+      // the "buyable / 完全版で解放" counts so the paywall never overstates the
+      // value it actually unlocks now (景表法 — audit M4 P1).
+      if (!isUnlockFunctional(u)) continue;
+      if (u.tier == 'full') {
         fullLocked++;
       } else {
         freeReachable++; // free or auto

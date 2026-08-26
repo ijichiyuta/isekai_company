@@ -47,6 +47,36 @@ class _DevelopScreenState extends ConsumerState<DevelopScreen> {
 
     return Scaffold(
       appBar: AppBar(title: const Text('PB開発')),
+      // The primary action is pinned so it never scrolls off (the recipe list
+      // grows as more materials/recipes are added).
+      bottomNavigationBar: SafeArea(
+        child: Padding(
+          padding: const EdgeInsets.all(12),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              if (canDevelop && !affordable)
+                const Padding(
+                  padding: EdgeInsets.only(bottom: 6),
+                  child:
+                      Text('資金が足りません', style: TextStyle(color: Colors.red)),
+                ),
+              SizedBox(
+                width: double.infinity,
+                child: FilledButton.icon(
+                  onPressed: canDevelop && affordable
+                      ? () => _develop(game, context)
+                      : null,
+                  icon: const Icon(Icons.science),
+                  label: Text(canDevelop
+                      ? '開発する（素材費 ${cost}G）'
+                      : '素材を2つ選んでください'),
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
       body: ListView(
         padding: const EdgeInsets.all(16),
         children: [
@@ -83,21 +113,6 @@ class _DevelopScreenState extends ConsumerState<DevelopScreen> {
                 ),
             ],
           ),
-          const SizedBox(height: 20),
-          FilledButton.icon(
-            onPressed: canDevelop && affordable
-                ? () => _develop(game, context)
-                : null,
-            icon: const Icon(Icons.science),
-            label: Text(canDevelop
-                ? '開発する（素材費 ${cost}G）'
-                : '素材を2つ選んでください'),
-          ),
-          if (canDevelop && !affordable)
-            const Padding(
-              padding: EdgeInsets.only(top: 8),
-              child: Text('資金が足りません', style: TextStyle(color: Colors.red)),
-            ),
           const Divider(height: 32),
           Text('発見済みレシピ（${game.state.discoveries}種）',
               style: const TextStyle(fontWeight: FontWeight.bold)),

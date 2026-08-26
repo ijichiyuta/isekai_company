@@ -173,6 +173,15 @@ Opus 4.8 並列3体で M1 を監査（実測裏取り）。**総合 NO-GO**（�
 
 M1残（画像生成環境が必要／M3以降）: 実AIアセット量産テスト、tutorial永続化＋2周目省略、Build in Public。
 
+## M2 実装（2026-08-26、計画→監査→是正→実装）
+
+計画は `docs/m2-plan.md`、監査と是正は `docs/m2-plan-audit.md`。是正済み順序で実装:
+
+- **#1 需要プール公平配分**（commit f812464）: id順ドレイン→water-fill（engine.dart）。監査D-2修正。
+- **#2 報酬間隔計測＋ゲート**（commit 501cf2f）: stats.dart（percentile/IntervalStats）＋runner報酬tick収集（core無改変）＋gate.dart（hard=AC-04/07、soft=AC-05/08/10）＋`--gate`＋CI balance-gate。
+- **#3 コンテンツ拡張**: 素材8→20（id8-19）、レシピ11→43（id11-42追記、ADR-0001準拠で既存不変）。band1=37（AC-04余裕）/band2=4/band3=2、発明8種(18.6%)。全43comboユニーク（loaderが検証、新hash 1861475d）。実測: 発見37種でAC-04 PASS、破産0%、決定論維持。develop画面の開発ボタンを下部固定（20素材でスクロール落ちしないUX改善）。app15テスト通過。
+  - AC-05は p90 879→110 に改善（events #4 で更に無報酬ギャップを埋める）、AC-08御用達0%は #5 economy校正待ち。
+
 ### 旧・M1計画メモ
 
 アートバイブル確定＋AI生成→量子化パイプライン→顔グラ1種族＋アイコン20点の量産テスト（/game-visual-qa合格がゲート）／Build in Public開始。

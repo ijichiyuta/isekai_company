@@ -1,6 +1,7 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:isekai_core/isekai_core.dart';
 
+import 'analytics.dart';
 import 'balance_loader.dart';
 import 'entitlements.dart';
 import 'game_controller.dart';
@@ -38,6 +39,10 @@ final restoredSaveProvider = FutureProvider<SaveData?>((ref) async {
 /// in tests with a fake.
 final iapClientProvider = Provider<IapClient>((ref) => StubIapClient());
 
+/// Analytics client. NoopAnalytics for MVP; swap for the real SDK in M4 (needs
+/// the user's keys). Overridden in tests with a capturing fake.
+final analyticsProvider = Provider<AnalyticsClient>((ref) => const NoopAnalytics());
+
 /// The completion-purchase entitlements, restored from their separate file
 /// (balance-hash-independent). Defaults to not-purchased.
 final entitlementsProvider = FutureProvider<Entitlements>((ref) async {
@@ -64,5 +69,6 @@ final gameControllerProvider =
     restored: restored,
     entitlements: entitlements,
     iap: ref.watch(iapClientProvider),
+    analytics: ref.watch(analyticsProvider),
   );
 });

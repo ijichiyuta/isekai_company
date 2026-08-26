@@ -1,6 +1,7 @@
 import 'package:flutter/foundation.dart';
 import 'package:isekai_core/isekai_core.dart';
 
+import 'analytics.dart';
 import 'entitlements.dart';
 import 'iap_stub.dart';
 import 'save_store.dart';
@@ -47,6 +48,7 @@ class GameController extends ChangeNotifier {
   final SaveStore? _store;
   final Entitlements _entitlements;
   final IapClient _iap;
+  final AnalyticsClient _analytics;
   final List<Command> _pending = [];
   GameSpeed _speed = GameSpeed.paused;
   final List<InventionEvent> _inventionQueue = [];
@@ -64,10 +66,12 @@ class GameController extends ChangeNotifier {
     SaveData? restored,
     Entitlements? entitlements,
     IapClient? iap,
+    AnalyticsClient? analytics,
   })  : _baseSeed = seed,
         _store = store,
         _entitlements = entitlements ?? Entitlements(),
         _iap = iap ?? StubIapClient(),
+        _analytics = analytics ?? const NoopAnalytics(),
         engine = Engine(balance) {
     if (restored != null) {
       _state = restored.state; // meta already baked into the saved state
@@ -110,6 +114,7 @@ class GameController extends ChangeNotifier {
     final ok = await _iap.purchaseFull();
     if (ok) {
       _entitlements.isFull = true;
+      _analytics.event(AnalyticsEvents.purchaseFull);
       await _store?.saveEntitlements(_entitlements);
       notifyListeners();
     }
@@ -203,6 +208,7 @@ class GameController extends ChangeNotifier {
     // the state so cycle events (min_life >= 2) can fire on later lives (§3.7).
     _state = GameState.fromMeta(balance, _baseSeed + lifeNumber, _meta,
         lifeNumber: lifeNumber);
+    _analytics.event(AnalyticsEvents.rebirth, {'life': lifeNumber});
     _persist(); // bank the new soul points + fresh life
     notifyListeners();
   }
@@ -226,6 +232,8 @@ class GameController extends ChangeNotifier {
     if (id < 0 || id >= balance.unlocks.length) return false;
     if (!_entitlements.canPurchase(balance.unlocks[id])) return false; // paywall
     if (!tryPurchaseUnlock(_meta, balance.unlocks, id)) return false;
+    _analytics.event(AnalyticsEvents.unlockBought,
+        {'id': id, 'key': balance.unlocks[id].key});
     _persist();
     notifyListeners();
     return true;
@@ -238,6 +246,12 @@ class GameController extends ChangeNotifier {
     }
     _speed = GameSpeed.paused;
     clock.stop();
+    _analytics.event(AnalyticsEvents.lifeEnd, {
+      'life': lifeNumber,
+      'reason': _state.endReason,
+      'rank': _state.rank,
+      'score': _lifeScore!.total,
+    });
     _persist(); // the ended life is worth saving (resume shows the result)
   }
 
@@ -245,6 +259,7 @@ class GameController extends ChangeNotifier {
   void completeTutorial() {
     if (_meta.tutorialDone) return;
     _meta.tutorialDone = true;
+    _analytics.event(AnalyticsEvents.tutorialDone);
     _persist();
     notifyListeners();
   }

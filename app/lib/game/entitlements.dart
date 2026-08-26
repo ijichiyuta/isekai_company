@@ -1,5 +1,15 @@
 import 'package:isekai_core/isekai_core.dart';
 
+/// 完全版 price label for the paywall (要件§13: 買い切り ¥1,200, 非消耗). MVP shows
+/// this constant; M4 replaces it with the store-localized price from RevenueCat.
+const String fullVersionPriceLabel = '¥1,200';
+
+/// Legal document URLs (要件§23.3 / §14.4: 購入前に EULA・ポリシー・特商法 を提示).
+/// Placeholders until the real hosted URLs land in M4 (needs-user).
+const String eulaUrl = 'https://example.com/isekai-company/eula'; // TODO(M4)
+const String privacyUrl = 'https://example.com/isekai-company/privacy'; // TODO(M4)
+const String tokushohoUrl = 'https://example.com/isekai-company/tokushoho'; // TODO(M4)
+
 /// Non-consumable purchase state (完全版). The single paid product for MVP
 /// unlocks every 'full'-tier soul-memory node (§8.4) plus the premium features.
 /// Persisted SEPARATELY from the game save (balance-hash-independent) so an

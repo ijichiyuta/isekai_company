@@ -57,8 +57,8 @@ void main() {
     await _pump(t, const SoulMemoryScreen(), iap: _FakeIap(true));
     await t.tap(find.byIcon(Icons.lock_open)); // header CTA (unique icon)
     await t.pumpAndSettle();
-    expect(find.text('完全版を購入'), findsOneWidget);
-    await t.tap(find.text('完全版を購入'));
+    expect(find.textContaining('完全版を購入'), findsOneWidget);
+    await t.tap(find.textContaining('完全版を購入'));
     await t.pumpAndSettle();
     expect(find.text('✔ 完全版 購入済み'), findsOneWidget); // header now owned
   });

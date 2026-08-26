@@ -13,7 +13,6 @@ import 'package:isekai_app/ui/invention_overlay.dart';
 import 'package:isekai_app/ui/main_screen.dart';
 import 'package:isekai_app/ui/onboarding.dart';
 import 'package:isekai_app/ui/theme.dart';
-import 'package:isekai_core/isekai_core.dart';
 
 import 'helpers.dart';
 

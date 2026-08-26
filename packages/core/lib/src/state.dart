@@ -30,6 +30,15 @@ class GameState {
   int totalRevenue;
   int rewardEvents;
 
+  // Event state (requirements §3.7). ALL default here, and toJson omits any
+  // field at its default, so an events-less world (headless) serializes exactly
+  // as before events existed — keeping AC-01/02/03 hashes unchanged (audit A-D2).
+  int lifeNumber; // 1 by default; cycle events need >=2
+  int pendingEventId; // -1 = none pending
+  bool royalCleared; // 御用達 gate: royal contract accepted
+  int eventDry; // ticks since the last event fired (pity timer)
+  final List<int> firedThisLife; // event ids fired this life (no repeat)
+
   final RngStreams rng;
 
   GameState.raw({
@@ -50,10 +59,16 @@ class GameState {
     required this.rankUps,
     required this.totalRevenue,
     required this.rewardEvents,
+    required this.lifeNumber,
+    required this.pendingEventId,
+    required this.royalCleared,
+    required this.eventDry,
+    required this.firedThisLife,
     required this.rng,
   });
 
-  factory GameState.initial(Balance b, int seed, {int allowedBandMax = 1}) =>
+  factory GameState.initial(Balance b, int seed,
+          {int allowedBandMax = 1, int lifeNumber = 1}) =>
       GameState.raw(
         week: 0,
         funds: b.economy.startFunds,
@@ -72,6 +87,11 @@ class GameState {
         rankUps: 0,
         totalRevenue: 0,
         rewardEvents: 0,
+        lifeNumber: lifeNumber,
+        pendingEventId: -1,
+        royalCleared: false,
+        eventDry: 0,
+        firedThisLife: <int>[],
         rng: RngStreams.seeded(seed),
       );
 
@@ -96,6 +116,13 @@ class GameState {
         'rank_ups': rankUps,
         'total_revenue': totalRevenue,
         'reward_events': rewardEvents,
+        // Event fields: emitted ONLY when non-default so an events-less world
+        // hashes identically to the pre-events build (audit A-D2).
+        if (lifeNumber != 1) 'life_number': lifeNumber,
+        if (pendingEventId != -1) 'pending_event': pendingEventId,
+        if (royalCleared) 'royal_cleared': true,
+        if (eventDry != 0) 'event_dry': eventDry,
+        if (firedThisLife.isNotEmpty) 'fired_events': List<int>.of(firedThisLife),
         'rng': rng.toJson(),
       };
 
@@ -117,6 +144,13 @@ class GameState {
         rankUps: m['rank_ups'] as int,
         totalRevenue: m['total_revenue'] as int,
         rewardEvents: m['reward_events'] as int,
+        // Event fields default when absent (v1 backward compat, audit A-D2).
+        lifeNumber: (m['life_number'] as int?) ?? 1,
+        pendingEventId: (m['pending_event'] as int?) ?? -1,
+        royalCleared: (m['royal_cleared'] as bool?) ?? false,
+        eventDry: (m['event_dry'] as int?) ?? 0,
+        firedThisLife:
+            ((m['fired_events'] as List?)?.cast<int>().toList()) ?? <int>[],
         rng: RngStreams.fromJson(m['rng'] as Map<String, dynamic>),
       );
 

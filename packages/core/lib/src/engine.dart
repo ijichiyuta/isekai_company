@@ -5,6 +5,7 @@ library;
 
 import 'balance.dart';
 import 'commands.dart';
+import 'events.dart';
 import 'money.dart';
 import 'state.dart';
 
@@ -24,11 +25,13 @@ class TickResult {
   final int weeklyRevenue;
   final int weeklySold;
   final bool rankedUp;
+  final int firedEventId; // event that fired this tick, or -1
   const TickResult({
     required this.inventions,
     required this.weeklyRevenue,
     required this.weeklySold,
     required this.rankedUp,
+    this.firedEventId = -1,
   });
 
   static const empty = TickResult(
@@ -131,6 +134,20 @@ class Engine {
         case Grant(:final amount):
           // External inflows (offline rewards, IAP perks) — §2.2 rule 4.
           s.funds += amount;
+
+        case ChooseEvent(:final eventId, :final choiceIndex):
+          // Resolve the pending event (§3.7): apply the chosen effects, clear.
+          if (s.pendingEventId == eventId &&
+              eventId >= 0 &&
+              eventId < balance.events.length) {
+            final ev = balance.events[eventId];
+            if (choiceIndex >= 0 && choiceIndex < ev.choices.length) {
+              for (final ef in ev.choices[choiceIndex].effects) {
+                _applyEffect(s, ef, eco);
+              }
+              s.pendingEventId = -1;
+            }
+          }
       }
     }
 
@@ -202,11 +219,51 @@ class Engine {
       s.endReason = 'bankrupt';
     }
 
+    // --- 4b. events (only when this world has events; keeps headless hash
+    // unchanged, audit A-D1/A-D2). Exactly two draws per tick regardless of
+    // pool size / pending state (audit A-D3). Evaluated BEFORE rank-up so a
+    // royal contract accepted this tick unlocks 御用達 immediately (A-D4).
+    var firedEventId = -1;
+    if (s.alive && balance.events.isNotEmpty) {
+      final roll = s.rng.events.nextInt(1000); // draw 1 (always)
+      final pick = s.rng.events.nextInt(1 << 30); // draw 2 (always)
+      if (s.pendingEventId < 0) {
+        s.eventDry++;
+        final forcedId = _forcedEvent(s);
+        if (forcedId >= 0) {
+          // Forced (royal): tracked by royalCleared, NOT the shuffle-bag.
+          firedEventId = forcedId;
+          s.pendingEventId = forcedId;
+          s.rewardEvents++;
+          s.eventDry = 0;
+        } else {
+          // Fire on the random roll, OR guarantee one via the pity timer so a
+          // long reward-free run can't happen (§10.4 reward pacing / AC-05).
+          final pity = eco.eventPityTicks > 0 && s.eventDry >= eco.eventPityTicks;
+          if (roll < eco.eventFirePermille || pity) {
+            firedEventId = _selectWeighted(s, pick);
+            if (firedEventId >= 0) {
+              s.pendingEventId = firedEventId;
+              s.firedThisLife.add(firedEventId);
+              s.rewardEvents++;
+              s.eventDry = 0;
+            }
+          }
+        }
+      }
+    }
+
     // --- 5. rank up ---
     var rankedUp = false;
     if (s.alive && s.rank + 1 < balance.ranks.length) {
       final next = balance.ranks[s.rank + 1];
+      // 御用達 (the first rank gated by a royal event) also needs the royal
+      // contract cleared — but only in a world that has events (§3.7 / A-D4).
+      final royalOk = balance.events.isEmpty ||
+          s.rank + 1 != _royalGatedRank ||
+          s.royalCleared;
       if (next.enabled &&
+          royalOk &&
           s.funds >= next.minAssets &&
           s.fame >= next.minFame &&
           s.discoveries >= next.minRecipes &&
@@ -231,7 +288,85 @@ class Engine {
       weeklyRevenue: weeklyRevenue,
       weeklySold: weeklySold,
       rankedUp: rankedUp,
+      firedEventId: firedEventId,
     );
+  }
+
+  /// The rank whose promotion is gated by the royal event (御用達 = rank 4).
+  static const int _royalGatedRank = 4;
+
+  /// A forced event (royal, fame-reached) eligible to fire, or -1. Pure state —
+  /// consumes no RNG (audit A-D3/A-D4).
+  int _forcedEvent(GameState s) {
+    for (final e in balance.events) {
+      if (e.forcedFameReached &&
+          s.fame >= e.forcedValue &&
+          !s.royalCleared && // fires until the contract is accepted
+          e.minLife <= s.lifeNumber) {
+        return e.id;
+      }
+    }
+    return -1;
+  }
+
+  /// Weighted pick from the eligible pool using ONE pre-drawn [pick] value, so
+  /// the RNG draw count never depends on pool size (audit A-D3). Non-forced
+  /// events only. Shuffle-bag: when every eligible event has fired this life,
+  /// the fired set resets so events keep flowing all life (no back-to-back
+  /// repeats — §3.7 "same event not repeated"). Returns -1 only if nothing is
+  /// eligible even after a reset (e.g. all gated by fame the player lacks).
+  int _selectWeighted(GameState s, int pick) {
+    var total = _eligibleWeight(s);
+    if (total <= 0) {
+      s.firedThisLife.clear();
+      total = _eligibleWeight(s);
+      if (total <= 0) return -1;
+    }
+    var target = pick % total;
+    for (final e in balance.events) {
+      if (!_eligible(s, e)) continue;
+      if (target < e.weight) return e.id;
+      target -= e.weight;
+    }
+    return -1; // unreachable
+  }
+
+  int _eligibleWeight(GameState s) {
+    var t = 0;
+    for (final e in balance.events) {
+      if (_eligible(s, e)) t += e.weight;
+    }
+    return t;
+  }
+
+  bool _eligible(GameState s, EventDef e) =>
+      !e.forcedFameReached &&
+      e.minLife <= s.lifeNumber &&
+      s.fame >= e.minFame &&
+      s.fame <= e.maxFame &&
+      !s.firedThisLife.contains(e.id);
+
+  void _applyEffect(GameState s, EventEffect ef, EconomyDef eco) {
+    switch (ef.type) {
+      case 'funds':
+        s.funds = clampCap(s.funds + ef.value);
+      case 'fame':
+        s.fame = clampCap(s.fame + ef.value);
+      case 'grant_recipe':
+        _discover(s, ef.refId, eco);
+      case 'material':
+        if (ef.refId >= 0 && ef.refId < s.materialStock.length) {
+          final v = s.materialStock[ef.refId] + ef.value;
+          s.materialStock[ef.refId] = v < 0 ? 0 : v;
+        }
+      case 'product':
+        if (ef.refId >= 0 && ef.refId < s.productStock.length) {
+          final v = s.productStock[ef.refId] + ef.value;
+          s.productStock[ef.refId] = v < 0 ? 0 : v;
+        }
+      case 'royal_flag':
+        s.royalCleared = true;
+    }
   }
 
   /// Discover [recipeId] if new and unlocked this life. Returns the invention

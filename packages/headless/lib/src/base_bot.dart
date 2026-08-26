@@ -87,6 +87,27 @@ abstract class BaseBot implements Bot {
     final cmds = <Command>[];
     final eco = balance.economy;
 
+    // 0) Resolve any pending event first (§3.7). Pick the choice with the best
+    //    immediate funds outcome — survival-oriented, and it still accepts the
+    //    royal contract (its accept branch grants funds). Strategy-specific
+    //    (fame-seeking) choices are M2 polish.
+    if (s.pendingEventId >= 0 && s.pendingEventId < balance.events.length) {
+      final ev = balance.events[s.pendingEventId];
+      var best = 0;
+      var bestFunds = -1 << 62;
+      for (var i = 0; i < ev.choices.length; i++) {
+        var f = 0;
+        for (final ef in ev.choices[i].effects) {
+          if (ef.type == 'funds') f += ef.value;
+        }
+        if (f > bestFunds) {
+          bestFunds = f;
+          best = i;
+        }
+      }
+      cmds.add(ChooseEvent(s.pendingEventId, best));
+    }
+
     // 1) Development sweep.
     if (doDevelopment &&
         s.week < combos.length &&

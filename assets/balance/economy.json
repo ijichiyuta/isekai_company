@@ -13,5 +13,7 @@
   "base_demand_x100": 300,
   "demand_per_fame_x100": 4,
   "rank_up_fame_bonus": 50,
-  "max_employees": 30
+  "max_employees": 30,
+  "event_fire_permille": 15,
+  "event_pity_ticks": 58
 }

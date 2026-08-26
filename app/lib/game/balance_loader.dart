@@ -17,5 +17,6 @@ Future<Balance> loadBundledBalance() async {
     materialsJson: await read('materials.json'),
     recipesJson: await read('recipes.json'),
     ranksJson: await read('ranks.json'),
+    eventsJson: await read('events.json'), // the app plays with events (§3.7)
   );
 }

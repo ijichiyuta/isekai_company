@@ -8,6 +8,7 @@ import '../game/format.dart';
 import '../game/game_controller.dart';
 import '../game/providers.dart';
 import 'develop_screen.dart';
+import 'event_dialog.dart';
 import 'invention_overlay.dart';
 import 'order_screen.dart';
 import 'production_screen.dart';
@@ -23,6 +24,7 @@ class MainScreen extends ConsumerWidget {
     // The controller auto-pauses when it raises an invention (see step()), so
     // the overlay just reads the pending event here.
     final invention = game.pendingInvention;
+    final event = game.pendingEvent;
     return Stack(
       children: [
         Scaffold(
@@ -39,11 +41,14 @@ class MainScreen extends ConsumerWidget {
           ),
           bottomNavigationBar: _BottomNav(game: game),
         ),
+        // Inventions take priority; then pending events (§3.7).
         if (invention != null)
           InventionOverlay(
             event: invention,
             onDismiss: game.acknowledgeInvention,
-          ),
+          )
+        else if (event != null && game.isAlive)
+          EventDialog(event: event, onChoose: game.chooseEvent),
         if (!game.isAlive) _LifeEndBanner(game: game),
       ],
     );

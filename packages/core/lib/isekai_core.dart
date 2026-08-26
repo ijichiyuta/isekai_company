@@ -9,6 +9,7 @@ library;
 export 'src/balance.dart';
 export 'src/commands.dart';
 export 'src/engine.dart';
+export 'src/events.dart';
 export 'src/hash.dart';
 export 'src/money.dart';
 export 'src/rng.dart';

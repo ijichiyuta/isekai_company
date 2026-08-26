@@ -16,6 +16,8 @@ sealed class Command {
         return Produce(m['id'] as int, m['qty'] as int);
       case 'discover':
         return Discover(m['id'] as int);
+      case 'choose_event':
+        return ChooseEvent(m['id'] as int, m['choice'] as int);
       case 'hire':
         return Hire();
       case 'grant':
@@ -61,6 +63,17 @@ class Discover extends Command {
   Discover(this.recipeId);
   @override
   Map<String, dynamic> toJson() => {'t': 'discover', 'id': recipeId};
+}
+
+/// Resolve the currently pending event by picking a choice (§3.7). Applies the
+/// choice's effects and clears the pending event.
+class ChooseEvent extends Command {
+  final int eventId;
+  final int choiceIndex;
+  ChooseEvent(this.eventId, this.choiceIndex);
+  @override
+  Map<String, dynamic> toJson() =>
+      {'t': 'choose_event', 'id': eventId, 'choice': choiceIndex};
 }
 
 class Hire extends Command {

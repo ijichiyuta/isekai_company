@@ -181,6 +181,10 @@ M1残（画像生成環境が必要／M3以降）: 実AIアセット量産テス
 - **#2 報酬間隔計測＋ゲート**（commit 501cf2f）: stats.dart（percentile/IntervalStats）＋runner報酬tick収集（core無改変）＋gate.dart（hard=AC-04/07、soft=AC-05/08/10）＋`--gate`＋CI balance-gate。
 - **#3 コンテンツ拡張**: 素材8→20（id8-19）、レシピ11→43（id11-42追記、ADR-0001準拠で既存不変）。band1=37（AC-04余裕）/band2=4/band3=2、発明8種(18.6%)。全43comboユニーク（loaderが検証、新hash 1861475d）。実測: 発見37種でAC-04 PASS、破産0%、決定論維持。develop画面の開発ボタンを下部固定（20素材でスクロール落ちしないUX改善）。app15テスト通過。
   - AC-05は p90 879→110 に改善（events #4 で更に無報酬ギャップを埋める）、AC-08御用達0%は #5 economy校正待ち。
+- **#4 イベントシステム**（監査Aの5設計判断を反映）: events.dart（型＋堅牢パーサ）／events.json 30本（王国4[内royal forced]・災害5・好機5・キャラ6・勇者3・転生者3・周回専用4、2択以上23本=76%）。engine統合＝tick末尾に固定2ドロー（events空ならスキップ＝headlessハッシュ不変, A-D1/A-D2）・forced royal(fame≥3000, RNG非消費, rank-up前評価 A-D4)・weighted二分探索(候補数非依存 A-D3)・shuffle-bag（全消化で再開）・**pity timer**（58tick無イベントで確定発火＝AC-05のmaxGap保証）。ChooseEventコマンド＋効果適用（funds/fame/grant_recipe/material/product/royal_flag、clampCap経由）。御用達ゲートにroyalCleared AND（events有効時のみ）。state に event フィールド追加（全て条件付きtoJson＝events空で従来ハッシュ完全維持）。app: 自動ポーズ＋EventDialog。
+  - **バランス調整**: event_fire_permille=15・event_pity_ticks=58。bot はイベントで survival-best 選択（royalは受諾＝資金+）。costly災害に min_fame ゲート。
+  - **AC-05が PASS に**（p50=19/p90=58/maxGap=58 ≤ 26/60/120）＝events+pity で報酬間隔問題を解決。AC-04/07も PASS で **GATE OK**。AC-08/10 は soft のまま（#5/M3）。
+  - テスト: EV-01〜12（決定論・RNGドロー不変・hash条件付き・royal確定発火・御用達ゲート・効果適用・events-less回帰・堅牢化）＋events-loaded決定論＋app event flow＋event golden。core58+headless21+app17=96通過。
 
 ### 旧・M1計画メモ
 

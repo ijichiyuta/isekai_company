@@ -97,6 +97,18 @@ void main() {
     expect(g.pendingSoulPoints, greaterThanOrEqualTo(0));
   });
 
+  test('pending event surfaces and a choice applies + clears it (§3.7)', () {
+    final eb = loadTestBalanceWithEvents();
+    final g = GameController(balance: eb, clock: FakeTickClock(), seed: 1);
+    // Force the royal event pending (id 0) and choose to accept it.
+    g.state.pendingEventId = 0;
+    expect(g.pendingEvent, isNotNull);
+    expect(g.pendingEvent!.id, 0);
+    g.chooseEvent(0); // accept → royal_flag + funds
+    expect(g.state.royalCleared, isTrue);
+    expect(g.pendingEvent, isNull); // resolved
+  });
+
   test('rebirth banks soul points and starts a fresh, later life', () {
     final g = GameController(balance: balance, clock: FakeTickClock(), seed: 1);
     // Develop pudding so the finished life has a non-zero score.

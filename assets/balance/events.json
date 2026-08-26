@@ -1,0 +1,134 @@
+{
+  "schema_version": 1,
+  "events": [
+    { "id": 0, "kind": "kingdom", "title": "王室からの大量発注", "body": "王宮の使いが訪れた。「王室御用達の品を大量に納めよ」と。名声3,000に達した今、これはまたとない好機だ。", "min_fame": 3000, "forced": { "type": "fame_reached", "value": 3000 },
+      "choices": [
+        { "label": "謹んで承る（御用達への道）", "effects": [ { "type": "royal_flag" }, { "type": "funds", "value": 20000 }, { "type": "fame", "value": 300 } ] },
+        { "label": "今は荷が重い…（辞退）", "effects": [ { "type": "fame", "value": -50 } ] }
+      ] },
+    { "id": 1, "kind": "kingdom", "title": "貴族の舞踏会", "body": "地元の貴族から舞踏会への招待が届いた。人脈づくりの好機だが、参加には相応の出費が要る。",
+      "choices": [
+        { "label": "着飾って参加する", "effects": [ { "type": "funds", "value": -800 }, { "type": "fame", "value": 120 } ] },
+        { "label": "商売に専念する", "effects": [] }
+      ] },
+    { "id": 2, "kind": "kingdom", "title": "税制の変更", "body": "王国が新たな商業税を導入した。今期は納税が必要だ。", "min_fame": 300,
+      "choices": [ { "label": "納税する", "effects": [ { "type": "funds", "value": -1200 } ] } ] },
+    { "id": 3, "kind": "kingdom", "title": "王女様の視察", "body": "お忍びの王女が店を訪れた。丁寧にもてなせば評判が上がる。",
+      "choices": [
+        { "label": "最高のもてなしを", "effects": [ { "type": "funds", "value": -400 }, { "type": "fame", "value": 150 } ] },
+        { "label": "普段どおり接する", "effects": [ { "type": "fame", "value": 20 } ] }
+      ] },
+    { "id": 4, "kind": "disaster", "title": "飢饉", "body": "不作の年。食料の相場が乱れ、商品在庫の一部が傷んでしまった。", "min_fame": 150,
+      "choices": [ { "label": "損失を受け入れる", "effects": [ { "type": "funds", "value": -600 } ] } ] },
+    { "id": 5, "kind": "disaster", "title": "疫病の流行", "body": "街に病が広がり、客足が遠のいた。薬を寄付すれば信頼を得られるが…", "min_fame": 100,
+      "choices": [
+        { "label": "薬を寄付する", "effects": [ { "type": "funds", "value": -1000 }, { "type": "fame", "value": 200 } ] },
+        { "label": "店を一時休業する", "effects": [ { "type": "funds", "value": -300 } ] }
+      ] },
+    { "id": 6, "kind": "disaster", "title": "魔物の襲撃", "body": "街道に魔物が現れ、隊商が足止めを食らった。護衛を雇うか、被害を受けるか。", "min_fame": 150,
+      "choices": [
+        { "label": "護衛を雇う", "effects": [ { "type": "funds", "value": -700 } ] },
+        { "label": "被害を覚悟で強行", "effects": [ { "type": "funds", "value": -300 }, { "type": "fame", "value": 30 } ] }
+      ] },
+    { "id": 7, "kind": "disaster", "title": "火災", "body": "隣家の火が燃え広がり、倉庫の一部が焼けた。", "min_fame": 200,
+      "choices": [ { "label": "復旧する", "effects": [ { "type": "funds", "value": -900 } ] } ] },
+    { "id": 8, "kind": "disaster", "title": "大不況", "body": "経済が冷え込み、しばらく物が売れにくくなった。耐えるしかない。", "min_fame": 200,
+      "choices": [
+        { "label": "在庫を割引で処分", "effects": [ { "type": "funds", "value": 400 } ] },
+        { "label": "耐え忍ぶ", "effects": [ { "type": "fame", "value": 40 } ] }
+      ] },
+    { "id": 9, "kind": "opportunity", "title": "遺跡の発見", "body": "近郊で古代遺跡が見つかった。出資すれば珍しい素材が手に入るかもしれない。",
+      "choices": [
+        { "label": "発掘に出資する", "effects": [ { "type": "funds", "value": -500 }, { "type": "material", "id": 19, "value": 10 } ] },
+        { "label": "様子を見る", "effects": [] }
+      ] },
+    { "id": 10, "kind": "opportunity", "title": "隊商の来訪", "body": "遠方からの隊商が珍しい品を持ち込んだ。掘り出し物を仕入れる好機だ。",
+      "choices": [
+        { "label": "まとめ買いする", "effects": [ { "type": "funds", "value": -600 }, { "type": "material", "id": 10, "value": 20 } ] },
+        { "label": "見送る", "effects": [] }
+      ] },
+    { "id": 11, "kind": "opportunity", "title": "新航路の開通", "body": "新たな交易航路が開けた。輸出で名声と利益を得られる。", "min_fame": 300,
+      "choices": [
+        { "label": "交易に乗り出す", "effects": [ { "type": "funds", "value": 2500 }, { "type": "fame", "value": 80 } ] },
+        { "label": "地元に専念", "effects": [] }
+      ] },
+    { "id": 12, "kind": "opportunity", "title": "豊作の年", "body": "今年は大豊作。素材が安く手に入った。",
+      "choices": [ { "label": "仕入れておく", "effects": [ { "type": "material", "id": 0, "value": 15 }, { "type": "material", "id": 9, "value": 15 } ] } ] },
+    { "id": 13, "kind": "opportunity", "title": "掘り出し物", "body": "露天で掘り出し物を見つけた。安く仕入れて高く売れそうだ。",
+      "choices": [
+        { "label": "買う", "effects": [ { "type": "funds", "value": -200 }, { "type": "product", "id": 0, "value": 5 } ] },
+        { "label": "見送る", "effects": [] }
+      ] },
+    { "id": 14, "kind": "character", "title": "従業員の結婚", "body": "腕利きの従業員が結婚するという。祝い金を包むか。",
+      "choices": [
+        { "label": "祝い金を包む", "effects": [ { "type": "funds", "value": -300 }, { "type": "fame", "value": 40 } ] },
+        { "label": "言葉で祝う", "effects": [ { "type": "fame", "value": 10 } ] }
+      ] },
+    { "id": 15, "kind": "character", "title": "職人の独立", "body": "育てた職人が独立を望んでいる。送り出すか、引き止めるか。",
+      "choices": [
+        { "label": "笑顔で送り出す", "effects": [ { "type": "fame", "value": 100 } ] },
+        { "label": "厚遇で引き止める", "effects": [ { "type": "funds", "value": -500 } ] }
+      ] },
+    { "id": 16, "kind": "character", "title": "商売敵の誘い", "body": "ライバル商会から業務提携の話が来た。手を組めば安定するが、独自性は薄れる。", "min_fame": 400,
+      "choices": [
+        { "label": "提携する", "effects": [ { "type": "funds", "value": 1500 } ] },
+        { "label": "独立を貫く", "effects": [ { "type": "fame", "value": 120 } ] }
+      ] },
+    { "id": 17, "kind": "character", "title": "弟子入り志願", "body": "若者が弟子入りを志願してきた。見込みがありそうだ。",
+      "choices": [
+        { "label": "受け入れる", "effects": [ { "type": "funds", "value": -150 }, { "type": "fame", "value": 30 } ] },
+        { "label": "断る", "effects": [] }
+      ] },
+    { "id": 18, "kind": "character", "title": "恩人の窮地", "body": "かつて世話になった恩人が商売で苦しんでいる。援助するか。",
+      "choices": [
+        { "label": "援助する", "effects": [ { "type": "funds", "value": -800 }, { "type": "fame", "value": 160 } ] },
+        { "label": "見て見ぬふり", "effects": [ { "type": "fame", "value": -30 } ] }
+      ] },
+    { "id": 19, "kind": "character", "title": "腕利きの求職", "body": "評判の職人が「ここで働きたい」と訪ねてきた。",
+      "choices": [
+        { "label": "歓迎する", "effects": [ { "type": "funds", "value": -100 }, { "type": "fame", "value": 50 } ] },
+        { "label": "今は余裕がない", "effects": [] }
+      ] },
+    { "id": 20, "kind": "hero", "title": "勇者パーティのスポンサー", "body": "魔王討伐を目指す勇者一行がスポンサーを探している。支援すれば名声が跳ね上がる。", "min_fame": 500,
+      "choices": [
+        { "label": "スポンサーになる", "effects": [ { "type": "funds", "value": -2000 }, { "type": "fame", "value": 400 } ] },
+        { "label": "少額を寄付", "effects": [ { "type": "funds", "value": -300 }, { "type": "fame", "value": 60 } ] }
+      ] },
+    { "id": 21, "kind": "hero", "title": "勇者の凱旋", "body": "勇者が大きな戦果を挙げて帰還した。祝賀に商品を提供すれば宣伝になる。",
+      "choices": [
+        { "label": "商品を提供する", "effects": [ { "type": "product", "id": 0, "value": -5 }, { "type": "fame", "value": 90 } ] },
+        { "label": "遠くから祝う", "effects": [ { "type": "fame", "value": 20 } ] }
+      ] },
+    { "id": 22, "kind": "hero", "title": "冒険者ギルドの依頼", "body": "冒険者ギルドが携行食の大量発注をしてきた。",
+      "choices": [
+        { "label": "受注する", "effects": [ { "type": "funds", "value": 1200 } ] },
+        { "label": "手が回らない", "effects": [] }
+      ] },
+    { "id": 23, "kind": "reincarnator", "title": "もう一人の転生者", "body": "市場で、明らかに現代知識を持つ商人と出会った。彼もまた転生者のようだ。", "min_fame": 200,
+      "choices": [
+        { "label": "手を組む", "effects": [ { "type": "funds", "value": 1000 }, { "type": "fame", "value": 50 } ] },
+        { "label": "商売敵として警戒", "effects": [ { "type": "fame", "value": 80 } ] }
+      ] },
+    { "id": 24, "kind": "reincarnator", "title": "見覚えのある製法", "body": "隣町で、自分が発明したはずの商品が売られている。別の転生者の仕業か。",
+      "choices": [
+        { "label": "対抗して新商品を", "effects": [ { "type": "fame", "value": 60 } ] },
+        { "label": "気にしない", "effects": [] }
+      ] },
+    { "id": 25, "kind": "reincarnator", "title": "前世の夢", "body": "コンビニで働いていた前世の夢を見た。ふと新しいアイデアが閃く。",
+      "choices": [ { "label": "アイデアを書き留める", "effects": [ { "type": "fame", "value": 30 } ] } ] },
+    { "id": 26, "kind": "cycle", "title": "既視感のある商談", "body": "この商談、前の人生でも経験した気がする。今度はうまくやれそうだ。", "min_life": 2,
+      "choices": [
+        { "label": "経験を活かす", "effects": [ { "type": "funds", "value": 1500 }, { "type": "fame", "value": 40 } ] },
+        { "label": "慎重に進める", "effects": [ { "type": "funds", "value": 600 } ] }
+      ] },
+    { "id": 27, "kind": "cycle", "title": "魂が覚えている味", "body": "前世で発明した商品の記憶が、より鮮明によみがえる。", "min_life": 2,
+      "choices": [ { "label": "記憶を頼りに再現", "effects": [ { "type": "fame", "value": 70 } ] } ] },
+    { "id": 28, "kind": "cycle", "title": "旧知の顔", "body": "前の人生で縁のあった人物と、また巡り会った。", "min_life": 2,
+      "choices": [
+        { "label": "旧交を温める", "effects": [ { "type": "funds", "value": 800 }, { "type": "fame", "value": 60 } ] },
+        { "label": "今世では他人として", "effects": [] }
+      ] },
+    { "id": 29, "kind": "cycle", "title": "積み重ねた勘", "body": "何度目かの人生。相場の勘が冴えわたっている。", "min_life": 2,
+      "choices": [ { "label": "勘を信じて動く", "effects": [ { "type": "funds", "value": 2000 } ] } ] }
+  ]
+}

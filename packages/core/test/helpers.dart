@@ -5,14 +5,21 @@ import 'package:isekai_core/isekai_core.dart';
 
 /// Builds the real bundled balance from disk (test files may use dart:io; the
 /// core library itself may not). cwd is packages/core under `dart test`.
-Balance testBalance() {
-  Map<String, dynamic> read(String name) => jsonDecode(
-      File('../../assets/balance/$name').readAsStringSync())
-      as Map<String, dynamic>;
-  return Balance.fromJsonMaps(
-    economyJson: read('economy.json'),
-    materialsJson: read('materials.json'),
-    recipesJson: read('recipes.json'),
-    ranksJson: read('ranks.json'),
-  );
-}
+Map<String, dynamic> _read(String name) => jsonDecode(
+    File('../../assets/balance/$name').readAsStringSync()) as Map<String, dynamic>;
+
+Balance testBalance() => Balance.fromJsonMaps(
+      economyJson: _read('economy.json'),
+      materialsJson: _read('materials.json'),
+      recipesJson: _read('recipes.json'),
+      ranksJson: _read('ranks.json'),
+    );
+
+/// Real balance WITH events loaded (for event-system tests).
+Balance testBalanceWithEvents() => Balance.fromJsonMaps(
+      economyJson: _read('economy.json'),
+      materialsJson: _read('materials.json'),
+      recipesJson: _read('recipes.json'),
+      ranksJson: _read('ranks.json'),
+      eventsJson: _read('events.json'),
+    );

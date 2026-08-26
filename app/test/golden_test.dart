@@ -8,10 +8,12 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:isekai_app/game/game_controller.dart';
 import 'package:isekai_app/game/providers.dart';
 import 'package:isekai_app/game/tick_clock.dart';
+import 'package:isekai_app/ui/event_dialog.dart';
 import 'package:isekai_app/ui/invention_overlay.dart';
 import 'package:isekai_app/ui/main_screen.dart';
 import 'package:isekai_app/ui/onboarding.dart';
 import 'package:isekai_app/ui/theme.dart';
+import 'package:isekai_core/isekai_core.dart';
 
 import 'helpers.dart';
 
@@ -90,6 +92,33 @@ void main() {
     await expectLater(
       find.byType(OnboardingFlow),
       matchesGoldenFile('goldens/onboarding.png'),
+    );
+  });
+
+  testWidgets('golden: event dialog (イベント選択)', (tester) async {
+    if (!Platform.isMacOS) return;
+    await _loadHiragino();
+    tester.view.physicalSize = const Size(780, 1688);
+    tester.view.devicePixelRatio = 2.0;
+    addTearDown(tester.view.resetPhysicalSize);
+    addTearDown(tester.view.resetDevicePixelRatio);
+
+    final balance = loadTestBalanceWithEvents();
+    final event = balance.events[20]; // 勇者パーティのスポンサー (2 choices)
+    await tester.pumpWidget(MaterialApp(
+      debugShowCheckedModeBanner: false,
+      theme: buildTheme().copyWith(
+        textTheme: buildTheme().textTheme.apply(fontFamily: 'Hiragino'),
+      ),
+      home: Stack(children: [
+        Container(color: const Color(0xFFF3E9D2)),
+        EventDialog(event: event, onChoose: (_) {}),
+      ]),
+    ));
+    await tester.pumpAndSettle();
+    await expectLater(
+      find.byType(EventDialog),
+      matchesGoldenFile('goldens/event.png'),
     );
   });
 

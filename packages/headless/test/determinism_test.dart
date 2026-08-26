@@ -13,6 +13,22 @@ void main() {
     expect(a.funds, b.funds);
   });
 
+  test('events-loaded life is deterministic (same seed twice)', () {
+    final eb = loadBalanceFromDir('../../assets/balance', withEvents: true);
+    expect(eb.events, isNotEmpty);
+    String run() {
+      final s = GameState.initial(eb, 42);
+      final engine = Engine(eb);
+      final bot = SteadyBot(eb);
+      while (s.alive) {
+        engine.tick(s, bot.decide(s));
+      }
+      return hashHex(s.stateHash());
+    }
+
+    expect(run(), run());
+  });
+
   test('different seeds diverge', () {
     final a = runLife(balance, 1);
     final b = runLife(balance, 2);

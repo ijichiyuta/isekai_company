@@ -72,6 +72,20 @@ class GameController extends ChangeNotifier {
   /// The finished life's score, available once the life has ended.
   LifetimeScore? get lifeScore => _lifeScore;
 
+  /// The event awaiting the player's choice, or null (§3.7).
+  EventDef? get pendingEvent {
+    final id = _state.pendingEventId;
+    return id >= 0 && id < balance.events.length ? balance.events[id] : null;
+  }
+
+  /// Resolve the pending event by choice, then advance one week to apply it.
+  void chooseEvent(int choiceIndex) {
+    final id = _state.pendingEventId;
+    if (id < 0) return;
+    reserve(ChooseEvent(id, choiceIndex));
+    step();
+  }
+
   /// Soul-memory points this finished life is worth (§8.2/§8.4).
   int get pendingSoulPoints =>
       _lifeScore == null ? 0 : soulPointsFromScore(_lifeScore!.total, _scoreParams);
@@ -171,6 +185,13 @@ class GameController extends ChangeNotifier {
         ));
       }
       // Auto-pause so the overlay isn't undercut by a running clock (§12.5).
+      _speed = GameSpeed.paused;
+      clock.stop();
+    }
+
+    // An event needs a decision → auto-pause and let the UI show the dialog
+    // (§3.7 / §12.1). Inventions take priority (shown first).
+    if (result.firedEventId >= 0) {
       _speed = GameSpeed.paused;
       clock.stop();
     }

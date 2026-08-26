@@ -59,9 +59,8 @@ GateReport evaluateGate(Balance balance, {int lives = 300, int seedBase = 1}) {
   final idleRev = medianRevPerWeek(idle);
   final advPct = idleRev == 0 ? 0 : (attackRev - idleRev) * 100 ~/ idleRev;
 
-  // AC-05 becomes HARD once events (piece A) exist to fill reward gaps
-  // (audit C-D4). Events aren't implemented yet, so AC-05 stays SOFT for now.
-  const eventsPresent = false;
+  // AC-05 becomes HARD once events exist to fill reward gaps (audit C-D4).
+  final eventsPresent = balance.events.isNotEmpty;
 
   final results = <GateResult>[
     // AC-04 (hard): 周1 discovery count in [min(35,band1), band1].

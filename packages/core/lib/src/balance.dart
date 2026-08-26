@@ -2,6 +2,7 @@
 /// Core never reads files itself (no dart:io) — callers pass parsed maps.
 library;
 
+import 'events.dart';
 import 'hash.dart';
 
 class BalanceException implements Exception {
@@ -77,6 +78,8 @@ class EconomyDef {
   final int demandPerFameX100;
   final int rankUpFameBonus;
   final int maxEmployees;
+  final int eventFirePermille; // per-tick event fire chance (‰), 0 = never
+  final int eventPityTicks; // guarantee an event if none in this many ticks, 0 = off
   const EconomyDef({
     required this.startFunds,
     required this.lifespanWeeks,
@@ -92,6 +95,8 @@ class EconomyDef {
     required this.demandPerFameX100,
     required this.rankUpFameBonus,
     required this.maxEmployees,
+    required this.eventFirePermille,
+    required this.eventPityTicks,
   });
 }
 
@@ -145,6 +150,7 @@ class Balance {
   final List<RecipeDef> recipes;
   final List<RankDef> ranks;
   final List<String> methods;
+  final List<EventDef> events;
 
   /// Replay-compatibility boundary (requirements §2.2 rule 7).
   final String contentHash;
@@ -155,17 +161,22 @@ class Balance {
     required this.recipes,
     required this.ranks,
     required this.methods,
+    required this.events,
     required this.contentHash,
   });
 
   /// Normalizes ANY parse failure (missing keys, wrong types, bad casts) to a
   /// [BalanceException] so a corrupt/modded balance file can never crash the
   /// app with a raw TypeError — the loader boundary catches one type.
+  ///
+  /// [eventsJson] is optional: headless and tests pass no events, keeping the
+  /// content hash and behaviour identical to the pre-events build (audit A-D1).
   factory Balance.fromJsonMaps({
     required Map<String, dynamic> economyJson,
     required Map<String, dynamic> materialsJson,
     required Map<String, dynamic> recipesJson,
     required Map<String, dynamic> ranksJson,
+    Map<String, dynamic>? eventsJson,
   }) {
     try {
       return Balance._build(
@@ -173,9 +184,12 @@ class Balance {
         materialsJson: materialsJson,
         recipesJson: recipesJson,
         ranksJson: ranksJson,
+        eventsJson: eventsJson,
       );
     } on BalanceException {
       rethrow;
+    } on EventsException catch (e) {
+      throw BalanceException(e.message);
     } catch (e) {
       throw BalanceException('malformed balance JSON: $e');
     }
@@ -186,6 +200,7 @@ class Balance {
     required Map<String, dynamic> materialsJson,
     required Map<String, dynamic> recipesJson,
     required Map<String, dynamic> ranksJson,
+    Map<String, dynamic>? eventsJson,
   }) {
     for (final (name, m) in [
       ('economy.json', economyJson),
@@ -221,6 +236,13 @@ class Balance {
           _rangedInt(economyJson, 'demand_per_fame_x100', c, max: 1000000),
       rankUpFameBonus: _rangedInt(economyJson, 'rank_up_fame_bonus', c),
       maxEmployees: _rangedInt(economyJson, 'max_employees', c, max: 1000000),
+      // Optional: absent → 0 (no events). Set in economy.json for the app.
+      eventFirePermille: economyJson.containsKey('event_fire_permille')
+          ? _rangedInt(economyJson, 'event_fire_permille', c, max: 1000)
+          : 0,
+      eventPityTicks: economyJson.containsKey('event_pity_ticks')
+          ? _rangedInt(economyJson, 'event_pity_ticks', c, max: 100000)
+          : 0,
     );
 
     final materials = <MaterialDef>[];
@@ -339,12 +361,36 @@ class Balance {
       }
     }
 
-    final contentHash = hashHex(fnv1a64(canonicalJson({
+    final events = parseEvents(eventsJson);
+    // Validate effect references against the (already-built) content.
+    for (final e in events) {
+      for (final c in e.choices) {
+        for (final ef in c.effects) {
+          final bad = switch (ef.type) {
+            'grant_recipe' => ef.refId < 0 || ef.refId >= recipes.length,
+            'material' => ef.refId < 0 || ef.refId >= materials.length,
+            'product' => ef.refId < 0 || ef.refId >= recipes.length,
+            _ => false,
+          };
+          if (bad) {
+            throw BalanceException(
+                'events.json: effect "${ef.type}" ref ${ef.refId} out of range '
+                '(event ${e.id})');
+          }
+        }
+      }
+    }
+
+    // Content hash covers events ONLY when present, so an events-less world
+    // (headless) keeps the exact pre-events hash (audit A-D1).
+    final hashInput = <String, dynamic>{
       'economy': economyJson,
       'materials': materialsJson,
       'recipes': recipesJson,
       'ranks': ranksJson,
-    })));
+    };
+    if (events.isNotEmpty) hashInput['events'] = eventsJson;
+    final contentHash = hashHex(fnv1a64(canonicalJson(hashInput)));
 
     return Balance._(
       economy: economy,
@@ -352,6 +398,7 @@ class Balance {
       recipes: recipes,
       ranks: ranks,
       methods: methods,
+      events: events,
       contentHash: contentHash,
     );
   }

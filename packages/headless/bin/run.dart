@@ -59,7 +59,9 @@ void main(List<String> args) {
   }
 
   if (gate) {
-    final report = evaluateGate(balance, lives: lives, seedBase: seed);
+    // Gates measure the REAL game, so load events (reward pacing / AC-05).
+    final gateBalance = loadBalanceFromDir(balanceDir, withEvents: true);
+    final report = evaluateGate(gateBalance, lives: lives, seedBase: seed);
     print('=== balance gate (${lives} lives/bot, balance ${report.balanceHash}) ===');
     print('AC     metric                     actual        threshold        '
         'hard  result');

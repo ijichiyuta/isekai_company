@@ -86,7 +86,7 @@ void main() {
   test('develop discovers pudding and pays invention bonus', () {
     final b = _balance();
     final s = GameState.initial(b, 1);
-    Engine(b).tick(s, [
+    final r = Engine(b).tick(s, [
       OrderMaterial(0, 1), // -2G
       OrderMaterial(1, 1), // -3G
       Develop(0, 1, 0), // +12*25=300G, +12*2.5=30 fame
@@ -97,6 +97,45 @@ void main() {
     expect(s.funds, 100 - 2 - 3 + 300);
     expect(s.fame, 30 + 50); // invention fame + rank-up bonus (395G/30fame)
     expect(s.rank, 1); // thresholds met in the same tick
+    // TickResult reports the EXACT bonus (not a funds-delta guess) and rank-up.
+    expect(r.inventions, hasLength(1));
+    expect(r.inventions.single.recipeId, 0);
+    expect(r.inventions.single.cashBonus, 300);
+    expect(r.inventions.single.fameBonus, 30);
+    expect(r.rankedUp, isTrue);
+  });
+
+  test('Discover command grants a recipe with no material cost', () {
+    final b = _balance();
+    final s = GameState.initial(b, 1);
+    final r = Engine(b).tick(s, [Discover(0)]); // pudding, invention
+    expect(s.discovered[0], isTrue);
+    expect(s.discoveries, 1);
+    expect(s.inventions, 1);
+    expect(s.materialStock[0], 0); // no materials consumed
+    expect(r.inventions.single.cashBonus, 300);
+    // Re-discovering does nothing (idempotent, no double bonus).
+    final r2 = Engine(b).tick(s, [Discover(0)]);
+    expect(r2.inventions, isEmpty);
+  });
+
+  test('Discover respects the band lock (no band-2 in life 1)', () {
+    final b = _balance();
+    final s = GameState.initial(b, 1);
+    Engine(b).tick(s, [Discover(1)]); // secret is band 2
+    expect(s.discovered[1], isFalse);
+    expect(s.discoveries, 0);
+  });
+
+  test('TickResult reports weekly sold and revenue', () {
+    final b = _balance();
+    final s = GameState.initial(b, 1);
+    final engine = Engine(b);
+    engine.tick(s, [OrderMaterial(0, 1), OrderMaterial(1, 1), Develop(0, 1, 0)]);
+    final r = engine.tick(
+        s, [OrderMaterial(0, 5), OrderMaterial(1, 5), Produce(0, 5)]);
+    expect(r.weeklySold, greaterThan(0));
+    expect(r.weeklyRevenue, r.weeklySold * 12); // pudding base price
   });
 
   test('band 2 recipe is not discoverable in life 1', () {

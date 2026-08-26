@@ -32,6 +32,7 @@ class MainScreen extends ConsumerWidget {
                 _Hud(game: game),
                 _NextRankBar(game: game),
                 Expanded(child: _ShopView(game: game)),
+                _WeeklyResult(game: game),
                 _SpeedBar(game: game),
               ],
             ),
@@ -157,12 +158,49 @@ class _ShopView extends StatelessWidget {
       spacing: 8,
       children: [
         for (final b in game.state.bottlenecks(game))
-          Chip(
-            label: Text(b, style: const TextStyle(fontSize: 11)),
+          ActionChip(
+            label: Text(b.label, style: const TextStyle(fontSize: 11)),
             backgroundColor: const Color(0xFFEFC9A0),
             visualDensity: VisualDensity.compact,
+            avatar: const Icon(Icons.arrow_forward, size: 14),
+            // §12.3: tapping a bottleneck jumps straight to the screen that
+            // resolves it.
+            onPressed: () {
+              game.pauseForScreen();
+              Navigator.of(context)
+                  .push(MaterialPageRoute(builder: (_) => b.screen));
+            },
           ),
       ],
+    );
+  }
+}
+
+/// Last week's sales — makes the loop's "profit" node visible (§3.1). Also the
+/// place a rank-up flashes.
+class _WeeklyResult extends StatelessWidget {
+  const _WeeklyResult({required this.game});
+  final GameController game;
+
+  @override
+  Widget build(BuildContext context) {
+    final r = game.lastWeekRevenue;
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
+      child: Row(
+        children: [
+          if (game.lastRankedUp)
+            const Padding(
+              padding: EdgeInsets.only(right: 8),
+              child: Text('🎉 昇格！',
+                  style: TextStyle(fontWeight: FontWeight.bold, color: kGold)),
+            ),
+          Text(
+            r > 0 ? '先週の売上 +${formatG(r)}（${game.lastWeekSold}個）' : '先週の売上 —',
+            style: const TextStyle(fontSize: 13),
+          ),
+        ],
+      ),
     );
   }
 }
@@ -173,19 +211,26 @@ class _SpeedBar extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final pending = game.pending.length;
     return Padding(
-      padding: const EdgeInsets.only(right: 12, bottom: 6, top: 2),
+      padding: const EdgeInsets.only(left: 12, right: 12, bottom: 6, top: 2),
       child: Row(
-        mainAxisAlignment: MainAxisAlignment.end,
         children: [
+          // Manual week advance (§2.1): applies reservations without running the
+          // clock. Only useful while paused.
+          if (game.speed == GameSpeed.paused)
+            FilledButton.tonal(
+              onPressed: game.isAlive ? game.step : null,
+              child: Text(pending > 0 ? '次の週へ ($pending)' : '次の週へ'),
+            ),
+          const Spacer(),
           for (final sp in GameSpeed.values)
             Padding(
               padding: const EdgeInsets.only(left: 6),
               child: ChoiceChip(
                 label: Text(sp.label),
                 selected: game.speed == sp,
-                onSelected:
-                    game.isAlive ? (_) => game.setSpeed(sp) : null,
+                onSelected: game.isAlive ? (_) => game.setSpeed(sp) : null,
               ),
             ),
         ],
@@ -274,17 +319,30 @@ class _LifeEndBanner extends StatelessWidget {
   }
 }
 
+/// A bottleneck hint plus the screen that resolves it (§12.3 タップで直行).
+class Bottleneck {
+  final String label;
+  final Widget screen;
+  const Bottleneck(this.label, this.screen);
+}
+
 /// Small UI-only helpers on GameState (kept here, not in the pure core).
 extension on GameState {
   int pendingHintCount(GameController game) => bottlenecks(game).length;
 
-  List<String> bottlenecks(GameController game) {
-    final out = <String>[];
+  List<Bottleneck> bottlenecks(GameController game) {
+    final out = <Bottleneck>[];
     final hasStock = productStock.any((q) => q > 0);
     final hasMaterials = materialStock.any((q) => q > 0);
-    if (discoveries == 0) out.add('レシピ未発見');
-    if (!hasStock && discoveries > 0) out.add('在庫なし');
-    if (!hasMaterials && funds < 20) out.add('資金・素材不足');
+    if (discoveries == 0) {
+      out.add(const Bottleneck('レシピ未発見', DevelopScreen()));
+    }
+    if (!hasStock && discoveries > 0) {
+      out.add(const Bottleneck('在庫なし', ProductionScreen()));
+    }
+    if (!hasMaterials && funds < 20) {
+      out.add(const Bottleneck('資金・素材不足', OrderScreen()));
+    }
     return out;
   }
 }

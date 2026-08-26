@@ -42,10 +42,18 @@ class ProductionScreen extends ConsumerWidget {
                       children: [
                         for (final qty in [1, 5])
                           OutlinedButton(
+                            // Reserve the needed materials too, so production
+                            // succeeds regardless of order (§2.1 予約制; applied
+                            // when the week advances).
                             onPressed: game.isAlive
                                 ? () {
+                                    if (r.matA == r.matB) {
+                                      game.reserve(OrderMaterial(r.matA, qty * 2));
+                                    } else {
+                                      game.reserve(OrderMaterial(r.matA, qty));
+                                      game.reserve(OrderMaterial(r.matB, qty));
+                                    }
                                     game.reserve(Produce(r.id, qty));
-                                    game.step();
                                   }
                                 : null,
                             child: Text('作+$qty'),

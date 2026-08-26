@@ -42,7 +42,7 @@ class GameController extends ChangeNotifier {
   late GameState _state;
   final List<Command> _pending = [];
   GameSpeed _speed = GameSpeed.paused;
-  InventionEvent? _pendingInvention;
+  final List<InventionEvent> _inventionQueue = [];
 
   GameController({required this.balance, required this.clock, int seed = 1})
       : engine = Engine(balance) {
@@ -52,8 +52,14 @@ class GameController extends ChangeNotifier {
   GameState get state => _state;
   GameSpeed get speed => _speed;
   List<Command> get pending => List.unmodifiable(_pending);
-  InventionEvent? get pendingInvention => _pendingInvention;
+  InventionEvent? get pendingInvention =>
+      _inventionQueue.isEmpty ? null : _inventionQueue.first;
   bool get isAlive => _state.alive;
+
+  /// Last week's sales, surfaced so the loop's "profit" node is visible (§3.1).
+  int lastWeekRevenue = 0;
+  int lastWeekSold = 0;
+  bool lastRankedUp = false;
 
   RecipeDef? recipeById(int id) =>
       id >= 0 && id < balance.recipes.length ? balance.recipes[id] : null;
@@ -96,41 +102,34 @@ class GameController extends ChangeNotifier {
   /// debug menu / tests.
   void step() {
     if (!_state.alive) return;
-    final invBefore = _state.inventions;
-    final discoveredBefore = List<bool>.of(_state.discovered);
-    final fameBefore = _state.fame;
-    final fundsBefore = _state.funds;
-
-    engine.tick(_state, List<Command>.of(_pending));
+    final result = engine.tick(_state, List<Command>.of(_pending));
     _pending.clear();
 
-    if (_state.inventions > invBefore) {
-      // Find the newly discovered invention recipe.
-      for (final r in balance.recipes) {
-        if (r.invention &&
-            _state.discovered[r.id] &&
-            !discoveredBefore[r.id]) {
-          _pendingInvention = InventionEvent(
-            r.id,
-            r.name,
-            _state.funds - fundsBefore, // net includes bonus; good enough for UI
-            _state.fame - fameBefore,
-          );
-          // Auto-pause so the invention overlay isn't undercut by a running
-          // clock (§12.5). Done here, not in a build callback, to avoid using
-          // the controller after disposal.
-          _speed = GameSpeed.paused;
-          clock.stop();
-          break;
-        }
+    lastWeekRevenue = result.weeklyRevenue;
+    lastWeekSold = result.weeklySold;
+    lastRankedUp = result.rankedUp;
+
+    // Exact invention bonuses come from the engine now (no funds-delta guess).
+    // Queue them so simultaneous inventions each get their moment (§12.5).
+    if (result.inventions.isNotEmpty) {
+      for (final inv in result.inventions) {
+        _inventionQueue.add(InventionEvent(
+          inv.recipeId,
+          balance.recipes[inv.recipeId].name,
+          inv.cashBonus,
+          inv.fameBonus,
+        ));
       }
+      // Auto-pause so the overlay isn't undercut by a running clock (§12.5).
+      _speed = GameSpeed.paused;
+      clock.stop();
     }
     notifyListeners();
   }
 
-  /// Called by the UI after the invention overlay is dismissed.
+  /// Called by the UI after each invention overlay is dismissed.
   void acknowledgeInvention() {
-    _pendingInvention = null;
+    if (_inventionQueue.isNotEmpty) _inventionQueue.removeAt(0);
     notifyListeners();
   }
 

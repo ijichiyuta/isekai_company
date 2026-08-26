@@ -14,6 +14,8 @@ sealed class Command {
         return Develop(m['a'] as int, m['b'] as int, m['method'] as int);
       case 'produce':
         return Produce(m['id'] as int, m['qty'] as int);
+      case 'discover':
+        return Discover(m['id'] as int);
       case 'hire':
         return Hire();
       case 'grant':
@@ -48,6 +50,17 @@ class Produce extends Command {
   Produce(this.recipeId, this.qty);
   @override
   Map<String, dynamic> toJson() => {'t': 'produce', 'id': recipeId, 'qty': qty};
+}
+
+/// Grant a recipe directly (no material cost): meta-progression "recipe
+/// inheritance" (魂の記憶 #5, requirements §8.4) and the debug menu. Goes
+/// through the engine so discovered/discoveries stay consistent and replays
+/// stay deterministic (§2.2 — state changes only via commands).
+class Discover extends Command {
+  final int recipeId;
+  Discover(this.recipeId);
+  @override
+  Map<String, dynamic> toJson() => {'t': 'discover', 'id': recipeId};
 }
 
 class Hire extends Command {

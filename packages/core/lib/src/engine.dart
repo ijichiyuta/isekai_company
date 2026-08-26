@@ -8,19 +8,48 @@ import 'commands.dart';
 import 'money.dart';
 import 'state.dart';
 
+/// An invention that fired this tick, with its exact bonuses so the UI can show
+/// the real numbers (§12.5) rather than guessing from a funds delta.
+class InventionResult {
+  final int recipeId;
+  final int cashBonus;
+  final int fameBonus;
+  const InventionResult(this.recipeId, this.cashBonus, this.fameBonus);
+}
+
+/// What happened during a tick, for the UI/演出 layer. Bots and the headless
+/// runner ignore it. Purely derived — the source of truth is [GameState].
+class TickResult {
+  final List<InventionResult> inventions;
+  final int weeklyRevenue;
+  final int weeklySold;
+  final bool rankedUp;
+  const TickResult({
+    required this.inventions,
+    required this.weeklyRevenue,
+    required this.weeklySold,
+    required this.rankedUp,
+  });
+
+  static const empty = TickResult(
+      inventions: [], weeklyRevenue: 0, weeklySold: 0, rankedUp: false);
+}
+
 class Engine {
   final Balance balance;
   Engine(this.balance);
 
-  void tick(GameState s, List<Command> commands) {
-    if (!s.alive) return;
+  TickResult tick(GameState s, List<Command> commands) {
+    if (!s.alive) return TickResult.empty;
     final eco = balance.economy;
+    final inventions = <InventionResult>[];
 
     // Capacity snapshot at week start (hires take effect next week).
     final capacity =
         eco.baseCapacityPerWeek + s.employees * eco.artisanOutputPerWeek;
     var producedThisWeek = 0;
     var weeklyRevenue = 0;
+    var weeklySold = 0;
 
     // --- 1. apply commands (in submission order) ---
     for (final c in commands) {
@@ -56,18 +85,15 @@ class Engine {
             s.materialStock[hi] -= 1;
           }
           final r = balance.findRecipe(lo, hi, method);
-          if (r != null &&
-              !s.discovered[r.id] &&
-              r.band <= s.allowedBandMax) {
-            s.discovered[r.id] = true;
-            s.discoveries++;
-            s.rewardEvents++;
-            if (r.invention) {
-              s.inventions++;
-              s.funds += applyX100(r.basePrice, eco.inventionCashMultX100);
-              s.fame =
-                  clampCap(s.fame + applyX100(r.basePrice, eco.inventionFameMultX100));
-            }
+          if (r != null) {
+            final inv = _discover(s, r.id, eco);
+            if (inv != null) inventions.add(inv);
+          }
+
+        case Discover(:final recipeId):
+          if (recipeId >= 0 && recipeId < balance.recipes.length) {
+            final inv = _discover(s, recipeId, eco);
+            if (inv != null) inventions.add(inv);
           }
 
         case Produce(:final recipeId, :final qty):
@@ -126,6 +152,7 @@ class Engine {
       final sold = stock < pool ? stock : pool;
       s.productStock[i] -= sold;
       weeklyRevenue += sold * balance.recipes[i].basePrice;
+      weeklySold += sold;
       pool -= sold;
     }
     s.funds += weeklyRevenue;
@@ -154,6 +181,7 @@ class Engine {
     }
 
     // --- 5. rank up ---
+    var rankedUp = false;
     if (s.alive && s.rank + 1 < balance.ranks.length) {
       final next = balance.ranks[s.rank + 1];
       if (next.enabled &&
@@ -165,6 +193,7 @@ class Engine {
         s.rankUps++;
         s.rewardEvents++;
         s.fame = clampCap(s.fame + eco.rankUpFameBonus);
+        rankedUp = true;
       }
     }
 
@@ -174,5 +203,30 @@ class Engine {
       s.alive = false;
       s.endReason = 'lifespan';
     }
+
+    return TickResult(
+      inventions: inventions,
+      weeklyRevenue: weeklyRevenue,
+      weeklySold: weeklySold,
+      rankedUp: rankedUp,
+    );
+  }
+
+  /// Discover [recipeId] if new and unlocked this life. Returns the invention
+  /// bonuses if it was an invention, else null. Shared by Develop and Discover.
+  InventionResult? _discover(GameState s, int recipeId, EconomyDef eco) {
+    if (s.discovered[recipeId]) return null;
+    final r = balance.recipes[recipeId];
+    if (r.band > s.allowedBandMax) return null;
+    s.discovered[recipeId] = true;
+    s.discoveries++;
+    s.rewardEvents++;
+    if (!r.invention) return null;
+    s.inventions++;
+    final cash = applyX100(r.basePrice, eco.inventionCashMultX100);
+    final fame = applyX100(r.basePrice, eco.inventionFameMultX100);
+    s.funds += cash;
+    s.fame = clampCap(s.fame + fame);
+    return InventionResult(recipeId, cash, fame);
   }
 }

@@ -1,6 +1,7 @@
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:isekai_core/isekai_core.dart';
 
 import '../game/format.dart';
 import '../game/providers.dart';
@@ -28,8 +29,10 @@ class DebugMenu extends ConsumerWidget {
           _btn('1週 進める', () => game.debugStep()),
           _btn('12週 進める', () => game.debugStep(12)),
           _btn('全レシピ発見', () {
+            // Through the engine (Discover command) so discovered/discoveries
+            // stay consistent and replays remain deterministic (§2.2).
             for (final r in game.balance.recipes) {
-              game.state.discovered[r.id] = true;
+              game.reserve(Discover(r.id));
             }
             game.debugStep();
           }),

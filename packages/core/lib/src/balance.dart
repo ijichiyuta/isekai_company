@@ -115,6 +115,30 @@ bool _reqBool(Map<String, dynamic> m, String key, String file) {
   return v;
 }
 
+List _reqList(Map<String, dynamic> m, String key, String file) {
+  final v = m[key];
+  if (v is! List) throw BalanceException('$file: "$key" must be a list, got $v');
+  return v;
+}
+
+Map<String, dynamic> _reqMap(Object? raw, String file) {
+  if (raw is! Map<String, dynamic>) {
+    throw BalanceException('$file: expected an object, got $raw');
+  }
+  return raw;
+}
+
+/// int within [min, max] inclusive (defaults keep values inside the 1e15 game
+/// ceiling so no downstream arithmetic can overflow int64, §10.5).
+int _rangedInt(Map<String, dynamic> m, String key, String file,
+    {int min = 0, int max = 1000000000000000}) {
+  final v = _reqInt(m, key, file);
+  if (v < min || v > max) {
+    throw BalanceException('$file: "$key" must be in [$min, $max], got $v');
+  }
+  return v;
+}
+
 class Balance {
   final EconomyDef economy;
   final List<MaterialDef> materials;
@@ -134,7 +158,30 @@ class Balance {
     required this.contentHash,
   });
 
+  /// Normalizes ANY parse failure (missing keys, wrong types, bad casts) to a
+  /// [BalanceException] so a corrupt/modded balance file can never crash the
+  /// app with a raw TypeError — the loader boundary catches one type.
   factory Balance.fromJsonMaps({
+    required Map<String, dynamic> economyJson,
+    required Map<String, dynamic> materialsJson,
+    required Map<String, dynamic> recipesJson,
+    required Map<String, dynamic> ranksJson,
+  }) {
+    try {
+      return Balance._build(
+        economyJson: economyJson,
+        materialsJson: materialsJson,
+        recipesJson: recipesJson,
+        ranksJson: ranksJson,
+      );
+    } on BalanceException {
+      rethrow;
+    } catch (e) {
+      throw BalanceException('malformed balance JSON: $e');
+    }
+  }
+
+  static Balance _build({
     required Map<String, dynamic> economyJson,
     required Map<String, dynamic> materialsJson,
     required Map<String, dynamic> recipesJson,
@@ -151,39 +198,38 @@ class Balance {
       }
     }
 
+    // All economy values are non-negative and bounded (§10.5); famePerSalesG is
+    // a divisor so it must be >= 1, and multipliers/divisors get a sane ceiling
+    // so applyBp/applyX100 can never overflow int64.
+    const c = 'economy.json';
     final economy = EconomyDef(
-      startFunds: _reqInt(economyJson, 'start_funds', 'economy.json'),
-      lifespanWeeks: _reqInt(economyJson, 'lifespan_weeks', 'economy.json'),
+      startFunds: _rangedInt(economyJson, 'start_funds', c),
+      lifespanWeeks: _rangedInt(economyJson, 'lifespan_weeks', c, min: 1),
       bankruptcyGraceWeeks:
-          _reqInt(economyJson, 'bankruptcy_grace_weeks', 'economy.json'),
+          _rangedInt(economyJson, 'bankruptcy_grace_weeks', c, min: 1),
       inventionCashMultX100:
-          _reqInt(economyJson, 'invention_cash_mult_x100', 'economy.json'),
+          _rangedInt(economyJson, 'invention_cash_mult_x100', c, max: 1000000),
       inventionFameMultX100:
-          _reqInt(economyJson, 'invention_fame_mult_x100', 'economy.json'),
-      famePerSalesG: _reqInt(economyJson, 'fame_per_sales_g', 'economy.json'),
-      wageLv1: _reqInt(economyJson, 'wage_lv1', 'economy.json'),
-      hireCost: _reqInt(economyJson, 'hire_cost', 'economy.json'),
-      artisanOutputPerWeek:
-          _reqInt(economyJson, 'artisan_output_per_week', 'economy.json'),
-      baseCapacityPerWeek:
-          _reqInt(economyJson, 'base_capacity_per_week', 'economy.json'),
-      baseDemandX100: _reqInt(economyJson, 'base_demand_x100', 'economy.json'),
+          _rangedInt(economyJson, 'invention_fame_mult_x100', c, max: 1000000),
+      famePerSalesG: _rangedInt(economyJson, 'fame_per_sales_g', c, min: 1),
+      wageLv1: _rangedInt(economyJson, 'wage_lv1', c),
+      hireCost: _rangedInt(economyJson, 'hire_cost', c),
+      artisanOutputPerWeek: _rangedInt(economyJson, 'artisan_output_per_week', c),
+      baseCapacityPerWeek: _rangedInt(economyJson, 'base_capacity_per_week', c),
+      baseDemandX100: _rangedInt(economyJson, 'base_demand_x100', c),
       demandPerFameX100:
-          _reqInt(economyJson, 'demand_per_fame_x100', 'economy.json'),
-      rankUpFameBonus:
-          _reqInt(economyJson, 'rank_up_fame_bonus', 'economy.json'),
-      maxEmployees: _reqInt(economyJson, 'max_employees', 'economy.json'),
+          _rangedInt(economyJson, 'demand_per_fame_x100', c, max: 1000000),
+      rankUpFameBonus: _rangedInt(economyJson, 'rank_up_fame_bonus', c),
+      maxEmployees: _rangedInt(economyJson, 'max_employees', c, max: 1000000),
     );
 
     final materials = <MaterialDef>[];
-    for (final raw in materialsJson['materials'] as List) {
-      final m = raw as Map<String, dynamic>;
-      final cost = _reqInt(m, 'cost', 'materials.json');
-      if (cost < 0) throw BalanceException('materials.json: cost must be >= 0');
+    for (final raw in _reqList(materialsJson, 'materials', 'materials.json')) {
+      final m = _reqMap(raw, 'materials.json');
       materials.add(MaterialDef(
         id: _reqInt(m, 'id', 'materials.json'),
         name: _reqStr(m, 'name', 'materials.json'),
-        cost: cost,
+        cost: _rangedInt(m, 'cost', 'materials.json'),
       ));
     }
     if (materials.isEmpty) {
@@ -195,13 +241,25 @@ class Balance {
       }
     }
 
-    final methods = (recipesJson['methods'] as List).cast<String>();
+    // Materialize + validate every method eagerly: a lazy `.cast<String>()`
+    // would let a non-string element slip through until it's dereferenced.
+    final methods = <String>[];
+    for (final raw in _reqList(recipesJson, 'methods', 'recipes.json')) {
+      if (raw is! String) {
+        throw BalanceException('recipes.json: method names must be strings, '
+            'got $raw');
+      }
+      methods.add(raw);
+    }
+    if (methods.isEmpty) {
+      throw BalanceException('recipes.json: must define at least one method');
+    }
     final recipes = <RecipeDef>[];
-    for (final raw in recipesJson['recipes'] as List) {
-      final m = raw as Map<String, dynamic>;
+    for (final raw in _reqList(recipesJson, 'recipes', 'recipes.json')) {
+      final m = _reqMap(raw, 'recipes.json');
       final a = _reqInt(m, 'mat_a', 'recipes.json');
       final b = _reqInt(m, 'mat_b', 'recipes.json');
-      final methodName = m['method'] as String;
+      final methodName = _reqStr(m, 'method', 'recipes.json');
       final method = methods.indexOf(methodName);
       if (method < 0) {
         throw BalanceException('recipes.json: unknown method "$methodName"');
@@ -213,10 +271,7 @@ class Balance {
       if (band < 1 || band > 3) {
         throw BalanceException('recipes.json: band must be 1..3');
       }
-      final basePrice = _reqInt(m, 'base_price', 'recipes.json');
-      if (basePrice < 0) {
-        throw BalanceException('recipes.json: base_price must be >= 0');
-      }
+      final basePrice = _rangedInt(m, 'base_price', 'recipes.json');
       recipes.add(RecipeDef(
         id: _reqInt(m, 'id', 'recipes.json'),
         name: _reqStr(m, 'name', 'recipes.json'),
@@ -249,17 +304,17 @@ class Balance {
     }
 
     final ranks = <RankDef>[];
-    for (final raw in ranksJson['ranks'] as List) {
-      final m = raw as Map<String, dynamic>;
+    for (final raw in _reqList(ranksJson, 'ranks', 'ranks.json')) {
+      final m = _reqMap(raw, 'ranks.json');
       ranks.add(RankDef(
         id: _reqInt(m, 'id', 'ranks.json'),
         name: _reqStr(m, 'name', 'ranks.json'),
-        minAssets: _reqInt(m, 'min_assets', 'ranks.json'),
-        minFame: _reqInt(m, 'min_fame', 'ranks.json'),
-        minRecipes: _reqInt(m, 'min_recipes', 'ranks.json'),
-        minEmployees: _reqInt(m, 'min_employees', 'ranks.json'),
-        weeklyFixedCost: _reqInt(m, 'weekly_fixed_cost', 'ranks.json'),
-        taxBp: _reqInt(m, 'tax_bp', 'ranks.json'),
+        minAssets: _rangedInt(m, 'min_assets', 'ranks.json'),
+        minFame: _rangedInt(m, 'min_fame', 'ranks.json'),
+        minRecipes: _rangedInt(m, 'min_recipes', 'ranks.json'),
+        minEmployees: _rangedInt(m, 'min_employees', 'ranks.json'),
+        weeklyFixedCost: _rangedInt(m, 'weekly_fixed_cost', 'ranks.json'),
+        taxBp: _rangedInt(m, 'tax_bp', 'ranks.json', max: 10000), // <=100%
         enabled: _reqBool(m, 'enabled', 'ranks.json'),
       ));
     }

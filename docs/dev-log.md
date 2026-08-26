@@ -91,6 +91,25 @@ M1着手前に、繰り越していた検証基盤を抜け漏れなく厚くし
 
 テスト: core 27＋headless 14＝41通過。バランスハッシュ不変（JSON未変更）。
 
+### M0 監査ゲート（M1着手前・2026-08-26）
+
+Opus 4.8 の並列エージェント3体（コア数値・セーブ整合性・ボット/ゲート判定）で M0 を監査。全エージェントが実際に dart test / headless を走らせて裏取り。**総合判定 GO**（AC-01/02/03 実測PASS、AC-14/15/17 は対象機能未存在で N/A・M1宿題として明記済み）。ただしGO前提として土台の穴を指摘され、以下を修正:
+
+| 重大度 | 監査指摘 | 修正 |
+|---|---|---|
+| High | `balance.dart` が malformed JSON（methods欠損・entry非Map・method非String）で生TypeErrorを漏らす | `fromJsonMaps` を try/catch で `BalanceException` に正規化＋`_reqList`/`_reqMap`/`_reqStr` で全cast置換 |
+| High | `.cast<String>()` の遅延評価穴（`['cooling',42]` が無検証で通る） | methods を要素検証しつつ即時実体化 |
+| High | fame の invention 加算・rank-up 加算が clampCap 外（累積量±cap不変条件が fame で破れ、balance変更一発で int64 wrap 余地） | engine.dart の両箇所を `clampCap` 経由に |
+| Medium | economy/rank の負値・上限無検証（start_funds<0, lifespan<0, tax_bp>100%, 負賃金…） | `_rangedInt`（既定[0,1e15]、除数min1・倍率上限・tax上限100%）で全数値を範囲検証 |
+
+検証: core 40＋headless 14＝54テスト通過（malformed入力→BalanceExceptionの新規テスト群を追加）。バランスハッシュ・4ボット実測値は修正前と完全一致＝挙動不変で穴のみ閉塞。
+
+**監査で GO に付された追認事項（M1で対応）**:
+- **AC-02 クロスアーチ**: 監査はARM64単独。x64一致は CI（ubuntu×macos の hash diff ジョブ）の緑を確認して初めて完全PASS。次回CI実行で要確認
+- **balance_hash ↔ セーブ互換の密結合（P3）**: M2で recipes 11→75 に拡張すると既存セーブが balance_hash 不一致で全滅。ADR-6（balance変更は転生境界のみ）で吸収するか schema移行と分離するかを M1 で ADR 化
+- **AC-14**（デバッグメニュー本番除外）・**AC-17**（量子化パイプライン＋アセットCI）は M1 実装物
+- オフラインGrantの上限クランプは現バランスで未発火（休眠中・コードは正）。M2の桁で再実測
+
 ### 次（M1・W4〜, 目標2026-11-08）
 
 Flutter appパッケージ／第1層vertical slice（発注→開発→生産→販売→再投資）／プリン発明演出／主要4画面／アートバイブル確定＋AI生成→量子化パイプライン→顔グラ1種族＋アイコン20点の量産テスト（/game-visual-qa合格がゲート）／デバッグメニュー（ビルドフレーバー分離でAC-14）／Build in Public開始。

@@ -65,7 +65,8 @@ class Engine {
             if (r.invention) {
               s.inventions++;
               s.funds += applyX100(r.basePrice, eco.inventionCashMultX100);
-              s.fame += applyX100(r.basePrice, eco.inventionFameMultX100);
+              s.fame =
+                  clampCap(s.fame + applyX100(r.basePrice, eco.inventionFameMultX100));
             }
           }
 
@@ -163,7 +164,7 @@ class Engine {
         s.rank++;
         s.rankUps++;
         s.rewardEvents++;
-        s.fame += eco.rankUpFameBonus;
+        s.fame = clampCap(s.fame + eco.rankUpFameBonus);
       }
     }
 

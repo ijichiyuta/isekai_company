@@ -56,9 +56,11 @@ abstract class BaseBot implements Bot {
   /// throttle spending naturally).
   int get reinvestFundsMult => 4;
 
-  /// Manual optimizer: shift production toward the trending category to capture
-  /// its ×2-3 demand (§7 / AC-10). A trend-blind (auto) bot leaves this off, so
-  /// the trend-aware bot out-earns it by the manual edge.
+  /// Manual optimizer flavor: front-load the trending category (§7). NOTE it
+  /// barely moves revenue on its own — the shared-pool weighted water-fill
+  /// already routes the ×2-3 demand to trending products even for a trend-blind
+  /// bot (v0.9 audit). So this adds realism, not the AC-10 edge; AC-10's +10-20%
+  /// comes from attack's aggressive management vs idle's conservative auto-play.
   bool get trendAware => false;
 
   /// The live trending category id, or -1 (none / market-less / forecast-only).

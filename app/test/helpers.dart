@@ -35,3 +35,14 @@ Balance loadTestBalanceFull() => Balance.fromJsonMaps(
       eventsJson: _read('events.json'),
       unlocksJson: _read('unlocks.json'),
     );
+
+/// The real app config INCLUDING the season/trend market (§6/§7, v0.9).
+Balance loadTestBalanceMarket() => Balance.fromJsonMaps(
+      economyJson: _read('economy.json'),
+      materialsJson: _read('materials.json'),
+      recipesJson: _read('recipes.json'),
+      ranksJson: _read('ranks.json'),
+      eventsJson: _read('events.json'),
+      unlocksJson: _read('unlocks.json'),
+      marketJson: _read('market.json'),
+    );

@@ -12,7 +12,8 @@ import 'package:isekai_headless/isekai_headless.dart';
 ///   dart run bin/run.dart --lives 10000 --csv nightly.csv
 void main(List<String> args) {
   var balanceDir = 'assets/balance';
-  var lives = 10;
+  var lives = 100; // enough that the soft gates (AC-09/AC-10) read stably; CI
+  // uses 200. Small N (10-20) makes AC-09/AC-10 noisy (audit v0.9).
   var seed = 42;
   var verify = false;
   var hashOnly = false;

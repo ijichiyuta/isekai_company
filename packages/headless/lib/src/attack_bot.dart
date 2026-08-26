@@ -30,5 +30,6 @@ class AttackBot extends BaseBot {
   int get reinvestFundsMult => 2; // buys upgrades sooner than steady
 
   @override
-  bool get trendAware => true; // manual optimizer: captures trends (§7 / AC-10)
+  bool get trendAware => true; // realism: front-loads trends (§7). AC-10's edge
+  // is this bot's aggressive management, not trend timing (v0.9 audit).
 }

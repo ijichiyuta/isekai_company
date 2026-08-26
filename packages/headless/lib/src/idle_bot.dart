@@ -1,12 +1,13 @@
 import 'base_bot.dart';
 import 'package:isekai_core/isekai_core.dart';
 
-/// 放置型 (requirements §18.1): "leave it to automation" (魂の記憶 #15自動値付け/
-/// #16自動発注). It auto-manages — hires, reinvests, restocks — but is
-/// trend-BLIND: it produces by margin and never front-loads the trending
-/// category. So 攻め型 (manual, trend-aware) beats it on the weekly profit rate
-/// by the manual edge (§6/§7 / AC-10). Still conservative (fat cushions) so it
-/// remains the survival floor (下限保証).
+/// 放置型 (requirements §18.1): "leave it to automation" (魂の記憶 #15/#16). It
+/// auto-manages — hires, reinvests, restocks — but conservatively (fat cushions,
+/// low forward stock). This is the config that makes AC-10 pass: an auto-managed
+/// 放置 player is competitive (closing the old +3658% reinvestment gap), and
+/// 攻め型's aggressive management beats it by +10-20% (the "手動優位"). It also
+/// stays the survival floor (下限保証). (The trend-timing edge §6/§7 is not yet
+/// realized — see base_bot.trendAware / v0.9 audit.)
 class IdleBot extends BaseBot {
   IdleBot(Balance balance) : super(balance);
 

@@ -263,8 +263,9 @@ class GameController extends ChangeNotifier {
   /// one-shot/infinite in core. Returns true on purchase, and persists.
   bool purchaseUnlock(int id) {
     if (id < 0 || id >= balance.unlocks.length) return false;
-    if (!_entitlements.canPurchase(balance.unlocks[id]))
+    if (!_entitlements.canPurchase(balance.unlocks[id])) {
       return false; // paywall
+    }
     if (!tryPurchaseUnlock(_meta, balance.unlocks, id)) return false;
     _analytics.event(AnalyticsEvents.unlockBought, {
       'id': id,

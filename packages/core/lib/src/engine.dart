@@ -108,20 +108,24 @@ class Engine {
     }
 
     // --- 2. sales ---
-    // Demand per discovered product, with ±5% weekly jitter from the economy
-    // stream (exercises RNG serialization; refined demand model lands in M2).
-    // fame is clamped (below), so demand stays bounded and demand*jitter and
-    // sold*basePrice cannot overflow int64 (requirements §10.5).
-    var demand = (eco.baseDemandX100 + s.fame * eco.demandPerFameX100) ~/ 100;
+    // Shared weekly demand POOL (requirements §6: the market is finite). Total
+    // sales across all products are capped by the pool, so adding product lines
+    // no longer multiplies demand (the old per-product model was pseudo-
+    // infinite). Products draw from the pool in id order; price/season/trend
+    // weighting of the allocation is M2. One jitter draw keeps the RNG draw
+    // count per tick constant (determinism, §2.2). fame is clamped (below) so
+    // pool*jitter and sold*basePrice cannot overflow int64 (§10.5).
+    var pool = (eco.baseDemandX100 + s.fame * eco.demandPerFameX100) ~/ 100;
     final jitter = 95 + s.rng.economy.nextInt(11);
-    demand = demand * jitter ~/ 100;
+    pool = pool * jitter ~/ 100;
     for (var i = 0; i < balance.recipes.length; i++) {
+      if (pool <= 0) break;
       final stock = s.productStock[i];
       if (stock == 0) continue;
-      final sold = stock < demand ? stock : demand;
-      if (sold <= 0) continue;
+      final sold = stock < pool ? stock : pool;
       s.productStock[i] -= sold;
       weeklyRevenue += sold * balance.recipes[i].basePrice;
+      pool -= sold;
     }
     s.funds += weeklyRevenue;
     s.totalRevenue = clampCap(s.totalRevenue + weeklyRevenue);

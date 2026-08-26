@@ -175,4 +175,31 @@ void main() {
     Engine(b).tick(s, [Grant(gameValueCap * 2, 'exploit_attempt')]);
     expect(s.funds, gameValueCap);
   });
+
+  test('sales are capped by the shared demand pool, not per product', () {
+    // Two products, both stocked well beyond the weekly pool. Total sales must
+    // equal the pool — NOT pool × number-of-products (the old pseudo-infinite
+    // bug). base_demand_x100=100 → pool≈1/wk at fame 0 (×jitter 0.95..1.05).
+    final b = _balance();
+    final s = GameState.initial(b, 1);
+    final engine = Engine(b);
+    // Discover both recipes (pudding id0 band1; secret id1 is band2 → bump).
+    s.allowedBandMax = 2;
+    engine.tick(s, [OrderMaterial(0, 1), OrderMaterial(1, 1), Develop(0, 1, 0)]);
+    engine.tick(s, [OrderMaterial(1, 2), Develop(1, 1, 0)]);
+    expect(s.discovered[0], isTrue);
+    expect(s.discovered[1], isTrue);
+    // Flood both product stocks directly, then run one sales tick with no
+    // production commands so only existing stock can move.
+    s.productStock[0] = 100;
+    s.productStock[1] = 100;
+    final soldBefore = s.productStock[0] + s.productStock[1];
+    engine.tick(s, []);
+    final soldAfter = s.productStock[0] + s.productStock[1];
+    final totalSold = soldBefore - soldAfter;
+    // Pool at fame≈small is tiny; total sold across BOTH products stays within
+    // a handful of units, never ~200.
+    expect(totalSold, lessThan(20),
+        reason: 'shared pool must cap total sales, got $totalSold');
+  });
 }

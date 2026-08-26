@@ -6,7 +6,11 @@ library;
 
 import 'balance.dart';
 import 'hash.dart';
+import 'meta.dart';
+import 'money.dart';
 import 'rng.dart';
+
+int _clampTo(int v, int lo, int hi) => v < lo ? lo : (v > hi ? hi : v);
 
 class GameState {
   int week;
@@ -105,6 +109,55 @@ class GameState {
         firedThisLife: <int>[],
         rng: RngStreams.seeded(seed),
       );
+
+  /// Start a life with the 魂の記憶 [meta] applied as initial-state modifiers
+  /// (§8.4). Deterministic: modifiers are summed in unlock-id order, ADD phase
+  /// (funds/employee/rank/equip/quality) BEFORE the MULTIPLY phase (funds %),
+  /// so the result never depends on iteration order (audit R5). App-only — the
+  /// headless determinism baseline uses [GameState.initial] (no meta); a
+  /// headless reference to fromMeta is a CI failure (tool/check_forbidden.sh).
+  ///
+  /// Mod types with no initial-state effect yet (production_bonus, sales_bonus,
+  /// auto_*, race_*, trend/decay/turnover/offline/hard_mode) are tracked as
+  /// unlocked (queryable via MetaReader) but don't alter the start state here.
+  factory GameState.fromMeta(Balance b, int seed, MetaState meta,
+      {int allowedBandMax = 1, int lifeNumber = 1}) {
+    final s = GameState.initial(b, seed,
+        allowedBandMax: allowedBandMax, lifeNumber: lifeNumber);
+    var addFunds = 0, addEmp = 0, addRank = 0, addEquip = 0, addQuality = 0;
+    var fundsPct = 0;
+    for (final u in b.unlocks) {
+      final lvl = meta.levelOf(u.id);
+      if (lvl <= 0) continue;
+      switch (u.modType) {
+        case 'start_funds':
+          addFunds += u.modValue * lvl;
+        case 'start_employee':
+          addEmp += u.modValue * lvl;
+        case 'start_rank':
+          addRank += u.modValue * lvl;
+        case 'equip_start_level':
+          addEquip += u.modValue * lvl;
+        case 'quality_start_star':
+          addQuality += u.modValue * lvl;
+        case 'start_funds_pct':
+          fundsPct += u.modValue * lvl;
+        default:
+          break; // tracked-only; effect wired when its feature exists
+      }
+    }
+    // ADD phase, each clamped to its valid range.
+    s.funds = clampCap(s.funds + addFunds);
+    s.employees = _clampTo(s.employees + addEmp, 0, b.economy.maxEmployees);
+    s.rank = _clampTo(s.rank + addRank, 0, b.ranks.length - 1);
+    s.equipmentLevel =
+        _clampTo(s.equipmentLevel + addEquip, 0, b.economy.equipMaxLevel);
+    s.qualityStar = _clampTo(
+        s.qualityStar + addQuality, 0, b.economy.qualityMultX100.length - 1);
+    // MULTIPLY phase (AFTER add): initial-funds % boost (§8.4 #21, infinite).
+    if (fundsPct != 0) s.funds = clampCap(s.funds * (100 + fundsPct) ~/ 100);
+    return s;
+  }
 
   Map<String, dynamic> toJson() => {
         'week': week,

@@ -4,6 +4,7 @@ library;
 
 import 'events.dart';
 import 'hash.dart';
+import 'meta.dart';
 
 class BalanceException implements Exception {
   final String message;
@@ -124,6 +125,52 @@ int _reqInt(Map<String, dynamic> m, String key, String file) {
   return v;
 }
 
+/// 魂の記憶 tree (§8.4). Absent → empty (headless / pre-M3 keep their hash).
+/// Ids must be sequential (so a node id indexes both `unlocks` and
+/// meta.unlockLevels), tiers valid, requires in range and backward (a node's
+/// prerequisites have smaller ids — prevents cycles), costs non-negative.
+List<UnlockDef> _parseUnlocks(Map<String, dynamic>? json) {
+  if (json == null) return const <UnlockDef>[];
+  const f = 'unlocks.json';
+  if (json['schema_version'] != 1) {
+    throw BalanceException('$f: unsupported schema_version');
+  }
+  const validTiers = {'free', 'full', 'auto'};
+  final out = <UnlockDef>[];
+  for (final raw in _reqList(json, 'unlocks', f)) {
+    final m = _reqMap(raw, f);
+    final id = _reqInt(m, 'id', f);
+    final tier = _reqStr(m, 'tier', f);
+    if (!validTiers.contains(tier)) {
+      throw BalanceException('$f: unknown tier "$tier" (id $id)');
+    }
+    final requires = <int>[];
+    for (final r in _reqList(m, 'requires', f)) {
+      if (r is! int || r < 0 || r >= id) {
+        throw BalanceException(
+            '$f: requires must reference an earlier node id (id $id, got $r)');
+      }
+      requires.add(r);
+    }
+    out.add(UnlockDef(
+      id: id,
+      key: _reqStr(m, 'key', f),
+      name: _reqStr(m, 'name', f),
+      desc: _reqStr(m, 'desc', f),
+      cost: _rangedInt(m, 'cost', f),
+      tier: tier,
+      requires: requires,
+      modType: _reqStr(m, 'mod_type', f),
+      modValue: _reqInt(m, 'mod_value', f),
+      infinite: _reqBool(m, 'infinite', f),
+    ));
+  }
+  for (var i = 0; i < out.length; i++) {
+    if (out[i].id != i) throw BalanceException('$f: ids must be sequential');
+  }
+  return out;
+}
+
 /// quality_mult_x100: price multiplier per quality star. [0] must be 100 (star
 /// 0 = base price) and the sequence must be nondecreasing (a higher star is
 /// never cheaper). Absent → [100] (quality disabled). M3 P1 / §10.2.
@@ -197,6 +244,10 @@ class Balance {
   final List<String> methods;
   final List<EventDef> events;
 
+  /// 魂の記憶 tree (§8.4). Empty unless unlocks.json is supplied (headless and
+  /// pre-M3 tests pass none, keeping the content hash unchanged — like events).
+  final List<UnlockDef> unlocks;
+
   /// Replay-compatibility boundary (requirements §2.2 rule 7).
   final String contentHash;
 
@@ -207,6 +258,7 @@ class Balance {
     required this.ranks,
     required this.methods,
     required this.events,
+    required this.unlocks,
     required this.contentHash,
   });
 
@@ -222,6 +274,7 @@ class Balance {
     required Map<String, dynamic> recipesJson,
     required Map<String, dynamic> ranksJson,
     Map<String, dynamic>? eventsJson,
+    Map<String, dynamic>? unlocksJson,
   }) {
     try {
       return Balance._build(
@@ -230,6 +283,7 @@ class Balance {
         recipesJson: recipesJson,
         ranksJson: ranksJson,
         eventsJson: eventsJson,
+        unlocksJson: unlocksJson,
       );
     } on BalanceException {
       rethrow;
@@ -246,6 +300,7 @@ class Balance {
     required Map<String, dynamic> recipesJson,
     required Map<String, dynamic> ranksJson,
     Map<String, dynamic>? eventsJson,
+    Map<String, dynamic>? unlocksJson,
   }) {
     for (final (name, m) in [
       ('economy.json', economyJson),
@@ -452,8 +507,10 @@ class Balance {
       }
     }
 
-    // Content hash covers events ONLY when present, so an events-less world
-    // (headless) keeps the exact pre-events hash (audit A-D1).
+    final unlocks = _parseUnlocks(unlocksJson);
+
+    // Content hash covers events/unlocks ONLY when present, so a world without
+    // them (headless) keeps the exact pre-feature hash (audit A-D1).
     final hashInput = <String, dynamic>{
       'economy': economyJson,
       'materials': materialsJson,
@@ -461,6 +518,7 @@ class Balance {
       'ranks': ranksJson,
     };
     if (events.isNotEmpty) hashInput['events'] = eventsJson;
+    if (unlocks.isNotEmpty) hashInput['unlocks'] = unlocksJson;
     final contentHash = hashHex(fnv1a64(canonicalJson(hashInput)));
 
     return Balance._(
@@ -470,6 +528,7 @@ class Balance {
       ranks: ranks,
       methods: methods,
       events: events,
+      unlocks: unlocks,
       contentHash: contentHash,
     );
   }

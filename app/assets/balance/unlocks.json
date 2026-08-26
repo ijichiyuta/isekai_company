@@ -1,0 +1,29 @@
+{
+  "schema_version": 1,
+  "unlocks": [
+    {"id": 0,  "key": "savings_1",     "name": "貯えの記憶 I",   "desc": "初期資金+500G",              "cost": 400,  "tier": "free", "requires": [],   "mod_type": "start_funds",      "mod_value": 500,   "infinite": false},
+    {"id": 1,  "key": "savings_2",     "name": "貯えの記憶 II",  "desc": "初期資金+2,000G",            "cost": 800,  "tier": "free", "requires": [0],  "mod_type": "start_funds",      "mod_value": 2000,  "infinite": false},
+    {"id": 2,  "key": "savings_3",     "name": "貯えの記憶 III", "desc": "初期資金+10,000G",           "cost": 1600, "tier": "full", "requires": [1],  "mod_type": "start_funds",      "mod_value": 10000, "infinite": false},
+    {"id": 3,  "key": "confidant",     "name": "腹心の記憶",     "desc": "初期従業員1名",              "cost": 600,  "tier": "free", "requires": [],   "mod_type": "start_employee",   "mod_value": 1,     "infinite": false},
+    {"id": 4,  "key": "merchant_sense","name": "商いの勘",       "desc": "開始ランク露店（1周目クリアで自動付与）", "cost": 0, "tier": "auto", "requires": [], "mod_type": "start_rank", "mod_value": 1, "infinite": false},
+    {"id": 5,  "key": "tool_memory",   "name": "道具の記憶",     "desc": "初期設備Lv2",                "cost": 600,  "tier": "free", "requires": [],   "mod_type": "equip_start_level","mod_value": 2,     "infinite": false},
+    {"id": 6,  "key": "base_recipes",  "name": "基本レシピの継承","desc": "定番3種保持",                "cost": 500,  "tier": "free", "requires": [],   "mod_type": "grant_recipes",    "mod_value": 3,     "infinite": false},
+    {"id": 7,  "key": "spark_residue", "name": "閃きの残滓",     "desc": "前周発見の10%をヒント全開示継承","cost": 900,  "tier": "full", "requires": [],   "mod_type": "hint_inherit",     "mod_value": 10,    "infinite": false},
+    {"id": 8,  "key": "memory_index",  "name": "記憶の索引",     "desc": "隠しレシピ素材1つ開示",       "cost": 700,  "tier": "full", "requires": [],   "mod_type": "reveal_material",  "mod_value": 1,     "infinite": false},
+    {"id": 9,  "key": "haggle",        "name": "値切り交渉",     "desc": "発注-5%",                    "cost": 600,  "tier": "free", "requires": [],   "mod_type": "order_discount",   "mod_value": 5,     "infinite": false},
+    {"id": 10, "key": "foresight",     "name": "先読み発注",     "desc": "流行予告リード2倍＋詳細開示",  "cost": 700,  "tier": "full", "requires": [],   "mod_type": "trend_lead",       "mod_value": 2,     "infinite": false},
+    {"id": 11, "key": "waste_mgmt",    "name": "廃棄ロス管理",   "desc": "劣化速度-30%",               "cost": 800,  "tier": "free", "requires": [],   "mod_type": "decay_slow",       "mod_value": 30,    "infinite": false},
+    {"id": 12, "key": "shelf_master",  "name": "棚割りの極意",   "desc": "販売効率+5%",                "cost": 700,  "tier": "free", "requires": [],   "mod_type": "sales_bonus",      "mod_value": 5,     "infinite": false},
+    {"id": 13, "key": "mass_produce",  "name": "大量生産",       "desc": "生産速度+10%",               "cost": 900,  "tier": "free", "requires": [],   "mod_type": "production_bonus", "mod_value": 10,    "infinite": false},
+    {"id": 14, "key": "charmer",       "name": "人たらし",       "desc": "離職率-20%",                 "cost": 800,  "tier": "free", "requires": [],   "mod_type": "turnover_slow",    "mod_value": 20,    "infinite": false},
+    {"id": 15, "key": "time_accel",    "name": "時の加速",       "desc": "倍速×3",                     "cost": 1200, "tier": "full", "requires": [],   "mod_type": "speed3",           "mod_value": 1,     "infinite": false},
+    {"id": 16, "key": "auto_pricing",  "name": "自動値付けの練達","desc": "自動値付けが流行考慮",       "cost": 500,  "tier": "full", "requires": [],   "mod_type": "auto_pricing",     "mod_value": 1,     "infinite": false},
+    {"id": 17, "key": "auto_order",    "name": "自動発注",       "desc": "素材自動補充",               "cost": 800,  "tier": "free", "requires": [],   "mod_type": "auto_order",       "mod_value": 1,     "infinite": false},
+    {"id": 18, "key": "dwarf_bond",    "name": "ドワーフの誼",   "desc": "ドワーフ雇用可",             "cost": 1500, "tier": "full", "requires": [],   "mod_type": "race_dwarf",       "mod_value": 1,     "infinite": false},
+    {"id": 19, "key": "elf_bond",      "name": "エルフの誼",     "desc": "エルフ雇用可",               "cost": 1500, "tier": "full", "requires": [],   "mod_type": "race_elf",         "mod_value": 1,     "infinite": false},
+    {"id": 20, "key": "hard_mode",     "name": "修羅の道",       "desc": "高難易度（スコア×1.5）",      "cost": 2000, "tier": "full", "requires": [],   "mod_type": "hard_mode",        "mod_value": 150,   "infinite": false},
+    {"id": 21, "key": "offline_cap",   "name": "商魂不滅",       "desc": "オフライン上限+2h",           "cost": 800,  "tier": "full", "requires": [],   "mod_type": "offline_cap",      "mod_value": 2,     "infinite": false},
+    {"id": 22, "key": "savings_max",   "name": "貯えの記憶・極", "desc": "初期資金+10%（無限）",        "cost": 1000, "tier": "full", "requires": [],   "mod_type": "start_funds_pct",  "mod_value": 10,    "infinite": true},
+    {"id": 23, "key": "craft_echo",    "name": "商才の残響",     "desc": "全生産効率+2%（無限）",       "cost": 1000, "tier": "full", "requires": [],   "mod_type": "production_bonus", "mod_value": 2,     "infinite": true}
+  ]
+}

@@ -15,3 +15,14 @@ if [ -n "$violations" ]; then
   exit 1
 fi
 echo "OK: core is clean (no IO / Flutter / floating point / wall clock / hash collections)"
+
+# The headless determinism baseline must stay meta-less: GameState.fromMeta
+# applies 魂の記憶 modifiers (app-only), which would diverge the cross-arch hash
+# comparison. Bots and the runner use GameState.initial only (M3 P2 / audit R6).
+meta_use=$(grep -rnE '\bfromMeta\b' packages/headless/lib packages/headless/bin || true)
+if [ -n "$meta_use" ]; then
+  echo "$meta_use"
+  echo "NG: headless references GameState.fromMeta (must use GameState.initial — audit R6)"
+  exit 1
+fi
+echo "OK: headless is meta-less (no fromMeta — determinism baseline intact)"

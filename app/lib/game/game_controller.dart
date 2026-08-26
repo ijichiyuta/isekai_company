@@ -62,7 +62,7 @@ class GameController extends ChangeNotifier {
         _store = store,
         engine = Engine(balance) {
     if (restored != null) {
-      _state = restored.state;
+      _state = restored.state; // meta already baked into the saved state
       _meta = restored.meta;
       lifeNumber = _state.lifeNumber;
       // A restored save whose life already ended shows the result screen.
@@ -70,13 +70,18 @@ class GameController extends ChangeNotifier {
         _lifeScore = computeLifetimeScore(_state, balance, _scoreParams);
       }
     } else {
-      _state = GameState.initial(balance, seed);
       _meta = MetaState.initial();
+      _state = GameState.fromMeta(balance, seed, _meta); // fresh: meta = none
     }
+    _meta.ensureUnlockSlots(balance.unlocks.length);
   }
 
   GameState get state => _state;
   MetaState get meta => _meta;
+
+  /// Read-only meta progression for the paywall / tree UI (P3), decoupled from
+  /// MetaState's storage.
+  MetaReader get metaReader => MetaView(_meta, balance.unlocks);
   GameSpeed get speed => _speed;
   List<Command> get pending => List.unmodifiable(_pending);
   InventionEvent? get pendingInvention =>
@@ -146,12 +151,37 @@ class GameController extends ChangeNotifier {
     lastRankedUp = false;
     _speed = GameSpeed.paused;
     clock.stop();
-    // A fresh, deterministic seed per life. Thread lifeNumber into the state so
-    // cycle events (min_life >= 2) can actually fire on later lives (§3.7).
-    _state = GameState.initial(balance, _baseSeed + lifeNumber,
+    // Auto-tier unlocks (§8.4 #3) are granted on rebirth from a completed life.
+    _grantAutoUnlocks();
+    // A fresh, deterministic seed per life, with 魂の記憶 applied as start-state
+    // bonuses (§8.4 — this is what shortens 2周目, C-6). lifeNumber threads into
+    // the state so cycle events (min_life >= 2) can fire on later lives (§3.7).
+    _state = GameState.fromMeta(balance, _baseSeed + lifeNumber, _meta,
         lifeNumber: lifeNumber);
     _persist(); // bank the new soul points + fresh life
     notifyListeners();
+  }
+
+  /// Grant every not-yet-owned 'auto' tier unlock (non-paid, condition-met on
+  /// completing a life — §8.4 #3 開始ランク露店).
+  void _grantAutoUnlocks() {
+    _meta.ensureUnlockSlots(balance.unlocks.length);
+    for (final u in balance.unlocks) {
+      if (u.tier == 'auto' && !_meta.isUnlocked(u.id)) {
+        _meta.unlockLevels[u.id] = 1;
+      }
+    }
+  }
+
+  /// Buy the next level of soul-memory unlock [id] (§8.4). Enforces
+  /// prerequisites + affordability + one-shot/infinite in core; the completion-
+  /// tier paywall gate is layered on in the app UI (P3). Returns true on
+  /// purchase, and persists.
+  bool purchaseUnlock(int id) {
+    if (!tryPurchaseUnlock(_meta, balance.unlocks, id)) return false;
+    _persist();
+    notifyListeners();
+    return true;
   }
 
   void _onLifeEnded() {

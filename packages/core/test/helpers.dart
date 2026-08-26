@@ -23,3 +23,13 @@ Balance testBalanceWithEvents() => Balance.fromJsonMaps(
       ranksJson: _read('ranks.json'),
       eventsJson: _read('events.json'),
     );
+
+/// Real balance with events + 魂の記憶 unlocks (the full app config).
+Balance testBalanceFull() => Balance.fromJsonMaps(
+      economyJson: _read('economy.json'),
+      materialsJson: _read('materials.json'),
+      recipesJson: _read('recipes.json'),
+      ranksJson: _read('ranks.json'),
+      eventsJson: _read('events.json'),
+      unlocksJson: _read('unlocks.json'),
+    );

@@ -62,4 +62,105 @@ class MetaState {
         unlockLevels:
             ((m['unlock_levels'] as List?)?.cast<int>().toList()) ?? <int>[],
       );
+
+  /// Grow [unlockLevels] to at least [n] slots (zero-filled) so a node id can be
+  /// indexed safely. Called after load with balance.unlocks.length so newer
+  /// unlocks default to level 0 (graceful when unlocks.json grows).
+  void ensureUnlockSlots(int n) {
+    while (unlockLevels.length < n) {
+      unlockLevels.add(0);
+    }
+  }
+}
+
+/// One node in the 魂の記憶 tree (§8.4), loaded from assets/balance/unlocks.json.
+/// [tier] is one of 'free' (buy with soul points), 'full' (完全版 gated — P3
+/// paywall), 'auto' (granted automatically, non-paid, e.g. #3 開始ランク).
+/// [infinite] nodes (§8.4 #21/#22) can be bought repeatedly; their cost grows
+/// geometrically ([unlockCostForLevel]).
+class UnlockDef {
+  final int id;
+  final String key;
+  final String name;
+  final String desc;
+  final int cost; // base cost (one-shot cost, or level-0 cost for infinite)
+  final String tier;
+  final List<int> requires;
+  final String modType;
+  final int modValue;
+  final bool infinite;
+  const UnlockDef({
+    required this.id,
+    required this.key,
+    required this.name,
+    required this.desc,
+    required this.cost,
+    required this.tier,
+    required this.requires,
+    required this.modType,
+    required this.modValue,
+    required this.infinite,
+  });
+}
+
+/// Cost growth of an infinite node per already-owned level (§8.4: 1000×1.6^n).
+const int _infiniteCostMultX100 = 160;
+
+/// Soul-point cost to buy the NEXT level of [u] given the current [level].
+/// One-shot nodes cost [UnlockDef.cost]; infinite nodes grow ×1.6 per level.
+int unlockCostForLevel(UnlockDef u, int level) {
+  if (!u.infinite) return u.cost;
+  var c = u.cost;
+  for (var i = 0; i < level; i++) {
+    c = c * _infiniteCostMultX100 ~/ 100;
+  }
+  return c;
+}
+
+/// Attempt to buy the next level of unlock [id] from [meta], spending soul
+/// points. Enforces prerequisites (all [requires] owned), affordability, and
+/// one-shot-vs-infinite. Does NOT check tier/entitlement — the completion-tier
+/// paywall lives in the app layer (P3). Returns true iff a purchase happened.
+bool tryPurchaseUnlock(MetaState meta, List<UnlockDef> unlocks, int id) {
+  if (id < 0 || id >= unlocks.length) return false;
+  final u = unlocks[id];
+  final level = meta.levelOf(id);
+  if (!u.infinite && level >= 1) return false; // already owned
+  for (final req in u.requires) {
+    if (!meta.isUnlocked(req)) return false; // prerequisite missing
+  }
+  final cost = unlockCostForLevel(u, level);
+  if (meta.soulPoints < cost) return false;
+  meta.soulPoints -= cost;
+  meta.ensureUnlockSlots(id + 1);
+  meta.unlockLevels[id] += 1;
+  return true;
+}
+
+/// Read-only view of meta progression for decoupled consumers (the P3 paywall
+/// depends only on this, not on MetaState's storage). See docs/m3-plan.md.
+abstract class MetaReader {
+  int get soulPoints;
+  bool isUnlocked(int id);
+  int unlockLevel(int id);
+  Iterable<UnlockDef> get allUnlocks;
+  Iterable<UnlockDef> unlocksOfTier(String tier);
+}
+
+/// Concrete [MetaReader] over a [MetaState] + the balance's unlock defs.
+class MetaView implements MetaReader {
+  final MetaState _state;
+  final List<UnlockDef> _unlocks;
+  const MetaView(this._state, this._unlocks);
+  @override
+  int get soulPoints => _state.soulPoints;
+  @override
+  bool isUnlocked(int id) => _state.isUnlocked(id);
+  @override
+  int unlockLevel(int id) => _state.levelOf(id);
+  @override
+  Iterable<UnlockDef> get allUnlocks => _unlocks;
+  @override
+  Iterable<UnlockDef> unlocksOfTier(String tier) =>
+      _unlocks.where((u) => u.tier == tier);
 }

@@ -25,3 +25,13 @@ Balance loadTestBalanceWithEvents() => Balance.fromJsonMaps(
       ranksJson: _read('ranks.json'),
       eventsJson: _read('events.json'),
     );
+
+/// Full app config: events + 魂の記憶 unlocks (§8.4), for meta-progression tests.
+Balance loadTestBalanceFull() => Balance.fromJsonMaps(
+      economyJson: _read('economy.json'),
+      materialsJson: _read('materials.json'),
+      recipesJson: _read('recipes.json'),
+      ranksJson: _read('ranks.json'),
+      eventsJson: _read('events.json'),
+      unlocksJson: _read('unlocks.json'),
+    );

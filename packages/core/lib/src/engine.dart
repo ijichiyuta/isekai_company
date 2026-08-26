@@ -47,9 +47,12 @@ class Engine {
     final eco = balance.economy;
     final inventions = <InventionResult>[];
 
-    // Capacity snapshot at week start (hires take effect next week).
-    final capacity =
+    // Capacity snapshot at week start (hires take effect next week). Equipment
+    // level scales it (M3 §10.2): +equipStepX100% of base per level.
+    final baseCapacity =
         eco.baseCapacityPerWeek + s.employees * eco.artisanOutputPerWeek;
+    final capacity = clampCap(
+        baseCapacity * (100 + s.equipmentLevel * eco.equipStepX100) ~/ 100);
     var producedThisWeek = 0;
     var weeklyRevenue = 0;
     var weeklySold = 0;
@@ -131,6 +134,24 @@ class Engine {
             s.employees++;
           }
 
+        case UpgradeEquipment():
+          if (s.equipmentLevel < eco.equipMaxLevel) {
+            final cost = _equipUpgradeCost(s, eco);
+            if (s.funds >= cost) {
+              s.funds -= cost;
+              s.equipmentLevel++;
+            }
+          }
+
+        case ImproveQuality():
+          if (s.qualityStar < eco.qualityMultX100.length - 1) {
+            final cost = _qualityUpgradeCost(s, eco);
+            if (s.funds >= cost) {
+              s.funds -= cost;
+              s.qualityStar++;
+            }
+          }
+
         case Grant(:final amount):
           // External inflows (offline rewards, IAP perks) — §2.2 rule 4.
           s.funds += amount;
@@ -176,7 +197,7 @@ class Engine {
         for (final i in active) {
           if (pool <= 0) break;
           s.productStock[i] -= 1;
-          weeklyRevenue += balance.recipes[i].basePrice;
+          weeklyRevenue += _unitPrice(balance.recipes[i], s);
           weeklySold += 1;
           pool -= 1;
         }
@@ -187,7 +208,7 @@ class Engine {
         final stock = s.productStock[i];
         final sold = stock < share ? stock : share;
         s.productStock[i] -= sold;
-        weeklyRevenue += sold * balance.recipes[i].basePrice;
+        weeklyRevenue += sold * _unitPrice(balance.recipes[i], s);
         weeklySold += sold;
         pool -= sold;
         if (s.productStock[i] > 0) next.add(i);
@@ -381,6 +402,40 @@ class Engine {
       case 'royal_flag':
         s.royalCleared = true;
     }
+  }
+
+  /// Sale price of one unit of [r] given the shop's current quality star and
+  /// the invention premium (M3 §10.2 / C-2). Integer, clamped so a high star ×
+  /// premium can't overflow. quality star is clamped to the mult table length
+  /// as a defensive measure (a valid life can't exceed it).
+  int _unitPrice(RecipeDef r, GameState s) {
+    final eco = balance.economy;
+    final star = s.qualityStar < eco.qualityMultX100.length
+        ? s.qualityStar
+        : eco.qualityMultX100.length - 1;
+    var p = clampCap(r.basePrice * eco.qualityMultX100[star] ~/ 100);
+    if (r.invention && eco.inventionPricePremiumX100 != 100) {
+      p = clampCap(p * eco.inventionPricePremiumX100 ~/ 100);
+    }
+    return p;
+  }
+
+  /// Geometric cost of the NEXT equipment level: base × mult^level (§10.2).
+  int _equipUpgradeCost(GameState s, EconomyDef eco) {
+    var c = eco.equipCostBase;
+    for (var i = 0; i < s.equipmentLevel; i++) {
+      c = clampCap(c * eco.equipCostMultX100 ~/ 100);
+    }
+    return c;
+  }
+
+  /// Geometric cost of the NEXT quality star: base × mult^star (§10.2).
+  int _qualityUpgradeCost(GameState s, EconomyDef eco) {
+    var c = eco.qualityCostBase;
+    for (var i = 0; i < s.qualityStar; i++) {
+      c = clampCap(c * eco.qualityCostMultX100 ~/ 100);
+    }
+    return c;
   }
 
   /// Discover [recipeId] if new and unlocked this life. Returns the invention

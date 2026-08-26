@@ -20,6 +20,10 @@ sealed class Command {
         return ChooseEvent(m['id'] as int, m['choice'] as int);
       case 'hire':
         return Hire();
+      case 'upgrade_equipment':
+        return UpgradeEquipment();
+      case 'improve_quality':
+        return ImproveQuality();
       case 'grant':
         return Grant(m['amount'] as int, m['reason'] as String);
       default:
@@ -79,6 +83,20 @@ class ChooseEvent extends Command {
 class Hire extends Command {
   @override
   Map<String, dynamic> toJson() => {'t': 'hire'};
+}
+
+/// Buy the next equipment level (M3 §10.2): scales weekly production capacity.
+/// Geometric cost curve; a no-op if funds are short or the max level is hit.
+class UpgradeEquipment extends Command {
+  @override
+  Map<String, dynamic> toJson() => {'t': 'upgrade_equipment'};
+}
+
+/// Buy the next quality star (M3 §10.2): scales sale price on every product.
+/// Geometric cost curve; a no-op if funds are short or the max star is hit.
+class ImproveQuality extends Command {
+  @override
+  Map<String, dynamic> toJson() => {'t': 'improve_quality'};
 }
 
 class Grant extends Command {

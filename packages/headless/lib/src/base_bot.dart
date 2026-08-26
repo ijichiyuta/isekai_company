@@ -47,7 +47,36 @@ abstract class BaseBot implements Bot {
   /// Cash the bot keeps in reserve before spending on production materials.
   int get materialCashReserve => 0;
 
+  /// Reinvest surplus funds into equipment (capacity) and quality (price)?
+  /// The M3 §10.2 growth drivers — off by default (idle stays a passive floor).
+  bool get reinvest => false;
+
+  /// Only buy an upgrade when funds exceed its cost by this factor, so a
+  /// purchase never starves the same week's production (geometric costs then
+  /// throttle spending naturally).
+  int get reinvestFundsMult => 4;
+
   // ---- shared helpers ----
+
+  /// Cost of the next equipment level / quality star — mirrors the engine's
+  /// geometric curve so the affordability check matches what the engine charges.
+  int equipUpgradeCost(GameState s) {
+    final eco = balance.economy;
+    var c = eco.equipCostBase;
+    for (var i = 0; i < s.equipmentLevel; i++) {
+      c = c * eco.equipCostMultX100 ~/ 100;
+    }
+    return c;
+  }
+
+  int qualityUpgradeCost(GameState s) {
+    final eco = balance.economy;
+    var c = eco.qualityCostBase;
+    for (var i = 0; i < s.qualityStar; i++) {
+      c = c * eco.qualityCostMultX100 ~/ 100;
+    }
+    return c;
+  }
 
   bool undiscoveredRemain(GameState s) {
     for (final r in balance.recipes) {
@@ -63,22 +92,35 @@ abstract class BaseBot implements Bot {
     return d < 1 ? 1 : d;
   }
 
+  /// Effective sale price for margin ranking: includes the invention premium
+  /// (C-2) so invented goods actually get produced. Quality applies equally to
+  /// all products, so it doesn't change ordering and is left out.
+  int _effPrice(RecipeDef r) {
+    final eco = balance.economy;
+    if (r.invention && eco.inventionPricePremiumX100 != 100) {
+      return r.basePrice * eco.inventionPricePremiumX100 ~/ 100;
+    }
+    return r.basePrice;
+  }
+
   List<RecipeDef> knownByMargin(GameState s) {
     final known = <RecipeDef>[];
     for (final r in balance.recipes) {
       if (s.discovered[r.id]) known.add(r);
     }
     known.sort((a, b) {
-      final ma = a.basePrice - balance.recipeUnitCost(a);
-      final mb = b.basePrice - balance.recipeUnitCost(b);
+      final ma = _effPrice(a) - balance.recipeUnitCost(a);
+      final mb = _effPrice(b) - balance.recipeUnitCost(b);
       return mb != ma ? mb - ma : a.id - b.id; // stable
     });
     return known;
   }
 
-  int capacity(GameState s) =>
-      balance.economy.baseCapacityPerWeek +
-      s.employees * balance.economy.artisanOutputPerWeek;
+  int capacity(GameState s) {
+    final eco = balance.economy;
+    final base = eco.baseCapacityPerWeek + s.employees * eco.artisanOutputPerWeek;
+    return base * (100 + s.equipmentLevel * eco.equipStepX100) ~/ 100;
+  }
 
   // ---- template decide() ----
 
@@ -134,6 +176,22 @@ abstract class BaseBot implements Bot {
         cap < pool &&
         s.funds > eco.hireCost + eco.wageLv1 * hireWageBuffer) {
       cmds.add(Hire());
+    }
+
+    // 2b) Reinvest surplus into the §10.2 growth drivers. Quality lifts price
+    //     on everything; equipment lifts capacity only when the shared pool
+    //     already outstrips it. Buy only with a comfortable funds cushion so
+    //     production isn't starved this week.
+    if (reinvest && known.isNotEmpty) {
+      final qMax = eco.qualityMultX100.length - 1;
+      if (s.qualityStar < qMax) {
+        final cost = qualityUpgradeCost(s);
+        if (s.funds > cost * reinvestFundsMult) cmds.add(ImproveQuality());
+      }
+      if (s.equipmentLevel < eco.equipMaxLevel && cap < pool) {
+        final cost = equipUpgradeCost(s);
+        if (s.funds > cost * reinvestFundsMult) cmds.add(UpgradeEquipment());
+      }
     }
 
     // Bot-specific extra commands (e.g. offline grants) before production.

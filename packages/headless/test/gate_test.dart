@@ -40,7 +40,10 @@ void main() {
   });
 
   test('evaluateGate runs and classifies hard/soft (small N)', () {
-    final balance = loadBalanceFromDir('../../assets/balance');
+    // Events ON: AC-08 (御用達 reach, now HARD) needs the royal contract event
+    // and the event fame boost — the config the real gate + app run.
+    final balance =
+        loadBalanceFromDir('../../assets/balance', withEvents: true);
     final report = evaluateGate(balance, lives: 20, seedBase: 1);
     // The report contains AC-04/05/07/08/10 rows.
     final acs = report.results.map((r) => r.ac).toSet();

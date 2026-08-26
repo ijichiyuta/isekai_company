@@ -8,4 +8,7 @@ class SteadyBot extends BaseBot {
   SteadyBot(Balance balance) : super(balance);
   @override
   String get name => 'steady';
+
+  @override
+  bool get reinvest => true; // grows via equipment + quality (§10.2)
 }

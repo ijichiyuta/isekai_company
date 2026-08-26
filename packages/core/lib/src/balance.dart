@@ -80,6 +80,16 @@ class EconomyDef {
   final int maxEmployees;
   final int eventFirePermille; // per-tick event fire chance (‰), 0 = never
   final int eventPityTicks; // guarantee an event if none in this many ticks, 0 = off
+  // --- Reinvestment drivers (M3 P1, §10.2). All default to "no effect" so a
+  // balance without these keys behaves exactly as pre-M3 (ADR-0002). ---
+  final int equipCostBase; // cost of the 1st equipment level
+  final int equipCostMultX100; // each level costs ×this/100 the previous
+  final int equipStepX100; // each level adds this% of base capacity
+  final int equipMaxLevel; // 0 = equipment upgrades disabled
+  final int qualityCostBase; // cost of the 1st quality star
+  final int qualityCostMultX100; // each star costs ×this/100 the previous
+  final List<int> qualityMultX100; // price ×mult/100 by star; [0] must be 100
+  final int inventionPricePremiumX100; // inventions sell ×this/100 (C-2), 100=off
   const EconomyDef({
     required this.startFunds,
     required this.lifespanWeeks,
@@ -97,6 +107,14 @@ class EconomyDef {
     required this.maxEmployees,
     required this.eventFirePermille,
     required this.eventPityTicks,
+    required this.equipCostBase,
+    required this.equipCostMultX100,
+    required this.equipStepX100,
+    required this.equipMaxLevel,
+    required this.qualityCostBase,
+    required this.qualityCostMultX100,
+    required this.qualityMultX100,
+    required this.inventionPricePremiumX100,
   });
 }
 
@@ -104,6 +122,33 @@ int _reqInt(Map<String, dynamic> m, String key, String file) {
   final v = m[key];
   if (v is! int) throw BalanceException('$file: "$key" must be int, got $v');
   return v;
+}
+
+/// quality_mult_x100: price multiplier per quality star. [0] must be 100 (star
+/// 0 = base price) and the sequence must be nondecreasing (a higher star is
+/// never cheaper). Absent → [100] (quality disabled). M3 P1 / §10.2.
+List<int> _parseQualityMult(Map<String, dynamic> m, String file) {
+  if (!m.containsKey('quality_mult_x100')) return const <int>[100];
+  final raw = _reqList(m, 'quality_mult_x100', file);
+  final out = <int>[];
+  for (final v in raw) {
+    if (v is! int || v < 1 || v > 1000000) {
+      throw BalanceException(
+          '$file: quality_mult_x100 entries must be ints in [1, 1000000], '
+          'got $v');
+    }
+    out.add(v);
+  }
+  if (out.isEmpty || out.first != 100) {
+    throw BalanceException('$file: quality_mult_x100[0] must be 100');
+  }
+  for (var i = 1; i < out.length; i++) {
+    if (out[i] < out[i - 1]) {
+      throw BalanceException(
+          '$file: quality_mult_x100 must be nondecreasing (index $i)');
+    }
+  }
+  return out;
 }
 
 String _reqStr(Map<String, dynamic> m, String key, String file) {
@@ -243,6 +288,32 @@ class Balance {
       eventPityTicks: economyJson.containsKey('event_pity_ticks')
           ? _rangedInt(economyJson, 'event_pity_ticks', c, max: 100000)
           : 0,
+      equipCostBase: economyJson.containsKey('equip_cost_base')
+          ? _rangedInt(economyJson, 'equip_cost_base', c)
+          : 0,
+      equipCostMultX100: economyJson.containsKey('equip_cost_mult_x100')
+          ? _rangedInt(economyJson, 'equip_cost_mult_x100', c,
+              min: 100, max: 1000000)
+          : 100,
+      equipStepX100: economyJson.containsKey('equip_step_x100')
+          ? _rangedInt(economyJson, 'equip_step_x100', c, max: 1000000)
+          : 0,
+      equipMaxLevel: economyJson.containsKey('equip_max_level')
+          ? _rangedInt(economyJson, 'equip_max_level', c, max: 1000)
+          : 0,
+      qualityCostBase: economyJson.containsKey('quality_cost_base')
+          ? _rangedInt(economyJson, 'quality_cost_base', c)
+          : 0,
+      qualityCostMultX100: economyJson.containsKey('quality_cost_mult_x100')
+          ? _rangedInt(economyJson, 'quality_cost_mult_x100', c,
+              min: 100, max: 1000000)
+          : 100,
+      qualityMultX100: _parseQualityMult(economyJson, c),
+      inventionPricePremiumX100:
+          economyJson.containsKey('invention_price_premium_x100')
+              ? _rangedInt(economyJson, 'invention_price_premium_x100', c,
+                  min: 100, max: 1000000)
+              : 100,
     );
 
     final materials = <MaterialDef>[];

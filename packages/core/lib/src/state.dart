@@ -19,6 +19,13 @@ class GameState {
   String endReason; // '', 'lifespan', 'bankrupt'
   int allowedBandMax; // recipe bands discoverable this life (meta progression)
 
+  // Reinvestment drivers (M3 P1, §10.2 economy). Default 0 = no effect, so a
+  // balance without the equip/quality keys behaves byte-identically to pre-M3
+  // (existing determinism tests unchanged). equipmentLevel scales weekly
+  // capacity; qualityStar scales sale price.
+  int equipmentLevel;
+  int qualityStar;
+
   final List<int> materialStock; // by material id
   final List<int> productStock; // by recipe id
   final List<bool> discovered; // by recipe id
@@ -51,6 +58,8 @@ class GameState {
     required this.alive,
     required this.endReason,
     required this.allowedBandMax,
+    required this.equipmentLevel,
+    required this.qualityStar,
     required this.materialStock,
     required this.productStock,
     required this.discovered,
@@ -79,6 +88,8 @@ class GameState {
         alive: true,
         endReason: '',
         allowedBandMax: allowedBandMax,
+        equipmentLevel: 0,
+        qualityStar: 0,
         materialStock: List<int>.filled(b.materials.length, 0),
         productStock: List<int>.filled(b.recipes.length, 0),
         discovered: List<bool>.filled(b.recipes.length, false),
@@ -105,6 +116,10 @@ class GameState {
         'alive': alive,
         'end_reason': endReason,
         'allowed_band_max': allowedBandMax,
+        // Emitted only when non-default so a balance without equip/quality keys
+        // hashes identically to the pre-M3 build (mirrors the event fields).
+        if (equipmentLevel != 0) 'equipment_level': equipmentLevel,
+        if (qualityStar != 0) 'quality_star': qualityStar,
         // Defensive copies: a snapshot must not alias the live lists, or a
         // later tick's in-place mutation would corrupt it (snapshot+journal
         // save, requirements §17.1). fromJson already copies on the way in.
@@ -136,6 +151,8 @@ class GameState {
         alive: m['alive'] as bool,
         endReason: m['end_reason'] as String,
         allowedBandMax: m['allowed_band_max'] as int,
+        equipmentLevel: (m['equipment_level'] as int?) ?? 0,
+        qualityStar: (m['quality_star'] as int?) ?? 0,
         materialStock: (m['material_stock'] as List).cast<int>().toList(),
         productStock: (m['product_stock'] as List).cast<int>().toList(),
         discovered: (m['discovered'] as List).cast<bool>().toList(),

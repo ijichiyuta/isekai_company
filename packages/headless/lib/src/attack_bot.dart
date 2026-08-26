@@ -22,4 +22,10 @@ class AttackBot extends BaseBot {
 
   @override
   int get materialCashReserve => 0; // spend everything on growth
+
+  @override
+  bool get reinvest => true; // aggressive: upgrades on a thin cushion
+
+  @override
+  int get reinvestFundsMult => 2; // buys upgrades sooner than steady
 }

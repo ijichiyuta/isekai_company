@@ -5,7 +5,7 @@
   "bankruptcy_grace_weeks": 4,
   "invention_cash_mult_x100": 2500,
   "invention_fame_mult_x100": 250,
-  "fame_per_sales_g": 20,
+  "fame_per_sales_g": 640,
   "wage_lv1": 8,
   "hire_cost": 20,
   "artisan_output_per_week": 10,
@@ -15,5 +15,13 @@
   "rank_up_fame_bonus": 50,
   "max_employees": 30,
   "event_fire_permille": 15,
-  "event_pity_ticks": 58
+  "event_pity_ticks": 58,
+  "equip_cost_base": 3000,
+  "equip_cost_mult_x100": 128,
+  "equip_step_x100": 10,
+  "equip_max_level": 20,
+  "quality_cost_base": 4000,
+  "quality_cost_mult_x100": 165,
+  "quality_mult_x100": [100, 122, 148, 178, 215, 258],
+  "invention_price_premium_x100": 150
 }

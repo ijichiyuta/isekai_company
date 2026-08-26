@@ -21,6 +21,9 @@ class CollectionBot extends BaseBot {
   @override
   String get name => 'collection';
 
+  @override
+  bool get reinvest => true; // plays like steady (§10.2 drivers) + offline income
+
   int _estWeeklyProfit(GameState s) {
     final known = knownByMargin(s);
     if (known.isEmpty) return 0;

@@ -47,6 +47,25 @@ jobs:
           name: hashes-${{ matrix.os }}
           path: packages/headless/hashes-*.txt
 
+  flutter-app:
+    name: flutter app (analyze + test)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: subosito/flutter-action@v2
+        with:
+          channel: stable
+      - name: Balance copies in sync (app bundle vs canonical)
+        run: diff -r assets/balance app/assets/balance
+      - name: Pub get
+        run: |
+          dart pub get --directory=packages/core
+          flutter pub get --directory=app
+      - name: Analyze app
+        run: flutter analyze app
+      - name: App tests
+        run: cd app && flutter test
+
   cross-arch:
     name: cross-arch hash compare (AC-02)
     needs: test

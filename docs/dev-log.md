@@ -110,6 +110,49 @@ Opus 4.8 の並列エージェント3体（コア数値・セーブ整合性・�
 - **AC-14**（デバッグメニュー本番除外）・**AC-17**（量子化パイプライン＋アセットCI）は M1 実装物
 - オフラインGrantの上限クランプは現バランスで未発火（休眠中・コードは正）。M2の桁で再実測
 
-### 次（M1・W4〜, 目標2026-11-08）
+## M1：第1層 vertical slice（2026-08-26 着手）
 
-Flutter appパッケージ／第1層vertical slice（発注→開発→生産→販売→再投資）／プリン発明演出／主要4画面／アートバイブル確定＋AI生成→量子化パイプライン→顔グラ1種族＋アイコン20点の量産テスト（/game-visual-qa合格がゲート）／デバッグメニュー（ビルドフレーバー分離でAC-14）／Build in Public開始。
+**目標（要件 §24）**: 触って15分遊べる第1層ループ＋プリン発明演出＋主要4画面＋デバッグメニュー。
+
+### 実装済み（app パッケージ）
+
+```
+app/  Flutter（isekai_core 依存、Riverpod、ios/macos プラットフォーム）
+  lib/game/
+    format.dart          K/M/B/T表記（整数演算）＋年季週カレンダー
+    tick_clock.dart      TickClock抽象（Real / Fake）＝テスト用に手動ステップ可能
+    game_controller.dart 決定論コアをラップ。予約制コマンド＋速度/ポーズ＋発明イベント検出＋自動ポーズ。デバッグ操作(kDebugMode)
+    balance_loader.dart  rootBundle から balance JSON をロード（app が IO 境界）
+    providers.dart       Riverpod: balance(Future) / tickClock / gameController(ChangeNotifier)
+  lib/ui/
+    app.dart             ブートストラップ（balanceロード待ち→MainScreen）
+    main_screen.dart     HUD（資金/名声/年季週）＋次ランクバー＋店舗ビュー＋速度バー（右下）＋5ボタンナビ＋ボトルネックバッジ＋人生終了バナー
+    develop_screen.dart  PB開発（素材2枠＋製法1）＋発見済みレシピ一覧。発明時は自動で戻り演出表示
+    invention_overlay.dart 発明演出（§12.5、フラッシュ＋スケールイン＋ボーナス表示）
+    order_screen / production_screen / sales_screen  発注・生産・販売（自動）
+  lib/debug/debug_menu.dart  資金付与・時間加速・全解放（kDebugModeゲート→release時tree-shakeでAC-14）
+  test/  game_controller / widget（発明演出まで） / format = 9テスト
+```
+
+- **決定論コアはそのまま利用**（app は UI・タイマー・演出の表示層に徹する＝要件§2.2の分離を実装で維持）
+- 予約制（§2.1）: UI操作は次ティックに反映。管理画面を開くと自動ポーズ（§12.1）
+- プリン発明の全経路（発注→開発→発明演出→取得）を widget テストで検証
+- **AC-14**: デバッグメニューは `if (kDebugMode)` 越しにのみ到達＝release で dead-code 除去。ADR化とビルドフレーバーの厳密分離は残タスク
+
+### 検証（2026-08-26）
+
+- app: `flutter analyze` クリーン、`flutter test` 9通過（core40＋headless14＋app9＝63）
+- CI に flutter ジョブ追加（analyze＋test＋balance コピー同期チェック）
+- `flutter run` での実機/シミュレータ確認は未実施（このヘッドレス環境では不可。iOS実機確認はTestFlight前に別途）
+
+### M1 残タスク
+
+- オンボーディング90秒台本（§13：前世カットイン→転生→誘導発注→プリン発明→初売上）
+- アートバイブル確定（/art-bible）＋AI生成→量子化パイプライン＋量産テスト（AC-17、/game-visual-qa ゲート）
+- デバッグメニューのビルドフレーバー厳密分離＋CI検査（AC-14の完全化）
+- balance_hash↔セーブ互換の密結合を ADR 化（M0監査P3）
+- app/assets/balance は canonical のコピー（CIで同期チェック中）。将来はビルド時同期に
+
+### 旧・M1計画メモ
+
+アートバイブル確定＋AI生成→量子化パイプライン→顔グラ1種族＋アイコン20点の量産テスト（/game-visual-qa合格がゲート）／Build in Public開始。

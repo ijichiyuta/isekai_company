@@ -17,6 +17,7 @@ void main(List<String> args) {
   var verify = false;
   var hashOnly = false;
   var compare = false;
+  var gate = false;
   var botName = 'steady';
   String? csvPath;
 
@@ -32,6 +33,8 @@ void main(List<String> args) {
         botName = args[++i];
       case '--compare':
         compare = true;
+      case '--gate':
+        gate = true;
       case '--verify-replay':
         verify = true;
       case '--hash-only':
@@ -52,6 +55,25 @@ void main(List<String> args) {
 
   if (compare) {
     _runCompare(balance, lives, seed);
+    return;
+  }
+
+  if (gate) {
+    final report = evaluateGate(balance, lives: lives, seedBase: seed);
+    print('=== balance gate (${lives} lives/bot, balance ${report.balanceHash}) ===');
+    print('AC     metric                     actual        threshold        '
+        'hard  result');
+    for (final r in report.results) {
+      print('${r.ac.padRight(6)} ${r.metric.padRight(26)} '
+          '${r.actual.padRight(13)} ${r.threshold.padRight(16)} '
+          '${(r.hard ? "H" : "-").padRight(5)} ${r.pass ? "PASS" : "FAIL"}');
+    }
+    if (report.ok) {
+      print('GATE: OK (all hard gates pass)');
+    } else {
+      print('GATE: FAIL (a hard gate failed)');
+      exit(1);
+    }
     return;
   }
 

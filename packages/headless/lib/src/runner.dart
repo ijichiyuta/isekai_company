@@ -1,6 +1,7 @@
 import 'package:isekai_core/isekai_core.dart';
 
 import 'bot.dart';
+import 'stats.dart';
 import 'steady_bot.dart';
 
 class LifeStats {
@@ -17,6 +18,7 @@ class LifeStats {
   final int totalRevenue;
   final String endReason;
   final String finalHash;
+  final IntervalStats intervals;
 
   LifeStats({
     required this.seed,
@@ -32,6 +34,7 @@ class LifeStats {
     required this.totalRevenue,
     required this.endReason,
     required this.finalHash,
+    required this.intervals,
   });
 
   /// Weekly profit rate proxy for AC-10: lifetime revenue per lived week.
@@ -55,8 +58,17 @@ LifeStats runLife(
       GameState.initial(balance, seed, allowedBandMax: allowedBandMax);
   final engine = Engine(balance);
   final bot = (botFactory ?? SteadyBot.new)(balance);
+  // Record the tick of every reward (discovery/rank-up today; events later) so
+  // reward pacing (AC-05) is measurable without touching core.
+  final rewardTicks = <int>[];
+  var prevReward = 0;
   while (state.alive) {
     engine.tick(state, bot.decide(state));
+    final delta = state.rewardEvents - prevReward;
+    for (var k = 0; k < delta; k++) {
+      rewardTicks.add(state.week);
+    }
+    prevReward = state.rewardEvents;
   }
   return LifeStats(
     seed: seed,
@@ -72,6 +84,7 @@ LifeStats runLife(
     totalRevenue: state.totalRevenue,
     endReason: state.endReason,
     finalHash: hashHex(state.stateHash()),
+    intervals: IntervalStats.fromRewardTicks(rewardTicks, state.week),
   );
 }
 

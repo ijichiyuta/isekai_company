@@ -66,6 +66,20 @@ jobs:
       - name: App tests
         run: cd app && flutter test
 
+  balance-gate:
+    name: balance gate (AC-04/07 hard, others soft)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dart-lang/setup-dart@v1
+      - run: |
+          dart pub get --directory=packages/core
+          dart pub get --directory=packages/headless
+      - name: Run balance gate (hard gates block, soft gates report)
+        run: |
+          cd packages/headless
+          dart run bin/run.dart --balance ../../assets/balance --gate --lives 200 --seed 1
+
   asset-audit:
     name: AC-17 asset pipeline audit
     runs-on: ubuntu-latest

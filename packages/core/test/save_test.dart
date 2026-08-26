@@ -59,42 +59,68 @@ Balance _balance() => Balance.fromJsonMaps(
       },
     );
 
+/// Reconstruct a well-formed doc with a valid checksum (the way encodeSave
+/// does), so tests can craft edge-case documents that pass the checksum gate.
+String _sealed(Map<String, dynamic> doc) {
+  final d = Map<String, dynamic>.of(doc)..remove('checksum');
+  d['checksum'] = hashHex(fnv1a64(canonicalJson(d)));
+  return canonicalJson(d);
+}
+
 void main() {
-  test('save roundtrip preserves state hash', () {
+  test('save roundtrip preserves state + meta', () {
     final b = _balance();
     final s = GameState.initial(b, 99);
     Engine(b).tick(s, [OrderMaterial(0, 2), Develop(0, 0, 0)]);
-    final text = encodeSave(s, b);
+    final meta = MetaState.raw(
+        soulPoints: 42, lifetimeBest: 7, tutorialDone: true, unlockLevels: [2]);
+    final text = encodeSave(s, meta, b);
     final restored = decodeSave(text, b);
-    expect(restored.stateHash(), s.stateHash());
-    expect(restored.week, s.week);
-    expect(restored.rng.economy.drawCount, s.rng.economy.drawCount);
+    expect(restored.state.stateHash(), s.stateHash());
+    expect(restored.state.week, s.week);
+    expect(restored.state.rng.economy.drawCount, s.rng.economy.drawCount);
+    expect(restored.meta.soulPoints, 42);
+    expect(restored.meta.lifetimeBest, 7);
+    expect(restored.meta.tutorialDone, isTrue);
+    expect(restored.meta.levelOf(0), 2);
   });
 
   test('tampered save is rejected', () {
     final b = _balance();
     final s = GameState.initial(b, 99);
-    final text = encodeSave(s, b);
+    final text = encodeSave(s, MetaState.initial(), b);
     final tampered = text.replaceFirst('"funds":100', '"funds":999999');
     expect(tampered, isNot(text)); // guard: the substring must exist
     expect(() => decodeSave(tampered, b),
         throwsA(isA<SaveCorruptException>()));
   });
 
-  test('newer schema version is rejected', () {
+  test('tampered meta is caught by the checksum', () {
     final b = _balance();
     final s = GameState.initial(b, 99);
-    final text = encodeSave(s, b)
-        .replaceFirst('"schema_version":1', '"schema_version":2');
-    expect(() => decodeSave(text, b), throwsA(isA<SaveCorruptException>()));
+    final text = encodeSave(
+        s, MetaState.raw(soulPoints: 5, lifetimeBest: 0, tutorialDone: false, unlockLevels: []), b);
+    final tampered = text.replaceFirst('"soul_points":5', '"soul_points":99999');
+    expect(tampered, isNot(text));
+    expect(() => decodeSave(tampered, b), throwsA(isA<SaveCorruptException>()));
   });
 
-  test('tampered balance_hash is now caught by the checksum', () {
+  test('newer schema version is rejected', () {
+    final b = _balance();
+    // A well-formed doc from a hypothetical future version (valid checksum).
+    final future = _sealed({
+      'schema_version': saveSchemaVersion + 1,
+      'balance_hash': b.contentHash,
+      'state': GameState.initial(b, 1).toJson(),
+      'meta': MetaState.initial().toJson(),
+    });
+    expect(() => decodeSave(future, b), throwsA(isA<SaveCorruptException>()));
+  });
+
+  test('tampered balance_hash is caught by the checksum', () {
     final b = _balance();
     final s = GameState.initial(b, 99);
-    final text = encodeSave(s, b);
-    // Flip one hex digit of the balance hash. Pre-fix the checksum only
-    // covered `state`, so this slipped through.
+    final text = encodeSave(s, MetaState.initial(), b);
     final hashStart = text.indexOf('"balance_hash":"') + 16;
     final orig = text[hashStart];
     final swapped = orig == 'a' ? 'b' : 'a';
@@ -106,7 +132,7 @@ void main() {
   test('truncated JSON is a SaveCorruptException, not a raw crash', () {
     final b = _balance();
     final s = GameState.initial(b, 99);
-    final text = encodeSave(s, b);
+    final text = encodeSave(s, MetaState.initial(), b);
     final cut = text.substring(0, text.length ~/ 2);
     expect(() => decodeSave(cut, b), throwsA(isA<SaveCorruptException>()));
   });
@@ -118,28 +144,53 @@ void main() {
     expect(() => decodeSave('42', b), throwsA(isA<SaveCorruptException>()));
   });
 
-  test('missing state object is a SaveCorruptException, not a raw TypeError',
-      () {
+  test('missing state object is a SaveCorruptException (valid checksum)', () {
     final b = _balance();
-    // A well-formed doc whose checksum matches but has no state field.
-    final doc = <String, dynamic>{
+    // A doc that passes the checksum + version + balance gates but has no state.
+    final broken = _sealed({
       'schema_version': saveSchemaVersion,
       'balance_hash': b.contentHash,
-    };
-    // Build a matching checksum the way encodeSave does.
-    // (Use the public path: tamper a real save by removing state instead.)
-    final real = encodeSave(GameState.initial(b, 1), b);
-    // Strip the state object crudely; checksum will now mismatch → corrupt.
-    final broken = real.replaceFirst(RegExp('"state":\\{.*?\\},'), '');
+      'meta': MetaState.initial().toJson(),
+    });
     expect(() => decodeSave(broken, b), throwsA(isA<SaveCorruptException>()));
-    // Silence unused warning for the illustrative doc.
-    expect(doc.containsKey('state'), isFalse);
   });
 
-  test('migration scaffold exists for AC-15', () {
-    // At v1 the chain is empty but the map must exist so future versions
-    // have a home and the migration test can assert on it.
-    expect(saveMigrations, isEmpty);
-    expect(saveSchemaVersion, 1);
+  test('missing meta object is a SaveCorruptException (valid checksum)', () {
+    final b = _balance();
+    final broken = _sealed({
+      'schema_version': saveSchemaVersion,
+      'balance_hash': b.contentHash,
+      'state': GameState.initial(b, 1).toJson(),
+    });
+    expect(() => decodeSave(broken, b), throwsA(isA<SaveCorruptException>()));
+  });
+
+  test('AC-15: a v1 (state-only) save migrates to v2 with default meta', () {
+    // Craft a genuine v1 document — the pre-M3 schema had no `meta` and used
+    // schema_version 1. Its checksum is computed over {schema_version, hash,
+    // state}. With a matched balance_hash it reaches the migration chain (a
+    // real economy change would trip balance_hash first — pre-release we have
+    // no v1 save to rescue; this proves the mechanism works).
+    final b = _balance();
+    final s = GameState.initial(b, 7);
+    Engine(b).tick(s, [OrderMaterial(0, 1)]);
+    final v1 = _sealed({
+      'schema_version': 1,
+      'balance_hash': b.contentHash,
+      'state': s.toJson(),
+    });
+
+    final restored = decodeSave(v1, b);
+    // State survives the migration untouched…
+    expect(restored.state.stateHash(), s.stateHash());
+    // …and a default meta is injected.
+    expect(restored.meta.soulPoints, 0);
+    expect(restored.meta.tutorialDone, isFalse);
+    expect(restored.meta.unlockLevels, isEmpty);
+  });
+
+  test('migration chain is registered for AC-15', () {
+    expect(saveSchemaVersion, 2);
+    expect(saveMigrations.containsKey(1), isTrue);
   });
 }

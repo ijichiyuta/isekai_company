@@ -61,12 +61,12 @@ void main() {
     while (s1.alive && s1.week < 600) {
       engine.tick(s1, bot.decide(s1));
     }
-    final saved = encodeSave(s1, balance);
+    final saved = encodeSave(s1, MetaState.initial(), balance);
     while (s1.alive) {
       engine.tick(s1, bot.decide(s1));
     }
 
-    final s2 = decodeSave(saved, balance);
+    final s2 = decodeSave(saved, balance).state;
     final bot2 = mk();
     while (s2.alive) {
       engine.tick(s2, bot2.decide(s2));

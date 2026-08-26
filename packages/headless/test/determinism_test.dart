@@ -48,13 +48,13 @@ void main() {
     while (s1.alive && s1.week < 700) {
       engine.tick(s1, bot.decide(s1));
     }
-    final savedAt700 = encodeSave(s1, balance);
+    final savedAt700 = encodeSave(s1, MetaState.initial(), balance);
     while (s1.alive) {
       engine.tick(s1, bot.decide(s1));
     }
 
     // Resume from the mid-life save with a fresh bot instance.
-    final s2 = decodeSave(savedAt700, balance);
+    final s2 = decodeSave(savedAt700, balance).state;
     final bot2 = SteadyBot(balance);
     while (s2.alive) {
       engine.tick(s2, bot2.decide(s2));

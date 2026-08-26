@@ -16,6 +16,8 @@ Widget _app({bool tutorial = false}) {
     overrides: [
       balanceProvider.overrideWith((ref) => Future.value(balance)),
       tickClockProvider.overrideWithValue(FakeTickClock()),
+      // No filesystem in widget tests — run the game in-memory (no persistence).
+      saveStoreProvider.overrideWith((ref) async => null),
       tutorialActiveProvider.overrideWith((ref) => tutorial),
     ],
     child: const IsekaiApp(),

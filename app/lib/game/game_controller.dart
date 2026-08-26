@@ -1,6 +1,7 @@
 import 'package:flutter/foundation.dart';
 import 'package:isekai_core/isekai_core.dart';
 
+import 'save_store.dart';
 import 'tick_clock.dart';
 
 enum GameSpeed { paused, x1, x2, x3 }
@@ -40,19 +41,42 @@ class GameController extends ChangeNotifier {
   final TickClock clock;
 
   late GameState _state;
+  late MetaState _meta;
+  final SaveStore? _store;
   final List<Command> _pending = [];
   GameSpeed _speed = GameSpeed.paused;
   final List<InventionEvent> _inventionQueue = [];
   final int _baseSeed;
   final ScoreParams _scoreParams = ScoreParams.defaults();
 
-  GameController({required this.balance, required this.clock, int seed = 1})
-      : _baseSeed = seed,
+  /// [restored] resumes a saved game (state + cross-life meta); null starts a
+  /// fresh life. [store] persists progress at life-end / rebirth / tutorial /
+  /// background — null disables persistence (unit tests without a filesystem).
+  GameController({
+    required this.balance,
+    required this.clock,
+    int seed = 1,
+    SaveStore? store,
+    SaveData? restored,
+  })  : _baseSeed = seed,
+        _store = store,
         engine = Engine(balance) {
-    _state = GameState.initial(balance, seed);
+    if (restored != null) {
+      _state = restored.state;
+      _meta = restored.meta;
+      lifeNumber = _state.lifeNumber;
+      // A restored save whose life already ended shows the result screen.
+      if (!_state.alive) {
+        _lifeScore = computeLifetimeScore(_state, balance, _scoreParams);
+      }
+    } else {
+      _state = GameState.initial(balance, seed);
+      _meta = MetaState.initial();
+    }
   }
 
   GameState get state => _state;
+  MetaState get meta => _meta;
   GameSpeed get speed => _speed;
   List<Command> get pending => List.unmodifiable(_pending);
   InventionEvent? get pendingInvention =>
@@ -66,7 +90,15 @@ class GameController extends ChangeNotifier {
 
   // --- Second-layer loop: life evaluation & rebirth (§8, requirements §24) ---
   int lifeNumber = 1;
-  int soulPointsTotal = 0;
+
+  /// Banked soul points across all lives — the single source of truth is [meta]
+  /// (persisted). Cumulative, carried in full between lives (§8.4).
+  int get soulPointsTotal => _meta.soulPoints;
+
+  /// Whether the first-run tutorial has been completed (persisted, §C-6). A
+  /// restored save with this set skips onboarding on 2周目 / relaunch.
+  bool get tutorialDone => _meta.tutorialDone;
+
   LifetimeScore? _lifeScore;
 
   /// The finished life's score, available once the life has ended.
@@ -104,7 +136,7 @@ class GameController extends ChangeNotifier {
   /// and meta persistence are M3 — for now it just banks points and resets.
   void rebirth() {
     if (_state.alive) return;
-    soulPointsTotal += pendingSoulPoints;
+    _meta.soulPoints += pendingSoulPoints;
     lifeNumber++;
     _lifeScore = null;
     _inventionQueue.clear();
@@ -118,13 +150,37 @@ class GameController extends ChangeNotifier {
     // cycle events (min_life >= 2) can actually fire on later lives (§3.7).
     _state = GameState.initial(balance, _baseSeed + lifeNumber,
         lifeNumber: lifeNumber);
+    _persist(); // bank the new soul points + fresh life
     notifyListeners();
   }
 
   void _onLifeEnded() {
     _lifeScore ??= computeLifetimeScore(_state, balance, _scoreParams);
+    if (_lifeScore!.total > _meta.lifetimeBest) {
+      _meta.lifetimeBest = _lifeScore!.total;
+    }
     _speed = GameSpeed.paused;
     clock.stop();
+    _persist(); // the ended life is worth saving (resume shows the result)
+  }
+
+  /// Mark the first-run tutorial done and persist it (§C-6 — 2周目 skips it).
+  void completeTutorial() {
+    if (_meta.tutorialDone) return;
+    _meta.tutorialDone = true;
+    _persist();
+    notifyListeners();
+  }
+
+  /// Fire-and-forget persistence at discrete milestones (life-end, rebirth,
+  /// tutorial). No-op when [_store] is null (tests).
+  void _persist() {
+    _store?.save(_state, _meta);
+  }
+
+  /// Awaitable persistence for the app-lifecycle observer (save on background).
+  Future<void> persist() async {
+    await _store?.save(_state, _meta);
   }
 
   RecipeDef? recipeById(int id) =>

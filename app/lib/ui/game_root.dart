@@ -6,8 +6,9 @@ import 'develop_screen.dart';
 import 'main_screen.dart';
 import 'onboarding.dart';
 
-/// Whether the first-run tutorial should play. In-memory for M1 (resets each
-/// launch); persisting it + 2周目 auto-skip lands when meta/save is wired (M3).
+/// Test/debug hook to force-skip onboarding (set false). Real persistence lives
+/// in meta: [GameController.tutorialDone] (§C-6) drives the 2周目 / relaunch
+/// auto-skip. In production this stays true and tutorialDone gates the flow.
 final tutorialActiveProvider = StateProvider<bool>((ref) => true);
 
 /// Sequences the first-run experience: onboarding intro → guided pudding
@@ -37,14 +38,19 @@ class _GameRootState extends ConsumerState<GameRoot> {
     await Navigator.of(context).push(
       MaterialPageRoute(builder: (_) => const DevelopScreen(tutorial: true)),
     );
-    // Tutorial complete once they've been through the guided develop.
-    ref.read(tutorialActiveProvider.notifier).state = false;
+    // Tutorial complete once they've been through the guided develop — persist
+    // it so 2周目 / relaunch skips onboarding (§C-6).
+    if (!mounted) return;
+    ref.read(gameControllerProvider).completeTutorial();
   }
 
   @override
   Widget build(BuildContext context) {
-    final tutorial = ref.watch(tutorialActiveProvider);
-    if (tutorial && !_introDone) {
+    // Real persistence: skip onboarding when the saved meta says it's done.
+    final done = ref.watch(
+        gameControllerProvider.select((g) => g.tutorialDone));
+    final hook = ref.watch(tutorialActiveProvider); // test/debug force-skip
+    if (hook && !done && !_introDone) {
       return OnboardingFlow(onDone: _finishIntro);
     }
     return const MainScreen();

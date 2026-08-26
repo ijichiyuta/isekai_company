@@ -32,6 +32,7 @@ Widget _framed(Widget child) => ProviderScope(
       overrides: [
         balanceProvider.overrideWith((ref) => Future.value(loadTestBalance())),
         tickClockProvider.overrideWithValue(FakeTickClock()),
+        saveStoreProvider.overrideWith((ref) async => null),
       ],
       child: MaterialApp(
         debugShowCheckedModeBanner: false,
@@ -39,12 +40,13 @@ Widget _framed(Widget child) => ProviderScope(
           textTheme: buildTheme().textTheme.apply(fontFamily: 'Hiragino'),
         ),
         home: Consumer(builder: (c, ref, _) {
+          // The child's gameControllerProvider requireValue's balance + store +
+          // restored — wait for balance AND the restored save before building.
           final b = ref.watch(balanceProvider);
-          return b.when(
-            loading: () => const SizedBox.shrink(),
-            error: (e, _) => Text('$e'),
-            data: (_) => child,
-          );
+          final r = ref.watch(restoredSaveProvider);
+          if (b.isLoading || r.isLoading) return const SizedBox.shrink();
+          if (b.hasError) return Text('${b.error}');
+          return child;
         }),
       ),
     );

@@ -1,0 +1,7 @@
+name: asset_pipeline
+description: Quantize AI/hand art to the fixed palette and audit conformance (art-bible.md, AC-17).
+publish_to: none
+environment:
+  sdk: ^3.5.0
+dependencies:
+  image: ^4.3.0

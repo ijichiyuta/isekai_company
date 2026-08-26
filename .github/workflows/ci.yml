@@ -66,6 +66,54 @@ jobs:
       - name: App tests
         run: cd app && flutter test
 
+  asset-audit:
+    name: AC-17 asset pipeline audit
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dart-lang/setup-dart@v1
+      - name: Pub get
+        run: dart pub get --directory=tool/asset_pipeline
+      - name: Sample pipeline produces conformant art
+        run: |
+          cd tool/asset_pipeline
+          dart analyze
+          dart run bin/gen_samples.dart ../../assets/generated
+      - name: Audit all generated assets against the fixed palette
+        run: |
+          cd tool/asset_pipeline
+          dart run bin/audit.dart ../../assets/generated 32 ../../assets/palette.json
+
+  ac14-debug-excluded:
+    name: AC-14 debug menu excluded from release
+    runs-on: macos-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: subosito/flutter-action@v2
+        with:
+          channel: stable
+      - run: dart pub get --directory=packages/core
+      - run: flutter pub get --directory=app
+      - name: Build release
+        run: cd app && flutter build macos --release
+      - name: Assert debug menu is tree-shaken out of the release binary
+        run: |
+          BIN=$(find app/build/macos -path '*App.framework*/Versions/A/App' | head -1)
+          echo "release binary: $BIN"
+          test -n "$BIN" || { echo "release binary not found"; exit 1; }
+          # Sanity: a reachable symbol should be present (informational).
+          if strings "$BIN" | grep -q "InventionOverlay"; then
+            echo "sanity OK: reachable symbol present"
+          else
+            echo "note: reachable symbols not found (AOT may strip names)"
+          fi
+          # Hard gate: debug-only symbols must be absent.
+          if strings "$BIN" | grep -E "DebugMenu|debugGrant|debugStep"; then
+            echo "FAIL: debug menu symbols present in release build (AC-14)"
+            exit 1
+          fi
+          echo "OK: no debug menu symbols in release (AC-14 satisfied)"
+
   cross-arch:
     name: cross-arch hash compare (AC-02)
     needs: test

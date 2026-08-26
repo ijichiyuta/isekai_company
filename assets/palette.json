@@ -1,0 +1,15 @@
+{
+  "schema_version": 1,
+  "name": "isekai-company-32",
+  "note": "Fixed 32-colour palette. All pixel assets must quantize to exactly these RGB values (art-bible.md §3). Colours are grouped in ramps light→dark.",
+  "colors": [
+    "#F5EEDA", "#E7D6AE", "#D8BE8B", "#C2A063",
+    "#B7895A", "#8B5E34", "#6B4423", "#4A2E17", "#2A1E14",
+    "#F2D06B", "#E0AE2E", "#C8991F", "#9A6E12",
+    "#CFE6A6", "#9FCB6B", "#6BA83E", "#4A7A2A", "#2E4F1B",
+    "#BFE3EC", "#7FC3D6", "#4A97BE", "#2E6A8E", "#1D4763",
+    "#F2C9A0", "#EFA96B", "#E07A3A", "#C24A1F", "#8E2E14",
+    "#B79BE0", "#6A4FB6",
+    "#1A1410", "#FFFFFF"
+  ]
+}

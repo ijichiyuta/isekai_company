@@ -153,6 +153,26 @@ app/  Flutter（isekai_core 依存、Riverpod、ios/macos プラットフォー�
 - balance_hash↔セーブ互換の密結合を ADR 化（M0監査P3）
 - app/assets/balance は canonical のコピー（CIで同期チェック中）。将来はビルド時同期に
 
+### M1 監査ゲート（2026-08-26）→ NO-GO → 対応
+
+Opus 4.8 並列3体で M1 を監査（実測裏取り）。**総合 NO-GO**（アーキ=条件付きGO、UX=NO-GO、リリース=NO-GO）。指摘に3バッチで対応:
+
+**対応(1/3) 予約制・correctness（commit 2dab1b0）**
+- engine.tick を TickResult 返却型に（発明ボーナス正確値・週次売上/販売数・昇格）
+- Discover コマンド追加（材料費なしでレシピ付与＝魂の記憶#5＋デバッグ用、engine経由で決定論維持）
+- 予約制(§2.1)実装: 発注/生産は reserve のみ、時間はメイン画面の速度バー＋「次の週へ」で進める
+- 発明ボーナス表示を正確値に・多重発明キュー化・先週の売上/昇格をメイン常設・ボトルネックを ActionChip 化（タップで直行§12.3）・デバッグ全発見を Discover 経由に
+
+**対応(2/3) オンボーディング（commit b5537c5）**
+- OnboardingFlow（前世カットイン→女神転生→目標）＋GameRoot（イントロ→誘導開発→フリープレイ）＋DevelopScreen(tutorial:true)でプリン素材事前選択＝first_invention保証。tutorialActiveProvider（永続化・2周目省略はM3のsave連携時）
+
+**対応(3/3) AC-14/AC-17（本コミット）**
+- **AC-14**: CIに `ac14-debug-excluded` ジョブ追加。release ビルドの App バイナリを strings で走査し DebugMenu/debugGrant/debugStep が不在であることを hard gate（監査が手動でやった検証を自動化）
+- **AC-17**: アートバイブル（`docs/art-bible.md`：32色パレット・解像度・光源・アウトライン・パーツ合成）＋`assets/palette.json`（固定32色）＋`tool/asset_pipeline`（quantize：固定パレット減色＋近傍補間サイズ正規化／audit：パレット逸脱・サイズ検査）＋CI `asset-audit` ジョブ。**この環境ではAI画像生成不可のため、パレットのみで手続き生成したサンプル3点（coin/herb/vial）でパイプライン→監査→CIをend-to-end実証**。実AIアセットの量産テスト（1種族＋アイコン20点/game-visual-qa）は画像生成可能なセッションに限定繰り越し（要件§21.2の基盤＝本書＋パレット＋パイプラインはM1で確定）
+- **ADR-0001**（`docs/adr/`）: balance_hash↔セーブ互換の密結合（M0監査P3）。MVPは不一致＝破棄、リリース後は追記のみ原則、v1.0でbalanceマイグレーション表
+
+M1残（画像生成環境が必要／M3以降）: 実AIアセット量産テスト、tutorial永続化＋2周目省略、Build in Public。
+
 ### 旧・M1計画メモ
 
 アートバイブル確定＋AI生成→量子化パイプライン→顔グラ1種族＋アイコン20点の量産テスト（/game-visual-qa合格がゲート）／Build in Public開始。

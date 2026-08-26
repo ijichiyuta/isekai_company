@@ -7,8 +7,8 @@ void main() {
   final eventful = testBalanceWithEvents();
   final eventless = testBalance();
 
-  test('EV-01: events.json loads with 30 sequential ids', () {
-    expect(eventful.events.length, 30);
+  test('EV-01: events.json loads with 60 sequential ids', () {
+    expect(eventful.events.length, 60);
     for (var i = 0; i < eventful.events.length; i++) {
       expect(eventful.events[i].id, i);
     }

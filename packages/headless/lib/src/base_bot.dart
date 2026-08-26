@@ -56,6 +56,19 @@ abstract class BaseBot implements Bot {
   /// throttle spending naturally).
   int get reinvestFundsMult => 4;
 
+  /// Manual optimizer: shift production toward the trending category to capture
+  /// its ×2-3 demand (§7 / AC-10). A trend-blind (auto) bot leaves this off, so
+  /// the trend-aware bot out-earns it by the manual edge.
+  bool get trendAware => false;
+
+  /// The live trending category id, or -1 (none / market-less / forecast-only).
+  int liveTrendCategory(GameState s) {
+    if (balance.market == null) return -1;
+    return (s.trendActiveWeeks > 0 && s.trendForecastWeeks == 0)
+        ? s.trendCategory
+        : -1;
+  }
+
   // ---- shared helpers ----
 
   /// Cost of the next equipment level / quality star — mirrors the engine's
@@ -198,16 +211,26 @@ abstract class BaseBot implements Bot {
     extraCommands(s, cmds);
 
     // 3) Produce toward the shared pool (+ headroom), best margin first. Total
-    //    production is bounded by capacity AND by the pool, so we never pile up
-    //    unsellable stock across the whole catalogue.
+    //    production is bounded by capacity AND by the pool. A trend-aware bot
+    //    front-loads the trending category and holds extra stock of it to
+    //    capture the ×2-3 demand spike (§7 / AC-10). A trend-blind bot doesn't,
+    //    so it under-produces the hot line and earns the base rate.
+    final trendCat = trendAware ? liveTrendCategory(s) : -1;
+    bool isTrending(RecipeDef r) =>
+        trendCat >= 0 && balance.market!.categoryIndex(r.category) == trendCat;
+    final order = trendCat < 0
+        ? known
+        : [...known.where(isTrending), ...known.where((r) => !isTrending(r))];
     var target = pool + pool * stockHeadroomWeeks;
     if (target > cap) target = cap;
     final maxStockPerLine = pool * (stockHeadroomWeeks + 1);
     var capLeft = target;
-    for (final r in known) {
+    for (final r in order) {
       if (capLeft <= 0) break;
+      var lineMax = maxStockPerLine;
+      if (isTrending(r)) lineMax = lineMax * s.trendMultX100 ~/ 100;
       var want = capLeft;
-      final headroom = maxStockPerLine - s.productStock[r.id];
+      final headroom = lineMax - s.productStock[r.id];
       if (want > headroom) want = headroom;
       if (want <= 0) continue;
       final matCost = r.matA == r.matB

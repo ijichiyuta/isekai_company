@@ -136,24 +136,46 @@ class Engine {
 
     // --- 2. sales ---
     // Shared weekly demand POOL (requirements §6: the market is finite). Total
-    // sales across all products are capped by the pool, so adding product lines
-    // no longer multiplies demand (the old per-product model was pseudo-
-    // infinite). Products draw from the pool in id order; price/season/trend
-    // weighting of the allocation is M2. One jitter draw keeps the RNG draw
-    // count per tick constant (determinism, §2.2). fame is clamped (below) so
-    // pool*jitter and sold*basePrice cannot overflow int64 (§10.5).
+    // sales across all products are capped by the pool. Allocation is a FAIR
+    // water-fill: every in-stock product gets an equal share each round, and
+    // shares freed by products that sell out redistribute to the rest. This
+    // fixes the old id-order drain where high-id (premium / high-band) goods
+    // never sold because low-id staples emptied the pool first (M2 audit D-2).
+    // Price/season/trend weighting of the shares is a later refinement.
+    // One jitter draw keeps the RNG draw count per tick constant (§2.2). fame is
+    // clamped (below) so pool*jitter and sold*basePrice can't overflow (§10.5).
     var pool = (eco.baseDemandX100 + s.fame * eco.demandPerFameX100) ~/ 100;
     final jitter = 95 + s.rng.economy.nextInt(11);
     pool = pool * jitter ~/ 100;
+    var active = <int>[];
     for (var i = 0; i < balance.recipes.length; i++) {
-      if (pool <= 0) break;
-      final stock = s.productStock[i];
-      if (stock == 0) continue;
-      final sold = stock < pool ? stock : pool;
-      s.productStock[i] -= sold;
-      weeklyRevenue += sold * balance.recipes[i].basePrice;
-      weeklySold += sold;
-      pool -= sold;
+      if (s.productStock[i] > 0) active.add(i);
+    }
+    while (pool > 0 && active.isNotEmpty) {
+      final share = pool ~/ active.length;
+      if (share == 0) {
+        // Fewer units of demand than active products: give one unit each in id
+        // order until the pool is gone (bounded, deterministic).
+        for (final i in active) {
+          if (pool <= 0) break;
+          s.productStock[i] -= 1;
+          weeklyRevenue += balance.recipes[i].basePrice;
+          weeklySold += 1;
+          pool -= 1;
+        }
+        break;
+      }
+      final next = <int>[];
+      for (final i in active) {
+        final stock = s.productStock[i];
+        final sold = stock < share ? stock : share;
+        s.productStock[i] -= sold;
+        weeklyRevenue += sold * balance.recipes[i].basePrice;
+        weeklySold += sold;
+        pool -= sold;
+        if (s.productStock[i] > 0) next.add(i);
+      }
+      active = next;
     }
     s.funds += weeklyRevenue;
     s.totalRevenue = clampCap(s.totalRevenue + weeklyRevenue);

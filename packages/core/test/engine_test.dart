@@ -215,6 +215,24 @@ void main() {
     expect(s.funds, gameValueCap);
   });
 
+  test('demand is shared fairly: a high-id product sells even when a low-id '
+      'one is also stocked (M2 audit D-2)', () {
+    // Two products both stocked well beyond the pool. Under the old id-order
+    // drain, product id 1 would never sell. Fair water-fill gives both a share.
+    final b = _balance();
+    final s = GameState.initial(b, 1);
+    final engine = Engine(b);
+    s.allowedBandMax = 2;
+    engine.tick(s, [OrderMaterial(0, 1), OrderMaterial(1, 1), Develop(0, 1, 0)]);
+    engine.tick(s, [OrderMaterial(1, 2), Develop(1, 1, 0)]); // discover id 1
+    s.productStock[0] = 100;
+    s.productStock[1] = 100;
+    engine.tick(s, []);
+    // Both products moved some stock (neither is starved).
+    expect(s.productStock[0], lessThan(100));
+    expect(s.productStock[1], lessThan(100));
+  });
+
   test('sales are capped by the shared demand pool, not per product', () {
     // Two products, both stocked well beyond the weekly pool. Total sales must
     // equal the pool — NOT pool × number-of-products (the old pseudo-infinite

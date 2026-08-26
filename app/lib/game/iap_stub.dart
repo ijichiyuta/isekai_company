@@ -18,8 +18,10 @@ abstract class IapClient {
 }
 
 /// Debug: 完全版 succeeds instantly so the flow is testable/dev-usable.
-/// Release: unavailable — guarding on [kReleaseMode] means the debug success
-/// path can NEVER ship as a free unlock (checked by the AC-14 release gate).
+/// Release: unavailable — every method is gated on [kReleaseMode], which the
+/// AOT compiler folds to a constant `false`, so the debug success path can never
+/// ship as a free unlock. The M3 release build is NOT submitted for review
+/// (no store product yet); see ADR-0003.
 class StubIapClient implements IapClient {
   @override
   bool get available => !kReleaseMode;

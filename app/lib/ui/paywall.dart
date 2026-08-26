@@ -46,8 +46,12 @@ class _PaywallSheet extends ConsumerWidget {
                 textAlign: TextAlign.center)
           else ...[
             Text('・魂の記憶の完全版ノードを +${s.unlockedByFull} 項目 解放\n'
-                '・倍速×3／自動値付けの練達／種族解放 ほか',
+                '・初期資金・設備・生産効率などの恒久強化を解放',
                 style: const TextStyle(height: 1.6)),
+            const SizedBox(height: 8),
+            const Text('※ 種族・自動化・倍速×3 などの高度な機能は、今後の'
+                'アップデートで順次有効化されます。',
+                style: TextStyle(fontSize: 11, color: Colors.grey)),
             const SizedBox(height: 16),
             FilledButton(
               onPressed: available

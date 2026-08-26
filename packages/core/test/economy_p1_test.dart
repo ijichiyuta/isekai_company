@@ -187,6 +187,39 @@ void main() {
     expect(s.toJson().containsKey('quality_star'), isFalse);
   });
 
+  test('meta economy bonuses scale capacity / order cost / demand (§8.4)', () {
+    // production bonus: capacity scales (isolate via no demand → stock = made).
+    final b = _b(econ: {'base_demand_x100': 0});
+    final e = Engine(b);
+    final s = GameState.initial(b, 1)
+      ..funds = 1000000
+      ..discovered[0] = true
+      ..materialStock[0] = 100000
+      ..productionBonusX100 = 100; // +100% → capacity 10 → 20
+    e.tick(s, [Produce(0, 1000)]);
+    expect(s.productStock[0], 20);
+
+    // order discount: material cost cut.
+    final s2 = GameState.initial(b, 1)
+      ..funds = 1000
+      ..orderDiscountX100 = 50;
+    e.tick(s2, [OrderMaterial(0, 100)]); // 100×1 → ×50% = 50
+    expect(1000 - s2.funds, 50);
+
+    // sales bonus: wider pool sells more when production-rich but pool-bound.
+    int soldWith(int bonus) {
+      final x = GameState.initial(b, 5)
+        ..funds = 10000000
+        ..discovered[0] = true
+        ..employees = 30 // capacity 310 >> pool
+        ..materialStock[0] = 1000000
+        ..salesBonusX100 = bonus;
+      return Engine(_b(econ: {'base_demand_x100': 10000}))
+          .tick(x, [Produce(0, 500)]).weeklySold;
+    }
+    expect(soldWith(100), greaterThan(soldWith(0)));
+  });
+
   test('new commands round-trip through JSON', () {
     expect(Command.fromJson(UpgradeEquipment().toJson()),
         isA<UpgradeEquipment>());

@@ -69,9 +69,18 @@ Balance _b() => Balance.fromJsonMaps(
           {'id': 5, 'key': 'pct', 'name': 'Pct', 'desc': '', 'cost': 1000,
               'tier': 'full', 'requires': [], 'mod_type': 'start_funds_pct',
               'mod_value': 10, 'infinite': true},
-          {'id': 6, 'key': 'trk', 'name': 'Tracked', 'desc': '', 'cost': 300,
+          {'id': 6, 'key': 'race', 'name': 'Race', 'desc': '', 'cost': 300,
+              'tier': 'full', 'requires': [], 'mod_type': 'race_dwarf',
+              'mod_value': 1, 'infinite': false}, // feature-gated (no effect yet)
+          {'id': 7, 'key': 'prod', 'name': 'Prod', 'desc': '', 'cost': 400,
               'tier': 'free', 'requires': [], 'mod_type': 'production_bonus',
               'mod_value': 10, 'infinite': false},
+          {'id': 8, 'key': 'sales', 'name': 'Sales', 'desc': '', 'cost': 400,
+              'tier': 'free', 'requires': [], 'mod_type': 'sales_bonus',
+              'mod_value': 5, 'infinite': false},
+          {'id': 9, 'key': 'order', 'name': 'Order', 'desc': '', 'cost': 400,
+              'tier': 'free', 'requires': [], 'mod_type': 'order_discount',
+              'mod_value': 5, 'infinite': false},
         ],
       },
     );
@@ -152,11 +161,33 @@ void main() {
     expect(fresh.stateHash(), init.stateHash());
   });
 
-  test('tracked-only mod types do not alter the start state', () {
+  test('feature-gated mod types do not alter the start state', () {
     final b = _b();
-    // Own the production_bonus node (id 6) — no initial-state effect yet.
+    // Own the race_dwarf node (id 6) — feature-gated, no effect yet.
     final s = GameState.fromMeta(b, 1, _meta(levels: [0, 0, 0, 0, 0, 0, 1]));
     expect(s.stateHash(), GameState.initial(b, 1).stateHash());
+  });
+
+  test('fromMeta wires the economy multipliers (production/sales/order)', () {
+    final b = _b();
+    // Own prod(id7 +10%), sales(id8 +5%), order(id9 -5%).
+    final s = GameState.fromMeta(
+        b, 1, _meta(levels: [0, 0, 0, 0, 0, 0, 0, 1, 1, 1]));
+    expect(s.productionBonusX100, 10);
+    expect(s.salesBonusX100, 5);
+    expect(s.orderDiscountX100, 5);
+  });
+
+  test('feature-gated unlocks cannot be purchased yet (景表法)', () {
+    final b = _b();
+    final meta = _meta(soulPoints: 9000)..ensureUnlockSlots(b.unlocks.length);
+    // id6 = race_dwarf (feature-gated) → refused even with points to spare.
+    expect(tryPurchaseUnlock(meta, b.unlocks, 6), isFalse);
+    expect(meta.soulPoints, 9000);
+    // id7 = production_bonus (functional) → allowed.
+    expect(tryPurchaseUnlock(meta, b.unlocks, 7), isTrue);
+    expect(isUnlockFunctional(b.unlocks[6]), isFalse);
+    expect(isUnlockFunctional(b.unlocks[7]), isTrue);
   });
 
   test('purchase enforces prerequisites, cost, and one-shot', () {
@@ -200,7 +231,7 @@ void main() {
     expect(r.isUnlocked(0), isTrue);
     expect(r.isUnlocked(1), isFalse);
     expect(r.unlocksOfTier('auto').map((u) => u.id), [4]);
-    expect(r.unlocksOfTier('full').map((u) => u.id), [5]);
+    expect(r.unlocksOfTier('full').map((u) => u.id), [5, 6]);
   });
 
   test('fromMeta-applied state replays bit-identically', () {

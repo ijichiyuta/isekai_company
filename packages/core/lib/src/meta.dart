@@ -20,7 +20,8 @@ class MetaState {
   bool tutorialDone;
 
   /// Purchase level per unlock id: 0 = not owned, 1 = owned, >1 only for the
-  /// infinite nodes (§8.4 #21/#22, `1000×1.6^n`). Indexed by unlock id — a List
+  /// infinite nodes (§8.4 items #21/#22 = unlocks.json ids 22/23, `1000×1.6^n`).
+  /// Indexed by unlock id — a List
   /// (no HashMap in core, §2.2). Sized/padded to balance.unlocks.length by P2;
   /// empty in P0 (no unlock tree yet). A shorter-than-current list just means
   /// newer unlocks default to level 0 (graceful for unlocks.json growth).
@@ -76,7 +77,8 @@ class MetaState {
 /// One node in the 魂の記憶 tree (§8.4), loaded from assets/balance/unlocks.json.
 /// [tier] is one of 'free' (buy with soul points), 'full' (完全版 gated — P3
 /// paywall), 'auto' (granted automatically, non-paid, e.g. #3 開始ランク).
-/// [infinite] nodes (§8.4 #21/#22) can be bought repeatedly; their cost grows
+/// [infinite] nodes (§8.4 items #21/#22 = ids 22/23) can be bought repeatedly;
+/// their cost grows
 /// geometrically ([unlockCostForLevel]).
 class UnlockDef {
   final int id;
@@ -103,6 +105,28 @@ class UnlockDef {
   });
 }
 
+/// Mod types that actually affect the game today — GameState.fromMeta applies
+/// them (start bonuses + the per-life economy multipliers). Every other mod
+/// type is FEATURE-GATED: its unlock can't be bought until the feature ships
+/// (races, trends, decay, offline, auto-play, ×3 speed, hard mode, hint/reveal).
+/// The tree UI marks those 今後有効化 and disables purchase, so the player never
+/// spends points on a no-op and the paywall never over-promises (景表法).
+const Set<String> functionalModTypes = {
+  'start_funds',
+  'start_employee',
+  'start_rank',
+  'equip_start_level',
+  'quality_start_star',
+  'start_funds_pct',
+  'production_bonus',
+  'sales_bonus',
+  'order_discount',
+};
+
+/// Whether [u]'s effect is wired into the simulation today (see
+/// [functionalModTypes]).
+bool isUnlockFunctional(UnlockDef u) => functionalModTypes.contains(u.modType);
+
 /// Cost growth of an infinite node per already-owned level (§8.4: 1000×1.6^n).
 const int _infiniteCostMultX100 = 160;
 
@@ -124,6 +148,7 @@ int unlockCostForLevel(UnlockDef u, int level) {
 bool tryPurchaseUnlock(MetaState meta, List<UnlockDef> unlocks, int id) {
   if (id < 0 || id >= unlocks.length) return false;
   final u = unlocks[id];
+  if (!isUnlockFunctional(u)) return false; // feature not shipped yet (景表法)
   final level = meta.levelOf(id);
   if (!u.infinite && level >= 1) return false; // already owned
   for (final req in u.requires) {

@@ -84,6 +84,9 @@ class _UnlockTile extends StatelessWidget {
       trailing = const _Tag('自動付与', Colors.blueGrey);
     } else if (owned && !def.infinite) {
       trailing = const _Tag('取得済', Colors.green);
+    } else if (!isUnlockFunctional(def)) {
+      // Effect not shipped yet — don't let the player spend points on a no-op.
+      trailing = const _Tag('今後有効化', Colors.orange);
     } else if (fullLocked) {
       trailing = TextButton.icon(
         onPressed: () => showPaywall(context),

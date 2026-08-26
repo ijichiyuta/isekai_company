@@ -30,6 +30,14 @@ class GameState {
   int equipmentLevel;
   int qualityStar;
 
+  // 魂の記憶 economy modifiers (M3 P2, §8.4): persistent per-life bonuses set by
+  // GameState.fromMeta. Default 0 = no effect (byte-identical to a meta-less
+  // life). productionBonus scales capacity, salesBonus scales the demand pool,
+  // orderDiscount reduces material order cost — all in percent (x1).
+  int productionBonusX100;
+  int salesBonusX100;
+  int orderDiscountX100;
+
   final List<int> materialStock; // by material id
   final List<int> productStock; // by recipe id
   final List<bool> discovered; // by recipe id
@@ -64,6 +72,9 @@ class GameState {
     required this.allowedBandMax,
     required this.equipmentLevel,
     required this.qualityStar,
+    required this.productionBonusX100,
+    required this.salesBonusX100,
+    required this.orderDiscountX100,
     required this.materialStock,
     required this.productStock,
     required this.discovered,
@@ -94,6 +105,9 @@ class GameState {
         allowedBandMax: allowedBandMax,
         equipmentLevel: 0,
         qualityStar: 0,
+        productionBonusX100: 0,
+        salesBonusX100: 0,
+        orderDiscountX100: 0,
         materialStock: List<int>.filled(b.materials.length, 0),
         productStock: List<int>.filled(b.recipes.length, 0),
         discovered: List<bool>.filled(b.recipes.length, false),
@@ -117,15 +131,18 @@ class GameState {
   /// headless determinism baseline uses [GameState.initial] (no meta); a
   /// headless reference to fromMeta is a CI failure (tool/check_forbidden.sh).
   ///
-  /// Mod types with no initial-state effect yet (production_bonus, sales_bonus,
-  /// auto_*, race_*, trend/decay/turnover/offline/hard_mode) are tracked as
-  /// unlocked (queryable via MetaReader) but don't alter the start state here.
+  /// Wired mod types: start_funds/employee/rank + equip/quality start levels +
+  /// funds %, and the per-life economy multipliers (production/sales/order).
+  /// The remaining mod types (auto_*, race_*, trend/decay/turnover/offline/
+  /// hard_mode/hint/reveal/speed3) are feature-gated — tracked as unlocked
+  /// (queryable via MetaReader) but with no effect until their feature exists
+  /// (see functionalModTypes). This keeps the paywall honest.
   factory GameState.fromMeta(Balance b, int seed, MetaState meta,
       {int allowedBandMax = 1, int lifeNumber = 1}) {
     final s = GameState.initial(b, seed,
         allowedBandMax: allowedBandMax, lifeNumber: lifeNumber);
     var addFunds = 0, addEmp = 0, addRank = 0, addEquip = 0, addQuality = 0;
-    var fundsPct = 0;
+    var fundsPct = 0, prod = 0, sales = 0, order = 0;
     for (final u in b.unlocks) {
       final lvl = meta.levelOf(u.id);
       if (lvl <= 0) continue;
@@ -142,8 +159,14 @@ class GameState {
           addQuality += u.modValue * lvl;
         case 'start_funds_pct':
           fundsPct += u.modValue * lvl;
+        case 'production_bonus':
+          prod += u.modValue * lvl;
+        case 'sales_bonus':
+          sales += u.modValue * lvl;
+        case 'order_discount':
+          order += u.modValue * lvl;
         default:
-          break; // tracked-only; effect wired when its feature exists
+          break; // feature-gated; no effect until its feature exists
       }
     }
     // ADD phase, each clamped to its valid range.
@@ -154,6 +177,10 @@ class GameState {
         _clampTo(s.equipmentLevel + addEquip, 0, b.economy.equipMaxLevel);
     s.qualityStar = _clampTo(
         s.qualityStar + addQuality, 0, b.economy.qualityMultX100.length - 1);
+    s.productionBonusX100 = prod;
+    s.salesBonusX100 = sales;
+    // Order discount can't exceed 100% (never pay negative for materials).
+    s.orderDiscountX100 = _clampTo(order, 0, 100);
     // MULTIPLY phase (AFTER add): initial-funds % boost (§8.4 #21, infinite).
     if (fundsPct != 0) s.funds = clampCap(s.funds * (100 + fundsPct) ~/ 100);
     return s;
@@ -173,6 +200,9 @@ class GameState {
         // hashes identically to the pre-M3 build (mirrors the event fields).
         if (equipmentLevel != 0) 'equipment_level': equipmentLevel,
         if (qualityStar != 0) 'quality_star': qualityStar,
+        if (productionBonusX100 != 0) 'production_bonus': productionBonusX100,
+        if (salesBonusX100 != 0) 'sales_bonus': salesBonusX100,
+        if (orderDiscountX100 != 0) 'order_discount': orderDiscountX100,
         // Defensive copies: a snapshot must not alias the live lists, or a
         // later tick's in-place mutation would corrupt it (snapshot+journal
         // save, requirements §17.1). fromJson already copies on the way in.
@@ -206,6 +236,9 @@ class GameState {
         allowedBandMax: m['allowed_band_max'] as int,
         equipmentLevel: (m['equipment_level'] as int?) ?? 0,
         qualityStar: (m['quality_star'] as int?) ?? 0,
+        productionBonusX100: (m['production_bonus'] as int?) ?? 0,
+        salesBonusX100: (m['sales_bonus'] as int?) ?? 0,
+        orderDiscountX100: (m['order_discount'] as int?) ?? 0,
         materialStock: (m['material_stock'] as List).cast<int>().toList(),
         productStock: (m['product_stock'] as List).cast<int>().toList(),
         discovered: (m['discovered'] as List).cast<bool>().toList(),

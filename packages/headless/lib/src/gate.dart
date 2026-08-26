@@ -111,7 +111,9 @@ GateReport evaluateGate(Balance balance, {int lives = 300, int seedBase = 1}) {
 // targets (2000/40000/800000/15000000) were proven unreachable (fame-loop ρ is
 // constant, §10.2 required decreasing ρ — docs/m3-plan-audit.md); the revised
 // curve tracks the original closely at 1000/2600 and reaches 御用達 (15M) as a
-// late-game milestone. Measured medians across seeds, reproducible within ~2%.
+// late-game milestone. Targets are median funds across seeds; the default
+// --gate uses 10 lives, where event RNG can swing a checkpoint ±40% — the ±50%
+// band absorbs it, and 300+ lives converge near the targets (AC-09 is soft).
 const _curveTicks = [400, 1000, 1800, 2600];
 const _curveTargets = [16000, 260000, 5300000, 37000000];
 

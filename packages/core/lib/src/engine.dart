@@ -51,8 +51,12 @@ class Engine {
     // level scales it (M3 §10.2): +equipStepX100% of base per level.
     final baseCapacity =
         eco.baseCapacityPerWeek + s.employees * eco.artisanOutputPerWeek;
-    final capacity = clampCap(
+    var capacity = clampCap(
         baseCapacity * (100 + s.equipmentLevel * eco.equipStepX100) ~/ 100);
+    // 大量生産 / 商才の残響 (§8.4 #13/#22 production_bonus) scale capacity too.
+    if (s.productionBonusX100 != 0) {
+      capacity = clampCap(capacity * (100 + s.productionBonusX100) ~/ 100);
+    }
     var producedThisWeek = 0;
     var weeklyRevenue = 0;
     var weeklySold = 0;
@@ -66,7 +70,11 @@ class Engine {
               qty <= 0) {
             break;
           }
-          final cost = balance.materials[materialId].cost * qty;
+          var cost = balance.materials[materialId].cost * qty;
+          // 値切り交渉 (§8.4 #8 order_discount) cuts material cost.
+          if (s.orderDiscountX100 != 0) {
+            cost = cost * (100 - s.orderDiscountX100) ~/ 100;
+          }
           if (s.funds >= cost) {
             s.funds -= cost;
             s.materialStock[materialId] += qty;
@@ -180,11 +188,15 @@ class Engine {
     // fixes the old id-order drain where high-id (premium / high-band) goods
     // never sold because low-id staples emptied the pool first (M2 audit D-2).
     // Price/season/trend weighting of the shares is a later refinement.
-    // One jitter draw keeps the RNG draw count per tick constant (§2.2). fame is
-    // clamped (below) so pool*jitter and sold*basePrice can't overflow (§10.5).
+    // One jitter draw keeps the RNG draw count per tick constant (§2.2). The
+    // running revenue sum is clampCap'd each step (§10.5) so it can't wrap even
+    // if quality×premium pushes a unit price high — the funds/fame/tax that
+    // derive from it stay bounded regardless of balance values.
     var pool = (eco.baseDemandX100 + s.fame * eco.demandPerFameX100) ~/ 100;
     final jitter = 95 + s.rng.economy.nextInt(11);
     pool = pool * jitter ~/ 100;
+    // 棚割りの極意 (§8.4 #11 sales_bonus) widens the demand pool.
+    if (s.salesBonusX100 != 0) pool = pool * (100 + s.salesBonusX100) ~/ 100;
     var active = <int>[];
     for (var i = 0; i < balance.recipes.length; i++) {
       if (s.productStock[i] > 0) active.add(i);
@@ -197,7 +209,7 @@ class Engine {
         for (final i in active) {
           if (pool <= 0) break;
           s.productStock[i] -= 1;
-          weeklyRevenue += _unitPrice(balance.recipes[i], s);
+          weeklyRevenue = clampCap(weeklyRevenue + _unitPrice(balance.recipes[i], s));
           weeklySold += 1;
           pool -= 1;
         }
@@ -208,7 +220,8 @@ class Engine {
         final stock = s.productStock[i];
         final sold = stock < share ? stock : share;
         s.productStock[i] -= sold;
-        weeklyRevenue += sold * _unitPrice(balance.recipes[i], s);
+        weeklyRevenue =
+            clampCap(weeklyRevenue + sold * _unitPrice(balance.recipes[i], s));
         weeklySold += sold;
         pool -= sold;
         if (s.productStock[i] > 0) next.add(i);

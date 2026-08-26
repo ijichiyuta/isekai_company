@@ -84,12 +84,18 @@ void main() {
   test('purchaseUnlock gates full-tier nodes behind 完全版', () {
     final g = GameController(balance: balance, clock: FakeTickClock(), seed: 1);
     g.meta.soulPoints = 9000;
-    final full = balance.unlocks.firstWhere((u) => u.tier == 'full' && u.requires.isEmpty);
+    final full = balance.unlocks.firstWhere((u) => u.tier == 'full' && u.requires.isEmpty && isUnlockFunctional(u));
+    final freeFn = balance.unlocks
+        .firstWhere((u) => u.tier == 'free' && isUnlockFunctional(u));
+    // #16 auto_order is FREE (not paywalled) but feature-gated (effect not
+    // shipped) — canPurchase true, but purchaseUnlock refuses the no-op.
     final autoOrder = balance.unlocks.firstWhere((u) => u.key == 'auto_order');
 
     expect(g.isFull, isFalse);
     expect(g.purchaseUnlock(full.id), isFalse); // blocked by paywall
-    expect(g.purchaseUnlock(autoOrder.id), isTrue); // free → allowed
+    expect(g.purchaseUnlock(freeFn.id), isTrue); // free + functional → allowed
+    expect(Entitlements().canPurchase(autoOrder), isTrue); // not paywalled…
+    expect(g.purchaseUnlock(autoOrder.id), isFalse); // …but feature-gated
   });
 
   test('purchaseFull flips the entitlement; then full nodes are buyable',
@@ -97,11 +103,23 @@ void main() {
     final g = GameController(
         balance: balance, clock: FakeTickClock(), seed: 1, iap: _FakeIap(true));
     g.meta.soulPoints = 9000;
-    final full = balance.unlocks.firstWhere((u) => u.tier == 'full' && u.requires.isEmpty);
+    final full = balance.unlocks.firstWhere((u) => u.tier == 'full' && u.requires.isEmpty && isUnlockFunctional(u));
 
     expect(await g.purchaseFull(), isTrue);
     expect(g.isFull, isTrue);
     expect(g.purchaseUnlock(full.id), isTrue); // now allowed
+  });
+
+  test('StubIapClient: debug succeeds; release gated by kReleaseMode (ADR-0003)',
+      () async {
+    final stub = StubIapClient();
+    // In tests kReleaseMode is false → the dev flow works.
+    expect(stub.available, isTrue);
+    expect(await stub.purchaseFull(), isTrue);
+    expect(await stub.restore(), isFalse); // stub has nothing to restore
+    // In a release AOT build every StubIapClient method folds to false; the
+    // only writers of isFull are purchaseFull/restore, so a release build can
+    // never grant 完全版 for free (see ADR-0003).
   });
 
   test('a failed purchase leaves the player un-entitled', () async {

@@ -258,6 +258,49 @@ class GameController extends ChangeNotifier {
   RecipeDef? recipeById(int id) =>
       id >= 0 && id < balance.recipes.length ? balance.recipes[id] : null;
 
+  // --- Reinvestment drivers (§10.2): player-facing equipment / quality. The
+  // upgrade commands apply on the next tick (予約制); costs mirror the engine's
+  // geometric curve so the button label matches what will be charged. ---
+  int get equipmentLevel => _state.equipmentLevel;
+  int get qualityStar => _state.qualityStar;
+  int get equipMaxLevel => balance.economy.equipMaxLevel;
+  int get qualityMaxStar => balance.economy.qualityMultX100.length - 1;
+  bool get canUpgradeEquipment => _state.equipmentLevel < equipMaxLevel;
+  bool get canUpgradeQuality => _state.qualityStar < qualityMaxStar;
+
+  /// Weekly production capacity WITH the equipment multiplier (matches engine).
+  int get weeklyCapacity {
+    final eco = balance.economy;
+    final base = eco.baseCapacityPerWeek + _state.employees * eco.artisanOutputPerWeek;
+    var cap = base * (100 + _state.equipmentLevel * eco.equipStepX100) ~/ 100;
+    if (_state.productionBonusX100 != 0) {
+      cap = cap * (100 + _state.productionBonusX100) ~/ 100;
+    }
+    return cap;
+  }
+
+  /// Current sale-price multiplier from quality, in percent (100 = base).
+  int get qualityMultPercent =>
+      balance.economy.qualityMultX100[_state.qualityStar];
+
+  int equipUpgradeCost() {
+    final eco = balance.economy;
+    var c = eco.equipCostBase;
+    for (var i = 0; i < _state.equipmentLevel; i++) {
+      c = c * eco.equipCostMultX100 ~/ 100;
+    }
+    return c;
+  }
+
+  int qualityUpgradeCost() {
+    final eco = balance.economy;
+    var c = eco.qualityCostBase;
+    for (var i = 0; i < _state.qualityStar; i++) {
+      c = c * eco.qualityCostMultX100 ~/ 100;
+    }
+    return c;
+  }
+
   /// Reserve a command for the next tick.
   void reserve(Command c) {
     _pending.add(c);

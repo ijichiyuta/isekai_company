@@ -177,14 +177,31 @@ void main() {
 
   testWidgets('hd icons + props', (tester) async {
     if (!Platform.isMacOS) return;
-    tester.view.physicalSize = const Size(900, 640);
+    tester.view.physicalSize = const Size(1000, 900);
     tester.view.devicePixelRatio = 1.0;
     addTearDown(tester.view.resetPhysicalSize);
     addTearDown(tester.view.resetDevicePixelRatio);
-    final items = <PixelSprite>[
-      coin, star, gear, beaker, factoryIcon, storefront, cart, flame, sparkle,
-      crate, barrel, window, plant, goddess,
-      catFood, catTool, catCloth, catMed, catLux, sack,
+    final items = <(String, PixelSprite)>[
+      ('funds', coin),
+      ('fame', star),
+      ('settings', gear),
+      ('develop', beaker),
+      ('produce', factoryIcon),
+      ('sell', storefront),
+      ('order', cart),
+      ('trend', flame),
+      ('invent', sparkle),
+      ('food', catFood),
+      ('tool', catTool),
+      ('cloth', catCloth),
+      ('medicine', catMed),
+      ('luxury', catLux),
+      ('material', sack),
+      ('crate', crate),
+      ('barrel', barrel),
+      ('window', window),
+      ('plant', plant),
+      ('goddess', goddess),
     ];
     await tester.pumpWidget(
       MaterialApp(
@@ -195,9 +212,18 @@ void main() {
             child: Wrap(
               alignment: WrapAlignment.center,
               crossAxisAlignment: WrapCrossAlignment.center,
-              spacing: 16,
-              runSpacing: 16,
-              children: [for (final s in items) PixelView(s, pixelSize: 5)],
+              spacing: 22,
+              runSpacing: 18,
+              children: [
+                for (final (_, s) in items)
+                  SizedBox(
+                    width: 92,
+                    child: SizedBox(
+                      height: 88,
+                      child: Center(child: PixelView(s, height: 82)),
+                    ),
+                  ),
+              ],
             ),
           ),
         ),

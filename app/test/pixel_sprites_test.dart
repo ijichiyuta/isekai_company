@@ -25,6 +25,7 @@ void main() {
       'villagerHd': villagerHd,
       'ladyHd': ladyHd,
       'elderHd': elderHd,
+      'adventurerHd': adventurerHd,
     };
     all.forEach((name, s) {
       final widths = s.rows.map((r) => r.length).toSet();
@@ -47,6 +48,7 @@ void main() {
       'villagerHd': villagerHd,
       'ladyHd': ladyHd,
       'elderHd': elderHd,
+      'adventurerHd': adventurerHd,
     };
     all.forEach((name, s) {
       for (final row in s.rows) {
@@ -115,7 +117,7 @@ void main() {
 
   testWidgets('shop HD preview (large)', (tester) async {
     if (!Platform.isMacOS) return;
-    tester.view.physicalSize = const Size(1120, 940);
+    tester.view.physicalSize = const Size(1320, 980);
     tester.view.devicePixelRatio = 1.0;
     addTearDown(tester.view.resetPhysicalSize);
     addTearDown(tester.view.resetDevicePixelRatio);
@@ -134,9 +136,15 @@ void main() {
                   mainAxisAlignment: MainAxisAlignment.center,
                   crossAxisAlignment: CrossAxisAlignment.end,
                   children: [
-                    for (final s in [heroHd, villagerHd, ladyHd, elderHd]) ...[
-                      PixelView(s, pixelSize: 5),
-                      const SizedBox(width: 24),
+                    for (final s in [
+                      heroHd,
+                      villagerHd,
+                      ladyHd,
+                      elderHd,
+                      adventurerHd,
+                    ]) ...[
+                      PixelView(s, pixelSize: 4),
+                      const SizedBox(width: 20),
                     ],
                   ],
                 ),
@@ -168,9 +176,9 @@ void main() {
             child: Row(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                PixelView(heroHd, pixelSize: 10),
+                PixelView(heroHd, pixelSize: 8),
                 const SizedBox(width: 20),
-                PixelView(ladyHd, pixelSize: 10),
+                PixelView(adventurerHd, pixelSize: 8),
               ],
             ),
           ),

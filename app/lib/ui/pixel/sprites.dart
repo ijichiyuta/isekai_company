@@ -140,6 +140,13 @@ final PixelSprite elderHd = _person(
   top: ['b', 'c', 'd'],
   pants: ['P', 'Q'],
 );
+final PixelSprite adventurerHd = _person(
+  hair: ['C', 'D', 'E'],
+  top: ['T', 'U', 'V'],
+  pants: ['a', 'b'],
+  cloak: true,
+  cloakRamp: ['M', 'N', 'O'],
+);
 
 /// A glazed display window with wooden frame, product shelves and a reflection.
 void _shopWindow(PixelCanvas c, int x, int y, int w, int h) {
@@ -254,43 +261,59 @@ PixelSprite _buildShop() {
   return c.toSprite(kArtPal);
 }
 
-void _eye(PixelCanvas c, int x, int y) {
-  // Big glossy "お人形" doll eye (7×8): white sclera, large dark-blue iris,
-  // a bright top-left catch-light and a small lower sparkle.
-  c.rect(x + 1, y, 5, 8, 'L'); // white (vertical)
-  c.rect(x, y + 1, 7, 6, 'L'); // white (horizontal) → rounded
-  c.rect(x + 1, y + 1, 5, 6, 'F'); // iris fills most of the eye
-  c.rect(x + 2, y + 2, 3, 4, 'G'); // mid-blue body
-  c.rect(x + 1, y + 1, 2, 3, '#'); // big catch-light
-  c.set(x + 4, y + 5, 'q'); // lower sparkle
-  c.hline(x + 1, y, 5, 'C'); // upper lash
-  c.set(x, y + 1, 'C');
-  c.set(x + 6, y + 1, 'C');
-}
-
-/// One chibi townsperson (48×64). [hair]/[top] are [shadow, base, highlight]
-/// ramps; [pants] is [base, highlight]. Optional white [apron] + gold [nameTag].
+/// One JRPG-style character chip (54×74, ~4 heads tall) — katarazu風: small
+/// minimal face, layered outfit with folds, belt + buckle, tall boots. [hair]/
+/// [top] are [shadow, base, highlight] ramps; [pants] is [base, highlight].
+/// Optional white [apron] + gold [nameTag], and a [cloak] (with [cloakRamp]).
 PixelSprite _person({
   required List<String> hair,
   required List<String> top,
   required List<String> pants,
   bool apron = false,
   bool nameTag = false,
+  bool cloak = false,
+  List<String> cloakRamp = const ['M', 'N', 'O'],
+  List<String> boots = const ['a', 'b', 'c'],
 }) {
   final hSh = hair[0], hBase = hair[1], hHi = hair[2];
   final tSh = top[0], tBase = top[1], tHi = top[2];
   final pBase = pants[0], pHi = pants[1];
-  final c = PixelCanvas(48, 64);
-  const cx = 24, hy = 20, hr = 14;
+  final c = PixelCanvas(54, 74);
+  const cx = 27, hy = 14, hr = 9;
 
-  // HEAD — soft top-left-lit skin, with ears.
-  c.discShaded(cx, hy, hr, ['B', 'B', 'A', 'A', 'z', 'z', 'y']);
-  c.rect(9, hy + 1, 3, 5, 'z');
-  c.set(10, hy + 2, 'A');
-  c.rect(36, hy + 1, 3, 5, 'z');
-  c.set(37, hy + 3, 'y');
+  // CLOAK — a draped cape behind the body (drawn first).
+  if (cloak) {
+    final k0 = cloakRamp[0], k1 = cloakRamp[1], k2 = cloakRamp[2];
+    for (var y = 24; y <= 64; y++) {
+      final half = 13 - ((y - 24) ~/ 13);
+      c.hline(cx - half, y, half * 2, k1);
+      c.set(cx - half, y, k0);
+      c.set(cx + half - 1, y, k2);
+    }
+    c.vline(cx - 7, 28, 34, k0);
+    c.vline(cx, 28, 34, k2);
+    c.vline(cx + 6, 28, 34, k0);
+    for (var y = 62; y <= 66; y++) {
+      final ins = y - 62;
+      c.hline(cx - 11 + ins, y, 22 - 2 * ins, k0);
+    }
+  }
 
-  // HAIR — scalp cap, swept fringe, sideburns, highlight + shadow.
+  // HEAD — small, top-left-lit, then flattened to a soft front-lit face.
+  c.discShaded(cx, hy, hr, ['B', 'A', 'A', 'z', 'z', 'y']);
+  c.rect(17, hy, 2, 4, 'z');
+  c.rect(36, hy, 2, 4, 'z');
+  const skin = {'B', 'A', 'z', 'y'};
+  for (var y = hy - 2; y <= hy + hr - 1; y++) {
+    for (var x = cx - hr + 1; x <= cx + hr - 1; x++) {
+      if (skin.contains(c.at(x, y))) {
+        final t = (y - (hy - 2)) / (hr + 2);
+        c.set(x, y, t < 0.7 ? 'A' : (t < 0.9 ? 'z' : 'y'));
+      }
+    }
+  }
+
+  // HAIR — scalp, swept fringe, sideburns, strand highlights + shadow side.
   for (var y = hy - hr; y <= hy - 1; y++) {
     for (var x = cx - hr; x <= cx + hr; x++) {
       if ((x - cx) * (x - cx) + (y - hy) * (y - hy) <= hr * hr) {
@@ -298,115 +321,126 @@ PixelSprite _person({
       }
     }
   }
-  for (var x = cx - 12; x <= cx + 12; x++) {
-    final dip = hy - 1 + (3 - ((x - (cx - 5)).abs() ~/ 4)).clamp(0, 3);
+  for (var x = cx - 8; x <= cx + 8; x++) {
+    final dip = hy - 1 + (2 - ((x - (cx - 3)).abs() ~/ 4)).clamp(0, 2);
     for (var y = hy - 1; y <= dip; y++) {
       if ((x - cx) * (x - cx) + (y - hy) * (y - hy) <= (hr + 1) * (hr + 1)) {
         c.set(x, y, hBase);
       }
     }
   }
-  c.vline(cx - hr + 1, hy - 3, 11, hBase);
-  c.vline(cx - hr + 2, hy - 1, 9, hBase);
-  c.vline(cx + hr - 1, hy - 3, 11, hBase);
-  c.vline(cx + hr - 2, hy - 1, 9, hBase);
-  for (var x = cx - 10; x <= cx - 2; x++) {
-    c.set(x, hy - hr + 2, hHi);
+  c.vline(cx - hr + 1, hy - 2, 7, hBase);
+  c.vline(cx + hr - 1, hy - 2, 7, hBase);
+  for (var x = cx - 6; x <= cx - 1; x++) {
+    c.set(x, hy - hr + 1, hHi);
   }
-  for (var x = cx - 8; x <= cx - 4; x++) {
-    c.set(x, hy - hr + 3, hHi);
-  }
-  for (var y = hy - hr + 3; y <= hy - 3; y++) {
-    c.set(cx + hr - 2, y, hSh);
+  c.set(cx - 4, hy - hr + 2, hHi);
+  c.set(cx + 2, hy - hr + 2, hHi);
+  for (var y = hy - hr + 2; y <= hy - 3; y++) {
+    c.set(cx + hr - 1, y, hSh);
   }
 
-  // FACE — flat, soft lighting (no ball-seam) for a cuter look.
-  const skin = {'B', 'A', 'z', 'y'};
-  for (var y = hy - 2; y <= hy + hr - 1; y++) {
-    for (var x = cx - hr + 1; x <= cx + hr - 1; x++) {
-      if (skin.contains(c.at(x, y))) {
-        final t = (y - (hy - 2)) / (hr + 2);
-        c.set(x, y, t < 0.72 ? 'A' : (t < 0.9 ? 'z' : 'y'));
-      }
-    }
-  }
-  c.rect(cx - 7, hy + 1, 6, 2, 'B'); // soft forehead sheen
-  // Big doll eyes set CLOSE together (~3px bridge) — お人形/かわいいポップ.
-  _eye(c, cx - 8, 21); // left  (16..22)
-  _eye(c, cx + 1, 21); // right (25..31)
-  // tiny nose + a small happy mouth just below
-  c.set(cx, 30, 'z');
-  c.set(cx - 1, 32, 'M');
-  c.set(cx, 33, 'N');
-  c.set(cx + 1, 32, 'M');
-  // soft round blush on the cheeks, under the eyes
-  c.rect(cx - 9, 30, 3, 2, 'Z');
-  c.rect(cx + 6, 30, 3, 2, 'Z');
+  // FACE — minimal (FE-style): 1px eyes, tiny nose + mouth, faint blush.
+  c.set(cx - 3, 15, 'F');
+  c.set(cx - 3, 16, 'K');
+  c.set(cx + 2, 15, 'F');
+  c.set(cx + 2, 16, 'K');
+  c.set(cx - 4, 14, hSh);
+  c.set(cx + 3, 14, hSh);
+  c.set(cx, 18, 'y');
+  c.set(cx - 1, 20, 'M');
+  c.set(cx, 20, 'M');
+  c.set(cx - 5, 18, 'Z');
+  c.set(cx + 4, 18, 'Z');
 
   // NECK.
-  c.rect(20, 34, 8, 4, 'z');
-  c.hline(20, 34, 8, 'y');
+  c.rect(cx - 3, 22, 6, 3, 'z');
+  c.hline(cx - 3, 22, 6, 'A');
 
-  // TORSO — shoulders taper to waist, with fold shading.
-  for (var y = 38; y <= 56; y++) {
-    final half = 12 - ((y - 38) ~/ 7);
+  // TORSO (tunic) — trapezoid, collar, laced placket, fold shading.
+  for (var y = 25; y <= 45; y++) {
+    final half = 12 - ((y - 25) ~/ 8);
     c.hline(cx - half, y, half * 2, tBase);
     c.set(cx - half, y, tHi);
     c.set(cx + half - 1, y, tSh);
   }
-  c.vline(cx - 6, 42, 12, tSh); // folds
-  c.vline(cx + 5, 42, 12, tSh);
   for (final p in [
-    [cx - 3, 38],
-    [cx - 2, 39],
-    [cx - 1, 40],
-    [cx, 41],
-    [cx + 1, 40],
-    [cx + 2, 39],
-    [cx + 3, 38],
+    [cx - 3, 25],
+    [cx - 2, 26],
+    [cx - 1, 27],
+    [cx, 27],
+    [cx + 1, 26],
+    [cx + 2, 25],
   ]) {
-    c.set(p[0], p[1], 'J'); // collar V
+    c.set(p[0], p[1], tHi); // collar
   }
-  c.vline(cx, 41, 6, tSh); // placket
-  // sleeves + cuffs + hands
-  c.rect(cx - 15, 39, 5, 9, tBase);
-  c.set(cx - 15, 39, tHi);
-  c.hline(cx - 15, 47, 5, tSh);
-  c.rect(cx + 10, 39, 5, 9, tBase);
-  c.set(cx + 14, 39, tSh);
-  c.hline(cx + 10, 47, 5, tSh);
-  c.rect(cx - 15, 48, 5, 5, 'A');
-  c.set(cx - 15, 52, 'z');
-  c.rect(cx + 10, 48, 5, 5, 'A');
-  c.set(cx + 14, 52, 'z');
+  c.vline(cx, 27, 16, tSh); // placket
+  for (var y = 28; y < 43; y += 3) {
+    c.set(cx - 1, y, tHi);
+    c.set(cx + 1, y, tHi); // lacing stitches
+  }
+  c.vline(cx - 6, 30, 13, tSh); // folds
+  c.vline(cx + 5, 30, 13, tSh);
+  c.hline(cx - 11, 26, 3, tSh); // shoulder seams
+  c.hline(cx + 8, 26, 3, tSh);
 
-  // APRON (optional).
+  // BELT + buckle.
+  c.rect(cx - 11, 43, 22, 3, 'a');
+  c.rampV(cx - 11, 43, 22, 3, ['b', 'a', 'a']);
+  c.rect(cx - 2, 43, 4, 3, 'v');
+  c.set(cx - 2, 43, 'x');
+
+  // SLEEVES + cuffs + hands.
+  c.rect(cx - 13, 26, 4, 13, tBase);
+  c.set(cx - 13, 26, tHi);
+  c.hline(cx - 13, 38, 4, tSh);
+  c.rect(cx + 9, 26, 4, 13, tBase);
+  c.set(cx + 12, 26, tSh);
+  c.hline(cx + 9, 38, 4, tSh);
+  c.rect(cx - 13, 39, 4, 5, 'A');
+  c.set(cx - 13, 43, 'z');
+  c.rect(cx + 9, 39, 4, 5, 'A');
+  c.set(cx + 12, 43, 'z');
+
+  // APRON (optional) — bib + skirt with folds + pocket.
   if (apron) {
-    c.rect(cx - 5, 42, 10, 4, 'J'); // bib
-    c.rect(cx - 10, 46, 20, 12, 'J'); // skirt
-    c.rampV(cx - 10, 46, 20, 12, ['L', 'J', 'J', 'I']);
-    c.border(cx - 10, 46, 20, 12, 'I');
-    c.hline(cx - 10, 47, 20, 'I'); // waist string
-    c.hline(cx - 6, 53, 12, 'I'); // pocket seam
+    c.rect(cx - 5, 30, 10, 3, 'J');
+    c.rect(cx - 8, 33, 16, 13, 'J');
+    c.rampV(cx - 8, 33, 16, 13, ['L', 'J', 'J', 'I']);
+    c.border(cx - 8, 33, 16, 13, 'I');
+    c.hline(cx - 8, 34, 16, 'I');
+    c.hline(cx - 5, 40, 10, 'I');
+    c.vline(cx, 33, 13, 'I');
   }
   if (nameTag) {
-    c.rect(cx + 1, 43, 5, 2, 'w');
-    c.set(cx + 1, 43, 'x');
+    c.rect(cx + 1, 30, 4, 2, 'w');
+    c.set(cx + 1, 30, 'x');
   }
 
-  // LEGS + SHOES.
-  c.rect(cx - 8, 58, 6, 6, pBase);
-  c.rect(cx + 2, 58, 6, 6, pBase);
-  c.vline(cx - 8, 58, 6, pHi);
-  c.vline(cx + 2, 58, 6, pHi);
-  c.rect(cx - 9, 62, 7, 2, 'a');
-  c.rect(cx + 2, 62, 7, 2, 'a');
-  c.hline(cx - 9, 62, 7, 'b');
-  c.hline(cx + 2, 62, 7, 'b');
+  // LEGS (trousers) with fold highlights.
+  c.rect(cx - 8, 46, 7, 18, pBase);
+  c.rect(cx + 1, 46, 7, 18, pBase);
+  c.vline(cx - 8, 46, 18, pHi);
+  c.vline(cx + 1, 46, 18, pHi);
+  for (var y = 50; y < 62; y += 4) {
+    c.set(cx - 5, y, pHi);
+    c.set(cx + 4, y, pHi);
+  }
+
+  // BOOTS (tall) — cuff, shaft ramp, dark sole.
+  final b0 = boots[0], b1 = boots[1], b2 = boots[2];
+  c.rect(cx - 9, 61, 8, 12, b1);
+  c.rect(cx + 1, 61, 8, 12, b1);
+  c.rampV(cx - 9, 61, 8, 12, [b2, b1, b1, b0]);
+  c.rampV(cx + 1, 61, 8, 12, [b2, b1, b1, b0]);
+  c.hline(cx - 9, 61, 8, b2); // cuff
+  c.hline(cx + 1, 61, 8, b2);
+  c.hline(cx - 9, 72, 8, 'K'); // sole
+  c.hline(cx + 1, 72, 8, 'K');
 
   c.outline('K');
-  c.selout('K', '@'); // lighten the lit (top/left) edge of the outline
-  c.shadow(cx, 63, 16, 1, '-');
+  c.selout('K', '@');
+  c.shadow(cx, 73, 15, 1, '-');
   return c.toSprite(kArtPal);
 }
 

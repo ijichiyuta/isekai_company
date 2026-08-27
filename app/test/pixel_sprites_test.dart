@@ -27,6 +27,12 @@ void main() {
       'elderHd': elderHd,
       'adventurerHd': adventurerHd,
       'barrel': barrel,
+      'catFood': catFood,
+      'catTool': catTool,
+      'catCloth': catCloth,
+      'catMed': catMed,
+      'catLux': catLux,
+      'sack': sack,
     };
     all.forEach((name, s) {
       final widths = s.rows.map((r) => r.length).toSet();
@@ -51,6 +57,12 @@ void main() {
       'elderHd': elderHd,
       'adventurerHd': adventurerHd,
       'barrel': barrel,
+      'catFood': catFood,
+      'catTool': catTool,
+      'catCloth': catCloth,
+      'catMed': catMed,
+      'catLux': catLux,
+      'sack': sack,
     };
     all.forEach((name, s) {
       for (final row in s.rows) {
@@ -172,6 +184,7 @@ void main() {
     final items = <PixelSprite>[
       coin, star, gear, beaker, factoryIcon, storefront, cart, flame, sparkle,
       crate, barrel, window, plant, goddess,
+      catFood, catTool, catCloth, catMed, catLux, sack,
     ];
     await tester.pumpWidget(
       MaterialApp(

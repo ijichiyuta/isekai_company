@@ -447,6 +447,25 @@ final PixelSprite cart = _iCart();
 final PixelSprite flame = _iFlame();
 final PixelSprite sparkle = _iSparkle();
 
+// --- Product category icons (§8.2): recipes carry a market category. ---
+final PixelSprite catFood = _iCatFood();
+final PixelSprite catTool = _iCatTool();
+final PixelSprite catCloth = _iCatCloth();
+final PixelSprite catMed = _iCatMed();
+final PixelSprite catLux = _iCatLux();
+final PixelSprite sack = _iSack(); // generic material/product
+
+/// The icon for a recipe/product [category] (food/tool/clothing/medicine/
+/// luxury), or a generic sack for materials / unknown categories.
+PixelSprite categoryIcon(String category) => switch (category) {
+  'food' => catFood,
+  'tool' => catTool,
+  'clothing' => catCloth,
+  'medicine' => catMed,
+  'luxury' => catLux,
+  _ => sack,
+};
+
 /// Every named sprite, for the contact-sheet golden + width-invariant test.
 final Map<String, PixelSprite> kIconSprites = {
   'coin': coin,
@@ -609,6 +628,99 @@ PixelSprite _iSparkle() {
   c.set(9, 9, '#');
   c.set(4, 5, 'w');
   c.set(19, 18, 'w');
+  c.outline('K');
+  c.selout('K', '@');
+  return c.toSprite(kArtPal);
+}
+
+// --------------------------------------------------------- category icons ----
+
+PixelSprite _iCatFood() {
+  final c = PixelCanvas(24, 24); // an apple
+  c.discShaded(12, 14, 8, ['O', 'N', 'N', 'M']);
+  c.set(9, 10, 'O'); // sheen
+  c.set(10, 10, 'O');
+  c.rect(11, 4, 2, 4, 'b'); // stem
+  c.discShaded(16, 6, 2, ['V', 'U', 'T']); // leaf
+  c.outline('K');
+  c.selout('K', '@');
+  return c.toSprite(kArtPal);
+}
+
+PixelSprite _iCatTool() {
+  final c = PixelCanvas(24, 24); // a hammer
+  c.rect(5, 4, 13, 5, 'Q'); // head
+  c.rampV(5, 4, 13, 5, ['R', 'Q', 'P']);
+  c.rect(3, 4, 3, 5, 'P'); // claw
+  c.rect(11, 9, 3, 13, 'c'); // handle
+  c.rampH(11, 9, 3, 13, ['d', 'c', 'b']);
+  c.outline('K');
+  c.selout('K', '@');
+  return c.toSprite(kArtPal);
+}
+
+PixelSprite _iCatCloth() {
+  final c = PixelCanvas(24, 24); // a tunic
+  c.rect(3, 6, 18, 4, 'G'); // shoulders
+  c.rect(3, 6, 4, 9, 'G'); // sleeves
+  c.rect(17, 6, 4, 9, 'G');
+  c.rect(7, 6, 10, 16, 'G'); // body
+  c.rampV(7, 6, 10, 16, ['H', 'G', 'F']);
+  c.rect(9, 5, 6, 3, 'F'); // neckline
+  c.set(9, 6, 'H');
+  c.set(14, 6, 'F');
+  c.outline('K');
+  c.selout('K', '@');
+  return c.toSprite(kArtPal);
+}
+
+PixelSprite _iCatMed() {
+  final c = PixelCanvas(24, 24); // a potion bottle
+  c.rect(10, 3, 4, 3, 'c'); // cork
+  c.rect(10, 6, 4, 4, 'p'); // neck
+  c.discShaded(12, 15, 7, ['q', 'p', 'o', 'n']); // glass
+  c.disc(12, 16, 5, 'U'); // liquid
+  c.discShaded(12, 17, 4, ['V', 'U', 'T']);
+  c.set(9, 12, '#'); // shine
+  c.outline('K');
+  c.selout('K', '@');
+  return c.toSprite(kArtPal);
+}
+
+PixelSprite _iCatLux() {
+  final c = PixelCanvas(24, 24); // a cut gem
+  c.rect(7, 5, 10, 2, 'H'); // table
+  for (var y = 7; y <= 10; y++) {
+    final w = 5 + (y - 7);
+    c.hline(12 - w, y, w * 2, 'G');
+  }
+  for (var y = 11; y <= 20; y++) {
+    var w = 8 - (y - 11);
+    if (w < 0) w = 0;
+    c.hline(12 - w, y, w * 2, 'F');
+  }
+  c.line(7, 7, 12, 20, 'H'); // facets
+  c.line(16, 7, 12, 20, 'H');
+  c.vline(12, 5, 15, 'H');
+  c.set(9, 6, '#');
+  c.outline('K');
+  c.selout('K', '@');
+  return c.toSprite(kArtPal);
+}
+
+PixelSprite _iSack() {
+  final c = PixelCanvas(24, 24); // a burlap sack
+  c.rect(6, 3, 12, 3, 'd'); // tied neck
+  c.set(11, 2, 'e');
+  c.set(12, 2, 'e');
+  for (var y = 6; y <= 21; y++) {
+    final bulge = 3 - ((y - 13).abs() ~/ 4);
+    c.hline(6 - bulge, y, 12 + bulge * 2, 'd');
+  }
+  c.rampH(3, 6, 18, 16, ['c', 'd', 'e', 'd', 'c']);
+  c.hline(4, 6, 16, 'c'); // tie shadow
+  c.set(10, 14, 'c'); // seam
+  c.set(13, 16, 'c');
   c.outline('K');
   c.selout('K', '@');
   return c.toSprite(kArtPal);

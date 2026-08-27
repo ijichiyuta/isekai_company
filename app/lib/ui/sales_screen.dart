@@ -45,6 +45,10 @@ class SalesScreen extends ConsumerWidget {
                         for (final r in known)
                           ListTile(
                             dense: true,
+                            leading: PixelView(
+                              art.categoryIcon(r.category),
+                              height: 24,
+                            ),
                             title: Text(r.name),
                             subtitle: Text('売値 ${r.basePrice}G'),
                             trailing: Text(

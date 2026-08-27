@@ -46,6 +46,7 @@ class OrderScreen extends ConsumerWidget {
                 children: [
                   for (final m in b.materials)
                     ListTile(
+                      leading: PixelView(art.sack, height: 24),
                       title: Text(m.name),
                       subtitle: Text(
                         '単価 ${m.cost}G ・ 在庫 ${game.state.materialStock[m.id]}',

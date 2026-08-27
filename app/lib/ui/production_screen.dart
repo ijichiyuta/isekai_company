@@ -44,6 +44,7 @@ class ProductionScreen extends ConsumerWidget {
               ),
             for (final r in known)
               ListTile(
+                leading: PixelView(art.categoryIcon(r.category), height: 26),
                 title: Text(r.name),
                 subtitle: Text(
                   '完成品在庫 ${game.state.productStock[r.id]} '

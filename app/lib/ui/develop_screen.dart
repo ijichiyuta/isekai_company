@@ -130,10 +130,7 @@ class _DevelopScreenState extends ConsumerState<DevelopScreen> {
               if (game.state.discovered[r.id])
                 ListTile(
                   dense: true,
-                  leading: Icon(
-                    r.invention ? Icons.auto_awesome : Icons.inventory_2,
-                    color: r.invention ? const Color(0xFFC8991F) : null,
-                  ),
+                  leading: PixelView(art.categoryIcon(r.category), height: 26),
                   title: Text(r.name),
                   subtitle: Text('売値 ${r.basePrice}G'),
                 ),

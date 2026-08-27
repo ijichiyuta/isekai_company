@@ -50,6 +50,26 @@ void main() {
     expect(find.text('PB開発'), findsOneWidget);
   });
 
+  testWidgets('§12.3: the bottleneck hint surfaces and taps straight to develop', (
+    tester,
+  ) async {
+    await tester.pumpWidget(_app());
+    await tester.pumpAndSettle();
+
+    // A fresh shop has 0 discoveries, so exactly the "レシピ未発見" hint shows.
+    // The other hints are gated off: 100G start funds keeps "資金・素材不足"
+    // away, and "在庫なし" only appears once something has been discovered.
+    final chip = find.widgetWithText(ActionChip, 'レシピ未発見');
+    expect(chip, findsOneWidget);
+    expect(find.text('在庫なし'), findsNothing);
+    expect(find.text('資金・素材不足'), findsNothing);
+
+    // Tapping the hint jumps straight to the screen that resolves it.
+    await tester.tap(chip);
+    await tester.pumpAndSettle();
+    expect(find.text('PB開発'), findsOneWidget);
+  });
+
   testWidgets('developing pudding plays the invention overlay', (tester) async {
     await tester.pumpWidget(_app());
     await tester.pumpAndSettle();

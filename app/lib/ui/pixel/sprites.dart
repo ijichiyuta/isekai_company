@@ -313,30 +313,27 @@ PixelSprite _person({
     }
   }
 
-  // HAIR — scalp, swept fringe, sideburns, strand highlights + shadow side.
-  for (var y = hy - hr; y <= hy - 1; y++) {
-    for (var x = cx - hr; x <= cx + hr; x++) {
-      if ((x - cx) * (x - cx) + (y - hy) * (y - hy) <= hr * hr) {
-        c.set(x, y, hBase);
-      }
-    }
-  }
-  for (var x = cx - 8; x <= cx + 8; x++) {
-    final dip = hy - 1 + (2 - ((x - (cx - 3)).abs() ~/ 4)).clamp(0, 2);
-    for (var y = hy - 1; y <= dip; y++) {
+  // HAIR — one smooth cap that FRAMES the face: the hairline sits high at the
+  // centre (fringe) and dips lower at the temples, following the head's round
+  // shape (no straight sideburn spikes).
+  for (var x = cx - hr - 1; x <= cx + hr + 1; x++) {
+    final dx = (x - cx).abs();
+    var hl =
+        hy - 3 + dx; // centre = fringe (high); temples = low (frame cheeks)
+    if (hl > hy + 4) hl = hy + 4;
+    for (var y = hy - hr - 1; y <= hl; y++) {
       if ((x - cx) * (x - cx) + (y - hy) * (y - hy) <= (hr + 1) * (hr + 1)) {
         c.set(x, y, hBase);
       }
     }
   }
-  c.vline(cx - hr + 1, hy - 2, 7, hBase);
-  c.vline(cx + hr - 1, hy - 2, 7, hBase);
+  // soft strand highlight (top-left) + shadow (right side)
   for (var x = cx - 6; x <= cx - 1; x++) {
     c.set(x, hy - hr + 1, hHi);
   }
   c.set(cx - 4, hy - hr + 2, hHi);
-  c.set(cx + 2, hy - hr + 2, hHi);
-  for (var y = hy - hr + 2; y <= hy - 3; y++) {
+  c.set(cx - 3, hy - hr + 3, hHi);
+  for (var y = hy - hr + 2; y <= hy + 1; y++) {
     c.set(cx + hr - 1, y, hSh);
   }
 
@@ -357,50 +354,58 @@ PixelSprite _person({
   c.rect(cx - 3, 22, 6, 3, 'z');
   c.hline(cx - 3, 22, 6, 'A');
 
-  // TORSO (tunic) — trapezoid, collar, laced placket, fold shading.
-  for (var y = 25; y <= 45; y++) {
-    final half = 12 - ((y - 25) ~/ 8);
+  // CHEST — a narrow torso that tapers gently to the waist.
+  for (var y = 29; y <= 45; y++) {
+    final half = 9 - ((y - 29) ~/ 12);
     c.hline(cx - half, y, half * 2, tBase);
     c.set(cx - half, y, tHi);
     c.set(cx + half - 1, y, tSh);
   }
+  // SLOPED SHOULDERS — a rounded slope from the neck out to the arms (this is
+  // what kills the boxy flat-top look).
+  for (var y = 25; y <= 29; y++) {
+    final w = 6 + (y - 25) * 2; // 6,8,10,12,14 — widening = なで肩
+    c.hline(cx - w, y, w * 2, tBase);
+    c.set(cx - w, y, tHi);
+    c.set(cx + w - 1, y, tSh);
+  }
+  // ARMS — hang from the shoulders (their tops rounded by the slope above).
+  c.rect(cx - 13, 30, 4, 12, tBase);
+  c.set(cx - 13, 30, tHi);
+  c.rect(cx + 9, 30, 4, 12, tBase);
+  c.set(cx + 12, 30, tSh);
+  c.vline(cx - 9, 31, 11, tSh); // armpit seams
+  c.vline(cx + 8, 31, 11, tSh);
+  c.hline(cx - 13, 40, 4, tSh); // cuffs
+  c.hline(cx + 9, 40, 4, tSh);
+  c.rect(cx - 13, 42, 4, 4, 'A'); // hands
+  c.set(cx - 13, 45, 'z');
+  c.rect(cx + 9, 42, 4, 4, 'A');
+  c.set(cx + 12, 45, 'z');
+  // collar + laced placket + folds.
   for (final p in [
-    [cx - 3, 25],
-    [cx - 2, 26],
-    [cx - 1, 27],
-    [cx, 27],
-    [cx + 1, 26],
-    [cx + 2, 25],
+    [cx - 3, 26],
+    [cx - 2, 27],
+    [cx - 1, 28],
+    [cx, 28],
+    [cx + 1, 27],
+    [cx + 2, 26],
   ]) {
-    c.set(p[0], p[1], tHi); // collar
+    c.set(p[0], p[1], tHi);
   }
-  c.vline(cx, 27, 16, tSh); // placket
-  for (var y = 28; y < 43; y += 3) {
+  c.vline(cx, 29, 14, tSh);
+  for (var y = 30; y < 42; y += 3) {
     c.set(cx - 1, y, tHi);
-    c.set(cx + 1, y, tHi); // lacing stitches
+    c.set(cx + 1, y, tHi);
   }
-  c.vline(cx - 6, 30, 13, tSh); // folds
-  c.vline(cx + 5, 30, 13, tSh);
-  c.hline(cx - 11, 26, 3, tSh); // shoulder seams
-  c.hline(cx + 8, 26, 3, tSh);
+  c.vline(cx - 6, 32, 11, tSh);
+  c.vline(cx + 5, 32, 11, tSh);
 
   // BELT + buckle.
-  c.rect(cx - 11, 43, 22, 3, 'a');
-  c.rampV(cx - 11, 43, 22, 3, ['b', 'a', 'a']);
+  c.rect(cx - 10, 43, 20, 3, 'a');
+  c.rampV(cx - 10, 43, 20, 3, ['b', 'a', 'a']);
   c.rect(cx - 2, 43, 4, 3, 'v');
   c.set(cx - 2, 43, 'x');
-
-  // SLEEVES + cuffs + hands.
-  c.rect(cx - 13, 26, 4, 13, tBase);
-  c.set(cx - 13, 26, tHi);
-  c.hline(cx - 13, 38, 4, tSh);
-  c.rect(cx + 9, 26, 4, 13, tBase);
-  c.set(cx + 12, 26, tSh);
-  c.hline(cx + 9, 38, 4, tSh);
-  c.rect(cx - 13, 39, 4, 5, 'A');
-  c.set(cx - 13, 43, 'z');
-  c.rect(cx + 9, 39, 4, 5, 'A');
-  c.set(cx + 12, 43, 'z');
 
   // APRON (optional) — bib + skirt with folds + pocket.
   if (apron) {

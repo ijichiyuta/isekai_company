@@ -36,6 +36,15 @@ void main() {
     expect(find.text('開発'), findsOneWidget);
     expect(find.text('発注'), findsOneWidget);
 
+    // HUD stat icons carry semantic labels (a11y): screen readers announce
+    // "資金"/"名声" rather than an unlabeled image.
+    bool hasSemanticLabel(String label) => find
+        .byWidgetPredicate((w) => w is Semantics && w.properties.label == label)
+        .evaluate()
+        .isNotEmpty;
+    expect(hasSemanticLabel('資金'), isTrue);
+    expect(hasSemanticLabel('名声'), isTrue);
+
     await tester.tap(find.text('開発'));
     await tester.pumpAndSettle();
     expect(find.text('PB開発'), findsOneWidget);

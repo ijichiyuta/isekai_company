@@ -75,9 +75,9 @@ class _Hud extends StatelessWidget {
       color: const Color(0xFFE7D6AE),
       child: Row(
         children: [
-          _stat(art.coin, formatG(s.funds)),
+          _stat(art.coin, formatG(s.funds), '資金'),
           const SizedBox(width: 16),
-          _stat(art.star, '${s.fame}'),
+          _stat(art.star, '${s.fame}', '名声'),
           const Spacer(),
           Column(
             crossAxisAlignment: CrossAxisAlignment.end,
@@ -108,15 +108,19 @@ class _Hud extends StatelessWidget {
     );
   }
 
-  Widget _stat(PixelSprite sprite, String value) => Row(
-    children: [
-      PixelView(sprite, height: 20),
-      const SizedBox(width: 5),
-      Text(
-        value,
-        style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
-      ),
-    ],
+  Widget _stat(PixelSprite sprite, String value, String label) => Semantics(
+    label: label,
+    value: value,
+    child: Row(
+      children: [
+        PixelView(sprite, height: 20),
+        const SizedBox(width: 5),
+        Text(
+          value,
+          style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
+        ),
+      ],
+    ),
   );
 }
 
@@ -149,7 +153,11 @@ class _TrendBar extends StatelessWidget {
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 5),
       child: Row(
         children: [
-          PixelView(active ? art.flame : art.sparkle, height: 16),
+          PixelView(
+            active ? art.flame : art.sparkle,
+            height: 16,
+            semanticLabel: active ? '流行中' : '流行予告',
+          ),
           const SizedBox(width: 6),
           Expanded(
             child: Text(

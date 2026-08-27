@@ -160,6 +160,24 @@ class PixelCanvas {
     }
   }
 
+  /// Selective outlining: recolor outline pixels [outlineKey] on the lit
+  /// (top / left) edge of the silhouette to a lighter [litKey] — the "selout"
+  /// technique that stops the outline reading as a flat black sticker.
+  void selout(String outlineKey, String litKey) {
+    final adds = <int>[];
+    for (var y = 0; y < height; y++) {
+      for (var x = 0; x < width; x++) {
+        if (_px[y][x] != outlineKey) continue;
+        if (at(x, y - 1) == '.' || at(x - 1, y) == '.') {
+          adds.add(y * width + x);
+        }
+      }
+    }
+    for (final p in adds) {
+      _px[p ~/ width][p % width] = litKey;
+    }
+  }
+
   /// A soft elliptical ground shadow (only where transparent).
   void shadow(int cx, int cy, int rx, int ry, String c) {
     for (var j = -ry; j <= ry; j++) {

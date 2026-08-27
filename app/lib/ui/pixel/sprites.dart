@@ -36,46 +36,49 @@ const Map<String, Color> kPal = {
   'p': Color(0xFFE88FA6), // pink
 };
 
-/// HIGH-FIDELITY palette (v2) — tonal RAMPS per material for proper shading
-/// (light source top-left). Single-char keys grouped by material, dark→light.
-/// Used by the PixelCanvas-drawn sprites; `.`/` ` transparent.
+/// HIGH-FIDELITY palette (v3) — HUE-SHIFTED tonal ramps per material (the
+/// technique that separates living pixel art from flat clip art): as a ramp
+/// brightens, hue rotates ~toward warm/yellow and desaturates; shadows rotate
+/// cooler and keep more saturation (Slynyrd/Derek Yu). Light source top-left.
+/// Single-char keys, dark→light; `.`/` ` transparent.
 const Map<String, Color> kArtPal = {
-  'K': Color(0xFF231A10), // outline (warm near-black)
-  // wood a→e
-  'a': Color(0xFF4A2C18), 'b': Color(0xFF6B4526), 'c': Color(0xFF8A5B33),
-  'd': Color(0xFFA87843), 'e': Color(0xFFC79A5C),
+  'K': Color(0xFF2B2230), // outline (dark desaturated plum, not pure black)
+  '@': Color(0xFF574A55), // lit outline (selout — top/left edges)
+  // wood a→e  (shadow red-brown → highlight warm tan)
+  'a': Color(0xFF462A1F), 'b': Color(0xFF6A4327), 'c': Color(0xFF8C5B33),
+  'd': Color(0xFFAE7B42), 'e': Color(0xFFCE9E57),
   // wall plaster f→i
-  'f': Color(0xFFAF9663), 'g': Color(0xFFC6AE7E), 'h': Color(0xFFDCC79A),
-  'i': Color(0xFFEEE1BA),
-  // green (roof/sign) j→m
-  'j': Color(0xFF1C6B3A), 'k': Color(0xFF2A8B4E), 'l': Color(0xFF3BA862),
-  'm': Color(0xFF5FC57F),
-  // glass n→q
-  'n': Color(0xFF6FA6BE), 'o': Color(0xFF95C8D9), 'p': Color(0xFFBBE2EF),
-  'q': Color(0xFFDCF2F9),
+  'f': Color(0xFFA68A55), 'g': Color(0xFFC5AB76), 'h': Color(0xFFDCC793),
+  'i': Color(0xFFF1E6BB),
+  // green (roof/sign) j→m  (shadow teal → highlight yellow-green)
+  'j': Color(0xFF1B6B4E), 'k': Color(0xFF2A8B4E), 'l': Color(0xFF4EA84C),
+  'm': Color(0xFF82C64C),
+  // glass n→q  (shadow blue → highlight pale cyan)
+  'n': Color(0xFF5F97BE), 'o': Color(0xFF8FC6D9), 'p': Color(0xFFBBE2EF),
+  'q': Color(0xFFE0F4FA),
   // sky (window view) r→t
-  'r': Color(0xFF8AC4E6), 's': Color(0xFFB2DAF2), 't': Color(0xFFDCEFFB),
-  // gold u→x
-  'u': Color(0xFFA9761B), 'v': Color(0xFFD3A02B), 'w': Color(0xFFF0C33C),
-  'x': Color(0xFFFFE487),
-  // skin y,z,A,B
-  'y': Color(0xFFC6884F), 'z': Color(0xFFE3A473), 'A': Color(0xFFF3C79A),
-  'B': Color(0xFFFFE2C2),
-  // hair C→E
-  'C': Color(0xFF3A2614), 'D': Color(0xFF573A20), 'E': Color(0xFF77522C),
-  // cloth blue F→H
-  'F': Color(0xFF294F7E), 'G': Color(0xFF3B72B0), 'H': Color(0xFF5E9AD6),
-  // apron/white cloth I,J,L
-  'I': Color(0xFFC7C8CE), 'J': Color(0xFFE6E7EB), 'L': Color(0xFFFAFAFA),
-  // red (awning/tunic) M→O
-  'M': Color(0xFF8E2F24), 'N': Color(0xFFBC4130), 'O': Color(0xFFDD6753),
-  // gray/metal P→S
-  'P': Color(0xFF54524C), 'Q': Color(0xFF7C7970), 'R': Color(0xFFA6A399),
-  'S': Color(0xFFCCC9BE),
-  // leaf T→V
-  'T': Color(0xFF37853F), 'U': Color(0xFF5BAA5F), 'V': Color(0xFF86C97F),
+  'r': Color(0xFF79B8E4), 's': Color(0xFFABD8F2), 't': Color(0xFFDCEFFB),
+  // gold u→x  (shadow orange → highlight pale yellow)
+  'u': Color(0xFFA5661C), 'v': Color(0xFFD2972A), 'w': Color(0xFFF0C33C),
+  'x': Color(0xFFFFE788),
+  // skin y,z,A,B  (shadow rosy-red → highlight warm cream)
+  'y': Color(0xFFC06E5A), 'z': Color(0xFFE0996E), 'A': Color(0xFFF2C295),
+  'B': Color(0xFFFFE7C4),
+  // hair C→E  (dark red-brown → warm brown)
+  'C': Color(0xFF382116), 'D': Color(0xFF5C3C22), 'E': Color(0xFF8A5E2E),
+  // cloth blue F→H  (shadow indigo → highlight cyan-blue)
+  'F': Color(0xFF374A88), 'G': Color(0xFF3F72B0), 'H': Color(0xFF6BAEDA),
+  // apron/white cloth I,J,L  (cool shadow → warm white)
+  'I': Color(0xFFC6C7D0), 'J': Color(0xFFE6E7EC), 'L': Color(0xFFFBFBF7),
+  // red (awning/tunic) M→O  (shadow crimson-plum → highlight orange)
+  'M': Color(0xFF8B2A38), 'N': Color(0xFFC0432F), 'O': Color(0xFFE0714A),
+  // gray/metal P→S  (shadow blue-gray → highlight warm gray)
+  'P': Color(0xFF4E5461), 'Q': Color(0xFF7A7B78), 'R': Color(0xFFA9A79B),
+  'S': Color(0xFFD0CCBE),
+  // leaf T→V  (shadow teal → highlight yellow-green)
+  'T': Color(0xFF368141), 'U': Color(0xFF61B05F), 'V': Color(0xFF8FC96E),
   // accents
-  'Z': Color(0xFFE486A0), // pink (cheeks)
+  'Z': Color(0xFFE888A6), // pink (cheeks)
   '#': Color(0xFFFFFFFF), // pure white highlight
   '-': Color(0x33000000), // soft shadow
   '~': Color(0x1E000000), // faint shadow
@@ -252,14 +255,17 @@ PixelSprite _buildShop() {
 }
 
 void _eye(PixelCanvas c, int x, int y) {
-  // Big round "kawaii" eye (6×6): glossy dark iris, rounded corners, a large
-  // top-left highlight + a small lower sparkle. No harsh lids.
-  c.rect(x + 1, y, 4, 6, 'F'); // vertical bar
-  c.rect(x, y + 1, 6, 4, 'F'); // horizontal bar → rounded square
-  c.hline(x + 1, y, 4, 'C'); // soft top lash
-  c.rect(x + 2, y + 2, 2, 3, 'G'); // mid-blue
-  c.rect(x + 1, y + 1, 2, 2, '#'); // big catch-light
-  c.set(x + 4, y + 4, 'q'); // lower sparkle
+  // Big glossy "お人形" doll eye (7×8): white sclera, large dark-blue iris,
+  // a bright top-left catch-light and a small lower sparkle.
+  c.rect(x + 1, y, 5, 8, 'L'); // white (vertical)
+  c.rect(x, y + 1, 7, 6, 'L'); // white (horizontal) → rounded
+  c.rect(x + 1, y + 1, 5, 6, 'F'); // iris fills most of the eye
+  c.rect(x + 2, y + 2, 3, 4, 'G'); // mid-blue body
+  c.rect(x + 1, y + 1, 2, 3, '#'); // big catch-light
+  c.set(x + 4, y + 5, 'q'); // lower sparkle
+  c.hline(x + 1, y, 5, 'C'); // upper lash
+  c.set(x, y + 1, 'C');
+  c.set(x + 6, y + 1, 'C');
 }
 
 /// One chibi townsperson (48×64). [hair]/[top] are [shadow, base, highlight]
@@ -325,17 +331,17 @@ PixelSprite _person({
     }
   }
   c.rect(cx - 7, hy + 1, 6, 2, 'B'); // soft forehead sheen
-  // big round eyes, set low + wide (kawaii)
-  _eye(c, 13, 23);
-  _eye(c, 29, 23);
-  // tiny nose + small happy mouth
-  c.set(cx, 29, 'z');
-  c.set(cx - 1, 31, 'M');
-  c.set(cx, 32, 'N');
-  c.set(cx + 1, 31, 'M');
-  // soft round blush, tucked under the eyes (inside the face)
-  c.rect(14, 30, 3, 2, 'Z');
-  c.rect(31, 30, 3, 2, 'Z');
+  // Big doll eyes set CLOSE together (~3px bridge) — お人形/かわいいポップ.
+  _eye(c, cx - 8, 21); // left  (16..22)
+  _eye(c, cx + 1, 21); // right (25..31)
+  // tiny nose + a small happy mouth just below
+  c.set(cx, 30, 'z');
+  c.set(cx - 1, 32, 'M');
+  c.set(cx, 33, 'N');
+  c.set(cx + 1, 32, 'M');
+  // soft round blush on the cheeks, under the eyes
+  c.rect(cx - 9, 30, 3, 2, 'Z');
+  c.rect(cx + 6, 30, 3, 2, 'Z');
 
   // NECK.
   c.rect(20, 34, 8, 4, 'z');
@@ -399,6 +405,7 @@ PixelSprite _person({
   c.hline(cx + 2, 62, 7, 'b');
 
   c.outline('K');
+  c.selout('K', '@'); // lighten the lit (top/left) edge of the outline
   c.shadow(cx, 63, 16, 1, '-');
   return c.toSprite(kArtPal);
 }

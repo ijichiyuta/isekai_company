@@ -20,15 +20,19 @@ All game art is drawn **in Dart** via `app/lib/ui/pixel/` — no bundled images
 
 ## The rules that separate pro art from programmer art
 
-1. **Resolution.** Icons ≥24²; characters ≥40×54; hero props/buildings ≥96 wide.
+1. **Resolution.** Icons ≥24²; characters ≥48×64; hero props/buildings ≥96 wide.
    Small grids (12²) look crude — go bigger and let `PixelView` scale down.
-2. **Tonal ramps, not flat fills.** Every material gets **3–5 tones** (dark→light)
-   in `kArtPal` (`sprites.dart`). Shade with `rampV`/`discShaded`, never a single
-   color. Light source is **top-left** everywhere (highlights top-left, shadow
-   bottom-right).
-3. **Selective outline.** Wrap silhouettes with a warm near-black (`'K'`) via
-   `canvas.outline('K')` for characters/props; buildings use explicit dark edges.
-   Avoid pure black.
+2. **HUE-SHIFTED ramps, not flat fills.** THE technique that separates living
+   pixel art from clip art (Slynyrd/Derek Yu): every material gets **3–5 tones**
+   in `kArtPal` where, as the ramp brightens, the **hue rotates ~15–20° toward
+   warm/yellow and desaturates**; shadows rotate **cooler** (skin→rosy-red,
+   blue→indigo, green→teal) and keep more saturation. A pure brightness-only ramp
+   is the #1 beginner tell. Light source **top-left** (highlights top-left,
+   shadow bottom-right). Shade with `rampV`/`discShaded`.
+3. **Selective outline (selout).** Outline with a dark desaturated color (`'K'` =
+   plum, NOT pure black) via `canvas.outline('K')`, then `canvas.selout('K','@')`
+   to lighten the lit top/left edge. Do NOT anti-alias the *exterior* silhouette
+   (backgrounds vary — it would clash); AA/selout **internal** edges only.
 4. **Texture & detail via loops.** Brick courses, awning stripes, shelf goods,
    plaster lines, wood grain — draw in `for` loops. Add believable specifics
    (window reflections, product silhouettes, name tags, folds).

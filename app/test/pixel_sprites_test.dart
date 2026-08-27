@@ -152,4 +152,35 @@ void main() {
       matchesGoldenFile('goldens/shop_hd_preview.png'),
     );
   });
+
+  testWidgets('face close-up', (tester) async {
+    if (!Platform.isMacOS) return;
+    tester.view.physicalSize = const Size(1000, 760);
+    tester.view.devicePixelRatio = 1.0;
+    addTearDown(tester.view.resetPhysicalSize);
+    addTearDown(tester.view.resetDevicePixelRatio);
+    await tester.pumpWidget(
+      MaterialApp(
+        debugShowCheckedModeBanner: false,
+        home: Scaffold(
+          backgroundColor: const Color(0xFFEAD8AC),
+          body: Center(
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                PixelView(heroHd, pixelSize: 10),
+                const SizedBox(width: 20),
+                PixelView(ladyHd, pixelSize: 10),
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
+    await tester.pumpAndSettle();
+    await expectLater(
+      find.byType(Scaffold),
+      matchesGoldenFile('goldens/face_preview.png'),
+    );
+  });
 }

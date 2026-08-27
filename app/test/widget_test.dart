@@ -25,8 +25,9 @@ Widget _app({bool tutorial = false}) {
 }
 
 void main() {
-  testWidgets('main screen renders HUD and the loop screens are reachable',
-      (tester) async {
+  testWidgets('main screen renders HUD and the loop screens are reachable', (
+    tester,
+  ) async {
     await tester.pumpWidget(_app());
     await tester.pumpAndSettle();
 
@@ -65,8 +66,9 @@ void main() {
     expect(find.text('「プリン」を発明！'), findsNothing);
   });
 
-  testWidgets('onboarding: intro → guided develop → guaranteed invention',
-      (tester) async {
+  testWidgets('onboarding: intro → guided develop → guaranteed invention', (
+    tester,
+  ) async {
     await tester.pumpWidget(_app(tutorial: true));
     await tester.pumpAndSettle();
 

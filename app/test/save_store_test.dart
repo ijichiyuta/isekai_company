@@ -9,11 +9,11 @@ import 'package:isekai_core/isekai_core.dart';
 import 'helpers.dart';
 
 MetaState _meta(int soulPoints, {bool tutorial = false}) => MetaState.raw(
-      soulPoints: soulPoints,
-      lifetimeBest: 0,
-      tutorialDone: tutorial,
-      unlockLevels: <int>[],
-    );
+  soulPoints: soulPoints,
+  lifetimeBest: 0,
+  tutorialDone: tutorial,
+  unlockLevels: <int>[],
+);
 
 void main() {
   late Balance balance;
@@ -56,22 +56,28 @@ void main() {
     expect(saves.length, SaveStore.generations); // exactly 3 kept
   });
 
-  test('falls back to an older generation when the newest is corrupt',
-      () async {
-    final store = SaveStore(balance, tmp);
-    await store.save(GameState.initial(balance, 1), _meta(10));
-    await store.save(GameState.initial(balance, 2), _meta(20));
-    // Corrupt the newest generation (save.0).
-    File('${tmp.path}/save.0.json').writeAsStringSync('{"garbage":true}');
+  test(
+    'falls back to an older generation when the newest is corrupt',
+    () async {
+      final store = SaveStore(balance, tmp);
+      await store.save(GameState.initial(balance, 1), _meta(10));
+      await store.save(GameState.initial(balance, 2), _meta(20));
+      // Corrupt the newest generation (save.0).
+      File('${tmp.path}/save.0.json').writeAsStringSync('{"garbage":true}');
 
-    final restored = await store.load();
-    expect(restored!.meta.soulPoints, 10); // fell back to save.1
-  });
+      final restored = await store.load();
+      expect(restored!.meta.soulPoints, 10); // fell back to save.1
+    },
+  );
 
   test('progress persists across a controller relaunch (P0 / C-6)', () async {
     final store = SaveStore(balance, tmp);
     final g1 = GameController(
-        balance: balance, clock: FakeTickClock(), seed: 1, store: store);
+      balance: balance,
+      clock: FakeTickClock(),
+      seed: 1,
+      store: store,
+    );
     g1.completeTutorial();
     g1.retire();
     final earned = g1.pendingSoulPoints;
@@ -81,11 +87,12 @@ void main() {
     // Relaunch: load the save and rebuild a fresh controller from it.
     final restored = await store.load();
     final g2 = GameController(
-        balance: balance,
-        clock: FakeTickClock(),
-        seed: 1,
-        store: store,
-        restored: restored);
+      balance: balance,
+      clock: FakeTickClock(),
+      seed: 1,
+      store: store,
+      restored: restored,
+    );
 
     expect(g2.soulPointsTotal, earned); // soul points survived
     expect(g2.tutorialDone, isTrue); // onboarding won't replay (§C-6)

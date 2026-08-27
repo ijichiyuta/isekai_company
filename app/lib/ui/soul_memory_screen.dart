@@ -5,6 +5,8 @@ import 'package:isekai_core/isekai_core.dart';
 import '../game/game_controller.dart';
 import '../game/providers.dart';
 import 'paywall.dart';
+import 'pixel/pixel_art.dart';
+import 'pixel/sprites.dart' as art;
 
 /// 魂の記憶ツリー画面 (§8.4). Spend soul points on permanent unlocks; 完全版
 /// (full-tier) nodes show a lock and route to the paywall. Doubles as the shop
@@ -17,7 +19,7 @@ class SoulMemoryScreen extends ConsumerWidget {
     final game = ref.watch(gameControllerProvider);
     final s = game.unlockSummary;
     return Scaffold(
-      appBar: AppBar(title: const Text('魂の記憶')),
+      appBar: AppBar(title: const PixelTitle(art.sparkle, '魂の記憶')),
       body: Column(
         children: [
           Card(
@@ -27,13 +29,19 @@ class SoulMemoryScreen extends ConsumerWidget {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text('未使用ポイント: ${game.soulPointsTotal} pt',
-                      style: const TextStyle(
-                          fontSize: 18, fontWeight: FontWeight.bold)),
+                  Text(
+                    '未使用ポイント: ${game.soulPointsTotal} pt',
+                    style: const TextStyle(
+                      fontSize: 18,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
                   const SizedBox(height: 4),
-                  Text('解放済み ${s.owned} / ${s.total}'
-                      '${s.fullLocked > 0 ? '（完全版で+${s.fullLocked}解放可）' : ''}',
-                      style: const TextStyle(fontSize: 13, color: Colors.grey)),
+                  Text(
+                    '解放済み ${s.owned} / ${s.total}'
+                    '${s.fullLocked > 0 ? '（完全版で+${s.fullLocked}解放可）' : ''}',
+                    style: const TextStyle(fontSize: 13, color: Colors.grey),
+                  ),
                   if (!game.isFull && s.fullLocked > 0) ...[
                     const SizedBox(height: 10),
                     FilledButton.icon(
@@ -45,8 +53,10 @@ class SoulMemoryScreen extends ConsumerWidget {
                   if (game.isFull)
                     const Padding(
                       padding: EdgeInsets.only(top: 8),
-                      child: Text('✔ 完全版 購入済み',
-                          style: TextStyle(color: Colors.green)),
+                      child: Text(
+                        '✔ 完全版 購入済み',
+                        style: TextStyle(color: Colors.green),
+                      ),
                     ),
                 ],
               ),
@@ -101,8 +111,12 @@ class _UnlockTile extends StatelessWidget {
         onPressed: canAfford
             ? () {
                 if (!game.purchaseUnlock(def.id)) {
-                  ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
-                      content: Text('購入できません'), duration: Duration(seconds: 1)));
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(
+                      content: Text('購入できません'),
+                      duration: Duration(seconds: 1),
+                    ),
+                  );
                 }
               }
             : null,
@@ -125,10 +139,11 @@ class _Tag extends StatelessWidget {
   final Color color;
   @override
   Widget build(BuildContext context) => Container(
-        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-        decoration: BoxDecoration(
-            color: color.withValues(alpha: 0.15),
-            borderRadius: BorderRadius.circular(6)),
-        child: Text(text, style: TextStyle(fontSize: 12, color: color)),
-      );
+    padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+    decoration: BoxDecoration(
+      color: color.withValues(alpha: 0.15),
+      borderRadius: BorderRadius.circular(6),
+    ),
+    child: Text(text, style: TextStyle(fontSize: 12, color: color)),
+  );
 }

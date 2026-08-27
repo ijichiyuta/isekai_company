@@ -29,30 +29,32 @@ Future<void> _loadHiragino() async {
 }
 
 Widget _framed(Widget child) => ProviderScope(
-      overrides: [
-        balanceProvider.overrideWith((ref) => Future.value(loadTestBalance())),
-        tickClockProvider.overrideWithValue(FakeTickClock()),
-        saveStoreProvider.overrideWith((ref) async => null),
-      ],
-      child: MaterialApp(
-        debugShowCheckedModeBanner: false,
-        theme: buildTheme().copyWith(
-          textTheme: buildTheme().textTheme.apply(fontFamily: 'Hiragino'),
-        ),
-        home: Consumer(builder: (c, ref, _) {
-          // The child's gameControllerProvider requireValue's balance + store +
-          // restored + entitlements — wait for all before building.
-          final b = ref.watch(balanceProvider);
-          final r = ref.watch(restoredSaveProvider);
-          final e = ref.watch(entitlementsProvider);
-          if (b.isLoading || r.isLoading || e.isLoading) {
-            return const SizedBox.shrink();
-          }
-          if (b.hasError) return Text('${b.error}');
-          return child;
-        }),
-      ),
-    );
+  overrides: [
+    balanceProvider.overrideWith((ref) => Future.value(loadTestBalance())),
+    tickClockProvider.overrideWithValue(FakeTickClock()),
+    saveStoreProvider.overrideWith((ref) async => null),
+  ],
+  child: MaterialApp(
+    debugShowCheckedModeBanner: false,
+    theme: buildTheme().copyWith(
+      textTheme: buildTheme().textTheme.apply(fontFamily: 'Hiragino'),
+    ),
+    home: Consumer(
+      builder: (c, ref, _) {
+        // The child's gameControllerProvider requireValue's balance + store +
+        // restored + entitlements — wait for all before building.
+        final b = ref.watch(balanceProvider);
+        final r = ref.watch(restoredSaveProvider);
+        final e = ref.watch(entitlementsProvider);
+        if (b.isLoading || r.isLoading || e.isLoading) {
+          return const SizedBox.shrink();
+        }
+        if (b.hasError) return Text('${b.error}');
+        return child;
+      },
+    ),
+  ),
+);
 
 void main() {
   testWidgets('golden: main screen', (tester) async {
@@ -80,17 +82,19 @@ void main() {
     addTearDown(tester.view.resetPhysicalSize);
     addTearDown(tester.view.resetDevicePixelRatio);
 
-    await tester.pumpWidget(MaterialApp(
-      debugShowCheckedModeBanner: false,
-      theme: buildTheme().copyWith(
-        textTheme: buildTheme().textTheme.apply(
-              fontFamily: 'Hiragino',
-              bodyColor: const Color(0xFFFFFFFF),
-              displayColor: const Color(0xFFFFFFFF),
-            ),
+    await tester.pumpWidget(
+      MaterialApp(
+        debugShowCheckedModeBanner: false,
+        theme: buildTheme().copyWith(
+          textTheme: buildTheme().textTheme.apply(
+            fontFamily: 'Hiragino',
+            bodyColor: const Color(0xFFFFFFFF),
+            displayColor: const Color(0xFFFFFFFF),
+          ),
+        ),
+        home: OnboardingFlow(onDone: () {}),
       ),
-      home: OnboardingFlow(onDone: () {}),
-    ));
+    );
     await tester.pumpAndSettle();
 
     await expectLater(
@@ -109,16 +113,20 @@ void main() {
 
     final balance = loadTestBalanceWithEvents();
     final event = balance.events[20]; // 勇者パーティのスポンサー (2 choices)
-    await tester.pumpWidget(MaterialApp(
-      debugShowCheckedModeBanner: false,
-      theme: buildTheme().copyWith(
-        textTheme: buildTheme().textTheme.apply(fontFamily: 'Hiragino'),
+    await tester.pumpWidget(
+      MaterialApp(
+        debugShowCheckedModeBanner: false,
+        theme: buildTheme().copyWith(
+          textTheme: buildTheme().textTheme.apply(fontFamily: 'Hiragino'),
+        ),
+        home: Stack(
+          children: [
+            Container(color: const Color(0xFFF3E9D2)),
+            EventDialog(event: event, onChoose: (_) {}),
+          ],
+        ),
       ),
-      home: Stack(children: [
-        Container(color: const Color(0xFFF3E9D2)),
-        EventDialog(event: event, onChoose: (_) {}),
-      ]),
-    ));
+    );
     await tester.pumpAndSettle();
     await expectLater(
       find.byType(EventDialog),
@@ -134,21 +142,23 @@ void main() {
     addTearDown(tester.view.resetPhysicalSize);
     addTearDown(tester.view.resetDevicePixelRatio);
 
-    await tester.pumpWidget(MaterialApp(
-      debugShowCheckedModeBanner: false,
-      theme: buildTheme().copyWith(
-        textTheme: buildTheme().textTheme.apply(fontFamily: 'Hiragino'),
+    await tester.pumpWidget(
+      MaterialApp(
+        debugShowCheckedModeBanner: false,
+        theme: buildTheme().copyWith(
+          textTheme: buildTheme().textTheme.apply(fontFamily: 'Hiragino'),
+        ),
+        home: Stack(
+          children: [
+            Container(color: const Color(0xFFF3E9D2)),
+            InventionOverlay(
+              event: const InventionEvent(0, 'プリン', 300, 30),
+              onDismiss: () {},
+            ),
+          ],
+        ),
       ),
-      home: Stack(
-        children: [
-          Container(color: const Color(0xFFF3E9D2)),
-          InventionOverlay(
-            event: const InventionEvent(0, 'プリン', 300, 30),
-            onDismiss: () {},
-          ),
-        ],
-      ),
-    ));
+    );
     await tester.pump(const Duration(milliseconds: 700)); // settle animation
 
     await expectLater(

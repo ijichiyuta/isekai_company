@@ -19,6 +19,7 @@ void main() {
       'crate': crate,
       'plant': plant,
       'window': window,
+      'goddess': goddess,
     };
     all.forEach((name, s) {
       final widths = s.rows.map((r) => r.length).toSet();
@@ -35,6 +36,7 @@ void main() {
       'crate': crate,
       'plant': plant,
       'window': window,
+      'goddess': goddess,
     };
     all.forEach((name, s) {
       for (final row in s.rows) {
@@ -82,9 +84,11 @@ void main() {
               children: [
                 for (final e in kIconSprites.entries) cell(e.key, e.value, 5),
                 cell('hero', hero, 5),
+                cell('goddess', goddess, 5),
                 cell('customer', customer, 5),
                 cell('crate', crate, 5),
                 cell('plant', plant, 5),
+                cell('window', window, 5),
                 cell('shop', shop, 5),
               ],
             ),

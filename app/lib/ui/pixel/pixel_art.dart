@@ -93,3 +93,21 @@ class PixelView extends StatelessWidget {
     return child;
   }
 }
+
+/// An AppBar title with a leading pixel icon — ties the management screens into
+/// the same iconography as the main HUD / nav.
+class PixelTitle extends StatelessWidget {
+  const PixelTitle(this.sprite, this.text, {super.key});
+  final PixelSprite sprite;
+  final String text;
+
+  @override
+  Widget build(BuildContext context) => Row(
+    mainAxisSize: MainAxisSize.min,
+    children: [
+      PixelView(sprite, height: 20),
+      const SizedBox(width: 8),
+      Text(text),
+    ],
+  );
+}

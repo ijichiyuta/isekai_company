@@ -369,9 +369,16 @@ class _WeeklyResult extends StatelessWidget {
           if (game.lastRankedUp)
             const Padding(
               padding: EdgeInsets.only(right: 8),
-              child: Text(
-                '🎉 昇格！',
-                style: TextStyle(fontWeight: FontWeight.bold, color: kGold),
+              child: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  PixelView(art.sparkle, height: 14),
+                  SizedBox(width: 4),
+                  Text(
+                    '昇格！',
+                    style: TextStyle(fontWeight: FontWeight.bold, color: kGold),
+                  ),
+                ],
               ),
             ),
           Text(
@@ -543,12 +550,19 @@ class _LifeEndBanner extends StatelessWidget {
                       const Divider(height: 16),
                       _row('生涯スコア', sc.total, bold: true),
                       const SizedBox(height: 8),
-                      Text(
-                        '✨ 魂の記憶 +${game.pendingSoulPoints} pt',
-                        style: const TextStyle(
-                          color: kFame,
-                          fontWeight: FontWeight.bold,
-                        ),
+                      Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          const PixelView(art.sparkle, height: 15),
+                          const SizedBox(width: 5),
+                          Text(
+                            '魂の記憶 +${game.pendingSoulPoints} pt',
+                            style: const TextStyle(
+                              color: kFame,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                        ],
                       ),
                       Text(
                         '（累計 ${game.soulPointsTotal + game.pendingSoulPoints} pt）',

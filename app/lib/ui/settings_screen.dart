@@ -3,6 +3,8 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../game/providers.dart';
 import 'paywall.dart';
+import 'pixel/pixel_art.dart';
+import 'pixel/sprites.dart' as art;
 import 'soul_memory_screen.dart';
 
 /// Settings / info screen. Hosts the SECOND 復元購入 entry point (§14.4 requires
@@ -15,7 +17,7 @@ class SettingsScreen extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final game = ref.watch(gameControllerProvider);
     return Scaffold(
-      appBar: AppBar(title: const Text('設定')),
+      appBar: AppBar(title: const PixelTitle(art.gear, '設定')),
       body: ListView(
         children: [
           ListTile(
@@ -23,12 +25,15 @@ class SettingsScreen extends ConsumerWidget {
             title: const Text('魂の記憶'),
             subtitle: Text('未使用 ${game.soulPointsTotal} pt'),
             trailing: const Icon(Icons.chevron_right),
-            onTap: () => Navigator.of(context).push(MaterialPageRoute(
-                builder: (_) => const SoulMemoryScreen())),
+            onTap: () => Navigator.of(
+              context,
+            ).push(MaterialPageRoute(builder: (_) => const SoulMemoryScreen())),
           ),
           const Divider(),
           ListTile(
-            leading: Icon(game.isFull ? Icons.verified : Icons.workspace_premium),
+            leading: Icon(
+              game.isFull ? Icons.verified : Icons.workspace_premium,
+            ),
             title: Text(game.isFull ? '完全版 購入済み' : '完全版'),
             subtitle: Text(game.isFull ? 'すべての機能が利用できます' : '完全版でフル機能を解放'),
             trailing: game.isFull
@@ -45,8 +50,9 @@ class SettingsScreen extends ConsumerWidget {
             onTap: () async {
               final ok = await game.restorePurchases();
               if (context.mounted) {
-                ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-                    content: Text(ok ? '購入を復元しました' : '復元できる購入がありません')));
+                ScaffoldMessenger.of(context).showSnackBar(
+                  SnackBar(content: Text(ok ? '購入を復元しました' : '復元できる購入がありません')),
+                );
               }
             },
           ),

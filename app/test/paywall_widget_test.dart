@@ -21,31 +21,38 @@ class _FakeIap implements IapClient {
 }
 
 Future<void> _pump(WidgetTester t, Widget screen, {IapClient? iap}) async {
-  await t.pumpWidget(ProviderScope(
-    overrides: [
-      balanceProvider.overrideWith((r) => Future.value(loadTestBalanceFull())),
-      tickClockProvider.overrideWithValue(FakeTickClock()),
-      saveStoreProvider.overrideWith((r) async => null),
-      if (iap != null) iapClientProvider.overrideWithValue(iap),
-    ],
-    child: MaterialApp(
-      home: Consumer(builder: (c, ref, _) {
-        final b = ref.watch(balanceProvider);
-        final r = ref.watch(restoredSaveProvider);
-        final e = ref.watch(entitlementsProvider);
-        if (b.isLoading || r.isLoading || e.isLoading) {
-          return const SizedBox.shrink();
-        }
-        return screen;
-      }),
+  await t.pumpWidget(
+    ProviderScope(
+      overrides: [
+        balanceProvider.overrideWith(
+          (r) => Future.value(loadTestBalanceFull()),
+        ),
+        tickClockProvider.overrideWithValue(FakeTickClock()),
+        saveStoreProvider.overrideWith((r) async => null),
+        if (iap != null) iapClientProvider.overrideWithValue(iap),
+      ],
+      child: MaterialApp(
+        home: Consumer(
+          builder: (c, ref, _) {
+            final b = ref.watch(balanceProvider);
+            final r = ref.watch(restoredSaveProvider);
+            final e = ref.watch(entitlementsProvider);
+            if (b.isLoading || r.isLoading || e.isLoading) {
+              return const SizedBox.shrink();
+            }
+            return screen;
+          },
+        ),
+      ),
     ),
-  ));
+  );
   await t.pumpAndSettle();
 }
 
 void main() {
-  testWidgets('tree lists unlocks; full-tier nodes are gated behind 完全版',
-      (t) async {
+  testWidgets('tree lists unlocks; full-tier nodes are gated behind 完全版', (
+    t,
+  ) async {
     await _pump(t, const SoulMemoryScreen());
     expect(find.text('魂の記憶'), findsOneWidget); // app bar
     expect(find.text('貯えの記憶 I'), findsOneWidget); // top free node (§8.4 #1a)

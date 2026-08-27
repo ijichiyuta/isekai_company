@@ -4,12 +4,13 @@ import 'package:flutter/material.dart';
 /// Kept small and centralized (the Art Bible will formalize this in M1).
 ThemeData buildTheme() {
   const seed = Color(0xFF8B5E34); // aged leather brown
-  final scheme = ColorScheme.fromSeed(
-    seedColor: seed,
-    brightness: Brightness.light,
-  ).copyWith(
-    surface: const Color(0xFFF3E9D2), // parchment
-  );
+  final scheme =
+      ColorScheme.fromSeed(
+        seedColor: seed,
+        brightness: Brightness.light,
+      ).copyWith(
+        surface: const Color(0xFFF3E9D2), // parchment
+      );
   return ThemeData(
     useMaterial3: true,
     colorScheme: scheme,

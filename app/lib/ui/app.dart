@@ -66,14 +66,16 @@ class _BootstrapState extends ConsumerState<_Bootstrap>
     final err = balance.hasError
         ? balance.error
         : (restored.hasError
-            ? restored.error
-            : (entitlements.hasError ? entitlements.error : null));
+              ? restored.error
+              : (entitlements.hasError ? entitlements.error : null));
     if (err != null) {
       return Scaffold(
-        body: Center(child: Padding(
-          padding: const EdgeInsets.all(24),
-          child: Text('load failed:\n$err', textAlign: TextAlign.center),
-        )),
+        body: Center(
+          child: Padding(
+            padding: const EdgeInsets.all(24),
+            child: Text('load failed:\n$err', textAlign: TextAlign.center),
+          ),
+        ),
       );
     }
     if (balance.isLoading || restored.isLoading || entitlements.isLoading) {

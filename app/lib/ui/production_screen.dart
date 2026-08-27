@@ -5,6 +5,8 @@ import 'package:isekai_core/isekai_core.dart';
 import '../game/format.dart';
 import '../game/game_controller.dart';
 import '../game/providers.dart';
+import 'pixel/pixel_art.dart';
+import 'pixel/sprites.dart' as art;
 
 /// 生産 (requirements §4, §12.2): produce discovered recipes from materials.
 /// Capacity = base + employees × output; the engine clamps to stock/capacity.
@@ -21,7 +23,7 @@ class ProductionScreen extends ConsumerWidget {
     ];
 
     return Scaffold(
-      appBar: AppBar(title: const Text('生産')),
+      appBar: AppBar(title: const PixelTitle(art.factory, '生産')),
       body: ListView(
         children: [
           _UpgradePanel(game: game),

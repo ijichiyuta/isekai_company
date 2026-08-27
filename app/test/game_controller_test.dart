@@ -109,27 +109,37 @@ void main() {
     expect(g.pendingEvent, isNull); // resolved
   });
 
-  test('player can upgrade equipment/quality; capacity/price scale (P1 UI)', () {
-    final g = GameController(balance: balance, clock: FakeTickClock(), seed: 1);
-    g.state.employees = 10; // so the capacity multiplier is visible
-    g.state.funds = 1000000;
-    expect(g.equipmentLevel, 0);
-    expect(g.canUpgradeEquipment, isTrue);
-    final capBefore = g.weeklyCapacity;
-    expect(g.equipUpgradeCost(), greaterThan(0));
+  test(
+    'player can upgrade equipment/quality; capacity/price scale (P1 UI)',
+    () {
+      final g = GameController(
+        balance: balance,
+        clock: FakeTickClock(),
+        seed: 1,
+      );
+      g.state.employees = 10; // so the capacity multiplier is visible
+      g.state.funds = 1000000;
+      expect(g.equipmentLevel, 0);
+      expect(g.canUpgradeEquipment, isTrue);
+      final capBefore = g.weeklyCapacity;
+      expect(g.equipUpgradeCost(), greaterThan(0));
 
-    g.reserve(UpgradeEquipment());
-    g.step();
-    expect(g.equipmentLevel, 1);
-    expect(g.weeklyCapacity, greaterThan(capBefore)); // equipment scaled it
+      g.reserve(UpgradeEquipment());
+      g.step();
+      expect(g.equipmentLevel, 1);
+      expect(g.weeklyCapacity, greaterThan(capBefore)); // equipment scaled it
 
-    g.state.funds = 1000000;
-    final priceBefore = g.qualityMultPercent;
-    g.reserve(ImproveQuality());
-    g.step();
-    expect(g.qualityStar, 1);
-    expect(g.qualityMultPercent, greaterThan(priceBefore)); // quality scaled it
-  });
+      g.state.funds = 1000000;
+      final priceBefore = g.qualityMultPercent;
+      g.reserve(ImproveQuality());
+      g.step();
+      expect(g.qualityStar, 1);
+      expect(
+        g.qualityMultPercent,
+        greaterThan(priceBefore),
+      ); // quality scaled it
+    },
+  );
 
   test('rebirth banks soul points and starts a fresh, later life', () {
     final g = GameController(balance: balance, clock: FakeTickClock(), seed: 1);

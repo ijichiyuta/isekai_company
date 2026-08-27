@@ -3,6 +3,8 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../game/format.dart';
 import '../game/providers.dart';
+import 'pixel/pixel_art.dart';
+import 'pixel/sprites.dart' as art;
 
 /// 販売・棚割り (requirements §4, §12.2). Sales happen automatically each week
 /// (the engine sells stock into the shared demand pool). Manual pricing/棚割り
@@ -16,10 +18,10 @@ class SalesScreen extends ConsumerWidget {
     final b = game.balance;
     final known = [
       for (final r in b.recipes)
-        if (game.state.discovered[r.id]) r
+        if (game.state.discovered[r.id]) r,
     ];
     return Scaffold(
-      appBar: AppBar(title: const Text('販売')),
+      appBar: AppBar(title: const PixelTitle(art.storefront, '販売')),
       body: Column(
         children: [
           Padding(
@@ -49,8 +51,10 @@ class SalesScreen extends ConsumerWidget {
           ),
           const Padding(
             padding: EdgeInsets.all(12),
-            child: Text('※ 手動値付け・棚割りは M2 で実装',
-                style: TextStyle(fontSize: 12, color: Colors.grey)),
+            child: Text(
+              '※ 販売は自動。手動値付け・棚割りは今後のアップデートで追加予定',
+              style: TextStyle(fontSize: 12, color: Colors.grey),
+            ),
           ),
         ],
       ),

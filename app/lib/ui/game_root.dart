@@ -48,7 +48,8 @@ class _GameRootState extends ConsumerState<GameRoot> {
   Widget build(BuildContext context) {
     // Real persistence: skip onboarding when the saved meta says it's done.
     final done = ref.watch(
-        gameControllerProvider.select((g) => g.tutorialDone));
+      gameControllerProvider.select((g) => g.tutorialDone),
+    );
     final hook = ref.watch(tutorialActiveProvider); // test/debug force-skip
     if (hook && !done && !_introDone) {
       return OnboardingFlow(onDone: _finishIntro);

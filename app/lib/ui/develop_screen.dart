@@ -4,6 +4,8 @@ import 'package:isekai_core/isekai_core.dart';
 
 import '../game/game_controller.dart';
 import '../game/providers.dart';
+import 'pixel/pixel_art.dart';
+import 'pixel/sprites.dart' as art;
 
 /// PB開発 (requirements §4, §12.2): pick 2 material slots + 1 method. Missing
 /// materials are auto-ordered so the loop stays smooth for new players. The
@@ -46,7 +48,7 @@ class _DevelopScreenState extends ConsumerState<DevelopScreen> {
     final affordable = game.state.funds >= cost;
 
     return Scaffold(
-      appBar: AppBar(title: const Text('PB開発')),
+      appBar: AppBar(title: const PixelTitle(art.beaker, 'PB開発')),
       // The primary action is pinned so it never scrolls off (the recipe list
       // grows as more materials/recipes are added).
       bottomNavigationBar: SafeArea(
@@ -58,8 +60,7 @@ class _DevelopScreenState extends ConsumerState<DevelopScreen> {
               if (canDevelop && !affordable)
                 const Padding(
                   padding: EdgeInsets.only(bottom: 6),
-                  child:
-                      Text('資金が足りません', style: TextStyle(color: Colors.red)),
+                  child: Text('資金が足りません', style: TextStyle(color: Colors.red)),
                 ),
               SizedBox(
                 width: double.infinity,
@@ -68,9 +69,9 @@ class _DevelopScreenState extends ConsumerState<DevelopScreen> {
                       ? () => _develop(game, context)
                       : null,
                   icon: const Icon(Icons.science),
-                  label: Text(canDevelop
-                      ? '開発する（素材費 ${cost}G）'
-                      : '素材を2つ選んでください'),
+                  label: Text(
+                    canDevelop ? '開発する（素材費 ${cost}G）' : '素材を2つ選んでください',
+                  ),
                 ),
               ),
             ],
@@ -114,15 +115,19 @@ class _DevelopScreenState extends ConsumerState<DevelopScreen> {
             ],
           ),
           const Divider(height: 32),
-          Text('発見済みレシピ（${game.state.discoveries}種）',
-              style: const TextStyle(fontWeight: FontWeight.bold)),
+          Text(
+            '発見済みレシピ（${game.state.discoveries}種）',
+            style: const TextStyle(fontWeight: FontWeight.bold),
+          ),
           const SizedBox(height: 8),
           for (final r in b.recipes)
             if (game.state.discovered[r.id])
               ListTile(
                 dense: true,
-                leading: Icon(r.invention ? Icons.auto_awesome : Icons.inventory_2,
-                    color: r.invention ? const Color(0xFFC8991F) : null),
+                leading: Icon(
+                  r.invention ? Icons.auto_awesome : Icons.inventory_2,
+                  color: r.invention ? const Color(0xFFC8991F) : null,
+                ),
                 title: Text(r.name),
                 subtitle: Text('売値 ${r.basePrice}G'),
               ),
@@ -132,7 +137,11 @@ class _DevelopScreenState extends ConsumerState<DevelopScreen> {
   }
 
   Widget _slot(
-      String label, int? selected, ValueChanged<int> onPick, Balance b) {
+    String label,
+    int? selected,
+    ValueChanged<int> onPick,
+    Balance b,
+  ) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [

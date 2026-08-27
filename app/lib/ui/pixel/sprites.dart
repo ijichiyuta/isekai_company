@@ -107,6 +107,27 @@ final PixelSprite customer = PixelSprite([
   '.' * 3 + 'X' * 10 + '.' * 3,
 ], kPal);
 
+/// The 女神 who grants the past-life memory (14×17) — onboarding 転生 beat.
+const PixelSprite goddess = PixelSprite([
+  '....gggggg....',
+  '...g......g...',
+  '....kkkkkk....',
+  '...kyyyyyyk...',
+  '...kyssssyk...',
+  '...kskssksk...',
+  '...kssssssk...',
+  '....kssssk....',
+  '.wwkwwwwwwkww.',
+  '.wwkwwwwwwkww.',
+  '...kwwwwwwk...',
+  '...kwwwwwwk...',
+  '...kwGGGGwk...',
+  '...kwwwwwwk...',
+  '...kwwwwwwk...',
+  '...kkkkkkkk...',
+  '....XXXXXX....',
+], kPal);
+
 /// A wooden crate (12×12) — a scene prop / stock.
 const PixelSprite crate = PixelSprite([
   '............',

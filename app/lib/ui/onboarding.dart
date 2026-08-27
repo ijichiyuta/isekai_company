@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 
+import 'pixel/pixel_art.dart';
+import 'pixel/sprites.dart' as art;
 import 'theme.dart';
 
 /// The intro sequence (requirements §13): 前世（過労死）→ 転生 → 目標提示. Skippable
@@ -18,14 +20,18 @@ class _OnboardingFlowState extends State<OnboardingFlow> {
   int _page = 0;
 
   static const _pages = <(_Cut, String, String)>[
-    (_Cut.past, '深夜のコンビニ、独りきりの棚卸し。',
-        'コンビニチェーンのスーパーバイザー。発注も、廃棄も、棚割りも、ぜんぶ抱えて——'),
-    (_Cut.past, '「もう、限界だ……」',
-        '過労で倒れた、その意識が途切れる瞬間。'),
-    (_Cut.goddess, '女神「あなたに前世の記憶を授けます」',
-        '気づけば見知らぬ異世界。手には元手 100G と、現代日本の商売の知識だけ。'),
-    (_Cut.goal, 'まずは「PB開発」で商品を発明しよう',
-        'この世界にまだ無い商品を作れば、街の人々が驚き、名声とお金が舞い込む。行商人から大商会主へ！'),
+    (_Cut.past, '深夜のコンビニ、独りきりの棚卸し。', 'コンビニチェーンのスーパーバイザー。発注も、廃棄も、棚割りも、ぜんぶ抱えて——'),
+    (_Cut.past, '「もう、限界だ……」', '過労で倒れた、その意識が途切れる瞬間。'),
+    (
+      _Cut.goddess,
+      '女神「あなたに前世の記憶を授けます」',
+      '気づけば見知らぬ異世界。手には元手 100G と、現代日本の商売の知識だけ。',
+    ),
+    (
+      _Cut.goal,
+      'まずは「PB開発」で商品を発明しよう',
+      'この世界にまだ無い商品を作れば、街の人々が驚き、名声とお金が舞い込む。行商人から大商会主へ！',
+    ),
   ];
 
   @override
@@ -46,8 +52,10 @@ class _OnboardingFlowState extends State<OnboardingFlow> {
               alignment: Alignment.topRight,
               child: TextButton(
                 onPressed: widget.onDone,
-                child: const Text('スキップ',
-                    style: TextStyle(color: Colors.white70)),
+                child: const Text(
+                  'スキップ',
+                  style: TextStyle(color: Colors.white70),
+                ),
               ),
             ),
             Expanded(
@@ -84,9 +92,9 @@ class _OnboardingFlowState extends State<OnboardingFlow> {
                   onPressed: last
                       ? widget.onDone
                       : () => _controller.nextPage(
-                            duration: const Duration(milliseconds: 250),
-                            curve: Curves.easeOut,
-                          ),
+                          duration: const Duration(milliseconds: 250),
+                          curve: Curves.easeOut,
+                        ),
                   child: Text(last ? 'はじめる' : '次へ'),
                 ),
               ),
@@ -108,28 +116,36 @@ class _Card extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final emoji = switch (cut) {
-      _Cut.past => '🏪',
-      _Cut.goddess => '✨',
-      _Cut.goal => '⚗️',
+    final (sprite, spriteH) = switch (cut) {
+      _Cut.past => (art.shop, 116.0),
+      _Cut.goddess => (art.goddess, 150.0),
+      _Cut.goal => (art.beaker, 120.0),
     };
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 28),
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          Text(emoji, style: const TextStyle(fontSize: 64)),
+          SizedBox(
+            height: 160,
+            child: Center(child: PixelView(sprite, height: spriteH)),
+          ),
           const SizedBox(height: 24),
-          Text(title,
-              textAlign: TextAlign.center,
-              style: const TextStyle(
-                  color: Colors.white,
-                  fontSize: 20,
-                  fontWeight: FontWeight.bold)),
+          Text(
+            title,
+            textAlign: TextAlign.center,
+            style: const TextStyle(
+              color: Colors.white,
+              fontSize: 20,
+              fontWeight: FontWeight.bold,
+            ),
+          ),
           const SizedBox(height: 16),
-          Text(body,
-              textAlign: TextAlign.center,
-              style: const TextStyle(color: Colors.white70, fontSize: 14)),
+          Text(
+            body,
+            textAlign: TextAlign.center,
+            style: const TextStyle(color: Colors.white70, fontSize: 14),
+          ),
         ],
       ),
     );

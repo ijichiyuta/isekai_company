@@ -4,6 +4,8 @@ import 'package:isekai_core/isekai_core.dart';
 
 import '../game/format.dart';
 import '../game/providers.dart';
+import 'pixel/pixel_art.dart';
+import 'pixel/sprites.dart' as art;
 
 /// 発注 (requirements §4, §12.2): buy materials. Pure 予約制 (§2.1) — orders are
 /// reserved and applied when the week advances (main screen), not immediately.
@@ -16,11 +18,20 @@ class OrderScreen extends ConsumerWidget {
     final b = game.balance;
     return Scaffold(
       appBar: AppBar(
-        title: const Text('発注'),
+        title: const PixelTitle(art.cart, '発注'),
         actions: [
           Padding(
             padding: const EdgeInsets.only(right: 12),
-            child: Center(child: Text('所持 ${formatG(game.state.funds)}')),
+            child: Center(
+              child: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  const PixelView(art.coin, height: 16),
+                  const SizedBox(width: 4),
+                  Text(formatG(game.state.funds)),
+                ],
+              ),
+            ),
           ),
         ],
       ),
@@ -34,7 +45,8 @@ class OrderScreen extends ConsumerWidget {
                   ListTile(
                     title: Text(m.name),
                     subtitle: Text(
-                        '単価 ${m.cost}G ・ 在庫 ${game.state.materialStock[m.id]}'),
+                      '単価 ${m.cost}G ・ 在庫 ${game.state.materialStock[m.id]}',
+                    ),
                     trailing: Wrap(
                       spacing: 4,
                       children: [
@@ -74,8 +86,10 @@ class _ReservationBanner extends ConsumerWidget {
       width: double.infinity,
       color: const Color(0xFFEFC9A0),
       padding: const EdgeInsets.all(8),
-      child: Text('来週の予約: $n 件（メイン画面で週を進めると反映）',
-          style: const TextStyle(fontSize: 12)),
+      child: Text(
+        '来週の予約: $n 件（メイン画面で週を進めると反映）',
+        style: const TextStyle(fontSize: 12),
+      ),
     );
   }
 }

@@ -12,6 +12,8 @@ import 'event_dialog.dart';
 import 'invention_overlay.dart';
 import 'order_screen.dart';
 import 'paywall.dart';
+import 'pixel/pixel_art.dart';
+import 'pixel/sprites.dart' as art;
 import 'production_screen.dart';
 import 'sales_screen.dart';
 import 'settings_screen.dart';
@@ -73,9 +75,9 @@ class _Hud extends StatelessWidget {
       color: const Color(0xFFE7D6AE),
       child: Row(
         children: [
-          _stat(Icons.savings, formatG(s.funds), kGold),
+          _stat(art.coin, formatG(s.funds)),
           const SizedBox(width: 16),
-          _stat(Icons.star, '${s.fame}', kFame),
+          _stat(art.star, '${s.fame}'),
           const Spacer(),
           Column(
             crossAxisAlignment: CrossAxisAlignment.end,
@@ -91,7 +93,7 @@ class _Hud extends StatelessWidget {
             ],
           ),
           IconButton(
-            icon: const Icon(Icons.settings, size: 20),
+            icon: PixelView(art.gear, height: 20, semanticLabel: '設定'),
             tooltip: '設定',
             visualDensity: VisualDensity.compact,
             onPressed: () {
@@ -106,10 +108,10 @@ class _Hud extends StatelessWidget {
     );
   }
 
-  Widget _stat(IconData icon, String value, Color color) => Row(
+  Widget _stat(PixelSprite sprite, String value) => Row(
     children: [
-      Icon(icon, size: 18, color: color),
-      const SizedBox(width: 4),
+      PixelView(sprite, height: 20),
+      const SizedBox(width: 5),
       Text(
         value,
         style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
@@ -124,21 +126,40 @@ class _TrendBar extends StatelessWidget {
   const _TrendBar({required this.game});
   final GameController game;
 
+  /// Market category keys are English (the sim's logic ids); show them in
+  /// Japanese to the player.
+  static const _catJa = {
+    'food': '食品',
+    'tool': '道具',
+    'clothing': '衣類',
+    'medicine': '薬',
+    'luxury': '嗜好品',
+  };
+
   @override
   Widget build(BuildContext context) {
     final active = game.trendActive;
-    final cat = game.trendCategoryName!;
+    final key = game.trendCategoryName!;
+    final cat = _catJa[key] ?? key;
     final weeks = game.trendWeeksLeft;
     final mult = (game.trendMultPercent / 100).toStringAsFixed(1);
     return Container(
       width: double.infinity,
       color: active ? const Color(0xFFFFE0B2) : const Color(0xFFE1F5FE),
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
-      child: Text(
-        active
-            ? '🔥 流行中: $cat（需要×$mult・あと$weeks週）'
-            : '📣 流行予告: $cat（あと$weeks週で開始）',
-        style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w600),
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 5),
+      child: Row(
+        children: [
+          PixelView(active ? art.flame : art.sparkle, height: 16),
+          const SizedBox(width: 6),
+          Expanded(
+            child: Text(
+              active
+                  ? '流行中: $cat（需要×$mult・あと$weeks週）'
+                  : '流行予告: $cat（あと$weeks週で開始）',
+              style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w600),
+            ),
+          ),
+        ],
       ),
     );
   }
@@ -188,21 +209,122 @@ class _ShopView extends StatelessWidget {
   Widget build(BuildContext context) {
     final s = game.state;
     return Center(
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          const Text('🏪', style: TextStyle(fontSize: 72)),
-          const SizedBox(height: 8),
-          Text(
-            '従業員 ${s.employees}人 ・ 発見レシピ ${s.discoveries}種',
-            style: const TextStyle(fontSize: 13),
+      child: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+        // scaleDown keeps the diorama crisp at native size on a phone, yet
+        // never overflows a shorter/odd viewport (e.g. the 800×600 test surface).
+        child: FittedBox(
+          fit: BoxFit.scaleDown,
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              // A contained, populated diorama — the カイロ系 "shop room": back
+              // wall with windows, a floor, the storefront, and 店主 greeting a
+              // customer. Framed so it reads as a scene, not empty UI.
+              SizedBox(
+                width: 330,
+                height: 306,
+                child: ClipRRect(
+                  borderRadius: BorderRadius.circular(16),
+                  child: DecoratedBox(
+                    decoration: BoxDecoration(
+                      borderRadius: BorderRadius.circular(16),
+                      border: Border.all(
+                        color: const Color(0xFFCBB488),
+                        width: 2,
+                      ),
+                      gradient: const LinearGradient(
+                        begin: Alignment.topCenter,
+                        end: Alignment.bottomCenter,
+                        colors: [Color(0xFFF6ECD0), Color(0xFFEAD8AC)],
+                      ),
+                    ),
+                    child: Stack(
+                      children: [
+                        // Floor.
+                        Align(
+                          alignment: Alignment.bottomCenter,
+                          child: FractionallySizedBox(
+                            widthFactor: 1,
+                            heightFactor: 0.30,
+                            child: DecoratedBox(
+                              decoration: BoxDecoration(
+                                color: const Color(0xFFD9BE86),
+                                border: const Border(
+                                  top: BorderSide(
+                                    color: Color(0xFFB89A62),
+                                    width: 2,
+                                  ),
+                                ),
+                              ),
+                            ),
+                          ),
+                        ),
+                        // Back-wall windows for depth.
+                        const Align(
+                          alignment: Alignment(-0.62, -0.42),
+                          child: PixelView(art.window, height: 58),
+                        ),
+                        const Align(
+                          alignment: Alignment(0.62, -0.42),
+                          child: PixelView(art.window, height: 58),
+                        ),
+                        // Storefront on the floor line.
+                        Align(
+                          alignment: const Alignment(0, 0.30),
+                          child: PixelView(
+                            art.shop,
+                            height: 138,
+                            semanticLabel: '異世界コンビニ商会',
+                          ),
+                        ),
+                        // 店主 greets a customer, with props flanking.
+                        Align(
+                          alignment: Alignment.bottomCenter,
+                          child: Padding(
+                            padding: const EdgeInsets.only(bottom: 14),
+                            child: Row(
+                              mainAxisSize: MainAxisSize.min,
+                              crossAxisAlignment: CrossAxisAlignment.end,
+                              children: [
+                                const PixelView(art.plant, height: 48),
+                                const SizedBox(width: 6),
+                                PixelView(
+                                  art.hero,
+                                  height: 82,
+                                  semanticLabel: '店主',
+                                ),
+                                const SizedBox(width: 18),
+                                PixelView(
+                                  art.customer,
+                                  height: 74,
+                                  flip: true,
+                                  semanticLabel: '客',
+                                ),
+                                const SizedBox(width: 6),
+                                const PixelView(art.crate, height: 42),
+                              ],
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+              ),
+              const SizedBox(height: 10),
+              Text(
+                '従業員 ${s.employees}人 ・ 発見レシピ ${s.discoveries}種',
+                style: const TextStyle(fontSize: 13),
+              ),
+              if (s.pendingHintCount(game) > 0)
+                Padding(
+                  padding: const EdgeInsets.only(top: 8),
+                  child: _bottleneck(context, game),
+                ),
+            ],
           ),
-          if (s.pendingHintCount(game) > 0)
-            Padding(
-              padding: const EdgeInsets.only(top: 8),
-              child: _bottleneck(context, game),
-            ),
-        ],
+        ),
       ),
     );
   }
@@ -314,12 +436,37 @@ class _BottomNav extends StatelessWidget {
       padding: EdgeInsets.zero,
       child: Row(
         children: [
-          _navItem(context, Icons.science, '開発', const DevelopScreen()),
-          _navItem(context, Icons.factory, '生産', const ProductionScreen()),
-          _navItem(context, Icons.storefront, '販売', const SalesScreen()),
-          _navItem(context, Icons.shopping_cart, '発注', const OrderScreen()),
+          _navItem(
+            context,
+            PixelView(art.beaker, height: 24),
+            '開発',
+            const DevelopScreen(),
+          ),
+          _navItem(
+            context,
+            PixelView(art.factory, height: 24),
+            '生産',
+            const ProductionScreen(),
+          ),
+          _navItem(
+            context,
+            PixelView(art.storefront, height: 24),
+            '販売',
+            const SalesScreen(),
+          ),
+          _navItem(
+            context,
+            PixelView(art.cart, height: 24),
+            '発注',
+            const OrderScreen(),
+          ),
           if (kDebugMode)
-            _navItem(context, Icons.bug_report, 'デバッグ', const DebugMenu()),
+            _navItem(
+              context,
+              const Icon(Icons.bug_report, size: 22),
+              'デバッグ',
+              const DebugMenu(),
+            ),
         ],
       ),
     );
@@ -327,7 +474,7 @@ class _BottomNav extends StatelessWidget {
 
   Widget _navItem(
     BuildContext context,
-    IconData icon,
+    Widget icon,
     String label,
     Widget screen,
   ) {
@@ -337,7 +484,7 @@ class _BottomNav extends StatelessWidget {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Icon(icon, size: 22),
+            SizedBox(height: 26, child: Center(child: icon)),
             Text(label, style: const TextStyle(fontSize: 11)),
           ],
         ),

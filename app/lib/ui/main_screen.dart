@@ -15,6 +15,7 @@ import 'paywall.dart';
 import 'pixel/pixel_art.dart';
 import 'pixel/sprites.dart' as art;
 import 'production_screen.dart';
+import 'progress.dart';
 import 'sales_screen.dart';
 import 'settings_screen.dart';
 import 'soul_memory_screen.dart';
@@ -175,13 +176,12 @@ class _NextRankBar extends StatelessWidget {
       return const SizedBox.shrink();
     }
     final next = ranks[s.rank + 1];
-    final assetsRatio = next.minAssets == 0
-        ? 1.0
-        : (s.funds / next.minAssets).clamp(0.0, 1.0);
-    final fameRatio = next.minFame == 0
-        ? 1.0
-        : (s.fame / next.minFame).clamp(0.0, 1.0);
-    final ratio = assetsRatio < fameRatio ? assetsRatio : fameRatio;
+    final ratio = rankUpProgress(
+      funds: s.funds,
+      fame: s.fame,
+      minAssets: next.minAssets,
+      minFame: next.minFame,
+    );
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
       child: Column(

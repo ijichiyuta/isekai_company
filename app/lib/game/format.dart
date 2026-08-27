@@ -46,3 +46,15 @@ String _sig(int value, int divisor, String suffix) {
 }
 
 const seasonNames = ['春', '夏', '秋', '冬'];
+
+/// Market category ids are English (the sim's logic keys); the player sees them
+/// in Japanese. Unknown keys pass through unchanged so nothing is ever blank.
+const _categoryJa = {
+  'food': '食品',
+  'tool': '道具',
+  'clothing': '衣類',
+  'medicine': '薬',
+  'luxury': '嗜好品',
+};
+
+String categoryJa(String category) => _categoryJa[category] ?? category;

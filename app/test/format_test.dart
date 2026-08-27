@@ -17,6 +17,17 @@ void main() {
     expect(formatG(-2000), '-2K');
   });
 
+  test('categoryJa localizes known keys and passes unknowns through', () {
+    expect(categoryJa('food'), '食品');
+    expect(categoryJa('tool'), '道具');
+    expect(categoryJa('clothing'), '衣類');
+    expect(categoryJa('medicine'), '薬');
+    expect(categoryJa('luxury'), '嗜好品');
+    // Never blank: an unmapped id is shown verbatim rather than dropped.
+    expect(categoryJa('mystery'), 'mystery');
+    expect(categoryJa(''), '');
+  });
+
   test('calendar maps absolute weeks to year/season/week', () {
     expect(calendar(0), (year: 1, season: 0, weekOfSeason: 1));
     expect(calendar(11), (year: 1, season: 0, weekOfSeason: 12));

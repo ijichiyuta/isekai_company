@@ -48,6 +48,7 @@ class SalesScreen extends ConsumerWidget {
                             leading: PixelView(
                               art.categoryIcon(r.category),
                               height: 24,
+                              semanticLabel: categoryJa(r.category),
                             ),
                             title: Text(r.name),
                             subtitle: Text('売値 ${r.basePrice}G'),

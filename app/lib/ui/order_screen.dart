@@ -29,7 +29,7 @@ class OrderScreen extends ConsumerWidget {
                 child: Row(
                   mainAxisSize: MainAxisSize.min,
                   children: [
-                    PixelView(art.coin, height: 16),
+                    PixelView(art.coin, height: 16, semanticLabel: '資金'),
                     const SizedBox(width: 4),
                     Text(formatG(game.state.funds)),
                   ],

@@ -130,21 +130,11 @@ class _TrendBar extends StatelessWidget {
   const _TrendBar({required this.game});
   final GameController game;
 
-  /// Market category keys are English (the sim's logic ids); show them in
-  /// Japanese to the player.
-  static const _catJa = {
-    'food': '食品',
-    'tool': '道具',
-    'clothing': '衣類',
-    'medicine': '薬',
-    'luxury': '嗜好品',
-  };
-
   @override
   Widget build(BuildContext context) {
     final active = game.trendActive;
     final key = game.trendCategoryName!;
-    final cat = _catJa[key] ?? key;
+    final cat = categoryJa(key);
     final weeks = game.trendWeeksLeft;
     final mult = (game.trendMultPercent / 100).toStringAsFixed(1);
     return Container(

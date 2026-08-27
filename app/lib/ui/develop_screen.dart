@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:isekai_core/isekai_core.dart';
 
+import '../game/format.dart';
 import '../game/game_controller.dart';
 import '../game/providers.dart';
 import 'background.dart';
@@ -130,7 +131,11 @@ class _DevelopScreenState extends ConsumerState<DevelopScreen> {
               if (game.state.discovered[r.id])
                 ListTile(
                   dense: true,
-                  leading: PixelView(art.categoryIcon(r.category), height: 26),
+                  leading: PixelView(
+                    art.categoryIcon(r.category),
+                    height: 26,
+                    semanticLabel: categoryJa(r.category),
+                  ),
                   title: Text(r.name),
                   subtitle: Text('売値 ${r.basePrice}G'),
                 ),

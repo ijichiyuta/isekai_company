@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../game/providers.dart';
+import 'background.dart';
 import 'paywall.dart';
 import 'pixel/pixel_art.dart';
 import 'pixel/sprites.dart' as art;
@@ -16,47 +17,50 @@ class SettingsScreen extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final game = ref.watch(gameControllerProvider);
-    return Scaffold(
-      appBar: AppBar(title: PixelTitle(art.gear, '設定')),
-      body: ListView(
-        children: [
-          ListTile(
-            leading: const Icon(Icons.auto_awesome),
-            title: const Text('魂の記憶'),
-            subtitle: Text('未使用 ${game.soulPointsTotal} pt'),
-            trailing: const Icon(Icons.chevron_right),
-            onTap: () => Navigator.of(
-              context,
-            ).push(MaterialPageRoute(builder: (_) => const SoulMemoryScreen())),
-          ),
-          const Divider(),
-          ListTile(
-            leading: Icon(
-              game.isFull ? Icons.verified : Icons.workspace_premium,
+    return AppBackground(
+      child: Scaffold(
+        backgroundColor: Colors.transparent,
+        appBar: AppBar(title: PixelTitle(art.gear, '設定')),
+        body: ListView(
+          children: [
+            ListTile(
+              leading: const Icon(Icons.auto_awesome),
+              title: const Text('魂の記憶'),
+              subtitle: Text('未使用 ${game.soulPointsTotal} pt'),
+              trailing: const Icon(Icons.chevron_right),
+              onTap: () => Navigator.of(context).push(
+                MaterialPageRoute(builder: (_) => const SoulMemoryScreen()),
+              ),
             ),
-            title: Text(game.isFull ? '完全版 購入済み' : '完全版'),
-            subtitle: Text(game.isFull ? 'すべての機能が利用できます' : '完全版でフル機能を解放'),
-            trailing: game.isFull
-                ? null
-                : TextButton(
-                    onPressed: () => showPaywall(context),
-                    child: const Text('見る'),
-                  ),
-          ),
-          // Restore is ALWAYS visible (App Store 3.1.1) — even when purchased.
-          ListTile(
-            leading: const Icon(Icons.restore),
-            title: const Text('購入を復元'),
-            onTap: () async {
-              final ok = await game.restorePurchases();
-              if (context.mounted) {
-                ScaffoldMessenger.of(context).showSnackBar(
-                  SnackBar(content: Text(ok ? '購入を復元しました' : '復元できる購入がありません')),
-                );
-              }
-            },
-          ),
-        ],
+            const Divider(),
+            ListTile(
+              leading: Icon(
+                game.isFull ? Icons.verified : Icons.workspace_premium,
+              ),
+              title: Text(game.isFull ? '完全版 購入済み' : '完全版'),
+              subtitle: Text(game.isFull ? 'すべての機能が利用できます' : '完全版でフル機能を解放'),
+              trailing: game.isFull
+                  ? null
+                  : TextButton(
+                      onPressed: () => showPaywall(context),
+                      child: const Text('見る'),
+                    ),
+            ),
+            // Restore is ALWAYS visible (App Store 3.1.1) — even when purchased.
+            ListTile(
+              leading: const Icon(Icons.restore),
+              title: const Text('購入を復元'),
+              onTap: () async {
+                final ok = await game.restorePurchases();
+                if (context.mounted) {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(content: Text(ok ? '購入を復元しました' : '復元できる購入がありません')),
+                  );
+                }
+              },
+            ),
+          ],
+        ),
       ),
     );
   }

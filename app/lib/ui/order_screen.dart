@@ -4,6 +4,7 @@ import 'package:isekai_core/isekai_core.dart';
 
 import '../game/format.dart';
 import '../game/providers.dart';
+import 'background.dart';
 import 'pixel/pixel_art.dart';
 import 'pixel/sprites.dart' as art;
 
@@ -16,54 +17,57 @@ class OrderScreen extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final game = ref.watch(gameControllerProvider);
     final b = game.balance;
-    return Scaffold(
-      appBar: AppBar(
-        title: PixelTitle(art.cart, '発注'),
-        actions: [
-          Padding(
-            padding: const EdgeInsets.only(right: 12),
-            child: Center(
-              child: Row(
-                mainAxisSize: MainAxisSize.min,
+    return AppBackground(
+      child: Scaffold(
+        backgroundColor: Colors.transparent,
+        appBar: AppBar(
+          title: PixelTitle(art.cart, '発注'),
+          actions: [
+            Padding(
+              padding: const EdgeInsets.only(right: 12),
+              child: Center(
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    PixelView(art.coin, height: 16),
+                    const SizedBox(width: 4),
+                    Text(formatG(game.state.funds)),
+                  ],
+                ),
+              ),
+            ),
+          ],
+        ),
+        body: Column(
+          children: [
+            const _ReservationBanner(),
+            Expanded(
+              child: ListView(
                 children: [
-                  PixelView(art.coin, height: 16),
-                  const SizedBox(width: 4),
-                  Text(formatG(game.state.funds)),
+                  for (final m in b.materials)
+                    ListTile(
+                      title: Text(m.name),
+                      subtitle: Text(
+                        '単価 ${m.cost}G ・ 在庫 ${game.state.materialStock[m.id]}',
+                      ),
+                      trailing: Wrap(
+                        spacing: 4,
+                        children: [
+                          for (final qty in [1, 10])
+                            OutlinedButton(
+                              onPressed: game.isAlive
+                                  ? () => game.reserve(OrderMaterial(m.id, qty))
+                                  : null,
+                              child: Text('+$qty'),
+                            ),
+                        ],
+                      ),
+                    ),
                 ],
               ),
             ),
-          ),
-        ],
-      ),
-      body: Column(
-        children: [
-          const _ReservationBanner(),
-          Expanded(
-            child: ListView(
-              children: [
-                for (final m in b.materials)
-                  ListTile(
-                    title: Text(m.name),
-                    subtitle: Text(
-                      '単価 ${m.cost}G ・ 在庫 ${game.state.materialStock[m.id]}',
-                    ),
-                    trailing: Wrap(
-                      spacing: 4,
-                      children: [
-                        for (final qty in [1, 10])
-                          OutlinedButton(
-                            onPressed: game.isAlive
-                                ? () => game.reserve(OrderMaterial(m.id, qty))
-                                : null,
-                            child: Text('+$qty'),
-                          ),
-                      ],
-                    ),
-                  ),
-              ],
-            ),
-          ),
-        ],
+          ],
+        ),
       ),
     );
   }

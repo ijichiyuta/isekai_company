@@ -5,6 +5,7 @@ import 'package:isekai_core/isekai_core.dart';
 import '../game/format.dart';
 import '../game/game_controller.dart';
 import '../game/providers.dart';
+import 'background.dart';
 import 'pixel/pixel_art.dart';
 import 'pixel/sprites.dart' as art;
 
@@ -22,55 +23,58 @@ class ProductionScreen extends ConsumerWidget {
         if (game.state.discovered[r.id]) r,
     ];
 
-    return Scaffold(
-      appBar: AppBar(title: PixelTitle(art.factoryIcon, '生産')),
-      body: ListView(
-        children: [
-          _UpgradePanel(game: game),
-          Padding(
-            padding: const EdgeInsets.all(12),
-            child: Text(
-              '週あたり生産能力: ${game.weeklyCapacity} 個'
-              '（従業員 ${game.state.employees}人・設備Lv${game.equipmentLevel}）',
-            ),
-          ),
-          if (known.isEmpty)
-            const Padding(
-              padding: EdgeInsets.all(24),
-              child: Center(child: Text('まずPB開発でレシピを発見しましょう')),
-            ),
-          for (final r in known)
-            ListTile(
-              title: Text(r.name),
-              subtitle: Text(
-                '完成品在庫 ${game.state.productStock[r.id]} '
-                '・ 素材 ${b.materials[r.matA].name}/${b.materials[r.matB].name}',
+    return AppBackground(
+      child: Scaffold(
+        backgroundColor: Colors.transparent,
+        appBar: AppBar(title: PixelTitle(art.factoryIcon, '生産')),
+        body: ListView(
+          children: [
+            _UpgradePanel(game: game),
+            Padding(
+              padding: const EdgeInsets.all(12),
+              child: Text(
+                '週あたり生産能力: ${game.weeklyCapacity} 個'
+                '（従業員 ${game.state.employees}人・設備Lv${game.equipmentLevel}）',
               ),
-              trailing: Wrap(
-                spacing: 4,
-                children: [
-                  for (final qty in [1, 5])
-                    OutlinedButton(
-                      // Reserve the needed materials too, so production
-                      // succeeds regardless of order (§2.1 予約制; applied
-                      // when the week advances).
-                      onPressed: game.isAlive
-                          ? () {
-                              if (r.matA == r.matB) {
-                                game.reserve(OrderMaterial(r.matA, qty * 2));
-                              } else {
-                                game.reserve(OrderMaterial(r.matA, qty));
-                                game.reserve(OrderMaterial(r.matB, qty));
+            ),
+            if (known.isEmpty)
+              const Padding(
+                padding: EdgeInsets.all(24),
+                child: Center(child: Text('まずPB開発でレシピを発見しましょう')),
+              ),
+            for (final r in known)
+              ListTile(
+                title: Text(r.name),
+                subtitle: Text(
+                  '完成品在庫 ${game.state.productStock[r.id]} '
+                  '・ 素材 ${b.materials[r.matA].name}/${b.materials[r.matB].name}',
+                ),
+                trailing: Wrap(
+                  spacing: 4,
+                  children: [
+                    for (final qty in [1, 5])
+                      OutlinedButton(
+                        // Reserve the needed materials too, so production
+                        // succeeds regardless of order (§2.1 予約制; applied
+                        // when the week advances).
+                        onPressed: game.isAlive
+                            ? () {
+                                if (r.matA == r.matB) {
+                                  game.reserve(OrderMaterial(r.matA, qty * 2));
+                                } else {
+                                  game.reserve(OrderMaterial(r.matA, qty));
+                                  game.reserve(OrderMaterial(r.matB, qty));
+                                }
+                                game.reserve(Produce(r.id, qty));
                               }
-                              game.reserve(Produce(r.id, qty));
-                            }
-                          : null,
-                      child: Text('作+$qty'),
-                    ),
-                ],
+                            : null,
+                        child: Text('作+$qty'),
+                      ),
+                  ],
+                ),
               ),
-            ),
-        ],
+          ],
+        ),
       ),
     );
   }

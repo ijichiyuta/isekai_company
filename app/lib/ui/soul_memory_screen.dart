@@ -5,6 +5,7 @@ import 'package:isekai_core/isekai_core.dart';
 import '../game/game_controller.dart';
 import '../game/providers.dart';
 import 'paywall.dart';
+import 'background.dart';
 import 'pixel/pixel_art.dart';
 import 'pixel/sprites.dart' as art;
 
@@ -18,58 +19,61 @@ class SoulMemoryScreen extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final game = ref.watch(gameControllerProvider);
     final s = game.unlockSummary;
-    return Scaffold(
-      appBar: AppBar(title: PixelTitle(art.sparkle, '魂の記憶')),
-      body: Column(
-        children: [
-          Card(
-            margin: const EdgeInsets.all(12),
-            child: Padding(
-              padding: const EdgeInsets.all(16),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    '未使用ポイント: ${game.soulPointsTotal} pt',
-                    style: const TextStyle(
-                      fontSize: 18,
-                      fontWeight: FontWeight.bold,
-                    ),
-                  ),
-                  const SizedBox(height: 4),
-                  Text(
-                    '解放済み ${s.owned} / ${s.total}'
-                    '${s.fullLocked > 0 ? '（完全版で+${s.fullLocked}解放可）' : ''}',
-                    style: const TextStyle(fontSize: 13, color: Colors.grey),
-                  ),
-                  if (!game.isFull && s.fullLocked > 0) ...[
-                    const SizedBox(height: 10),
-                    FilledButton.icon(
-                      onPressed: () => showPaywall(context),
-                      icon: const Icon(Icons.lock_open),
-                      label: Text('完全版で ${s.unlockedByFull}項目を解放'),
-                    ),
-                  ],
-                  if (game.isFull)
-                    const Padding(
-                      padding: EdgeInsets.only(top: 8),
-                      child: Text(
-                        '✔ 完全版 購入済み',
-                        style: TextStyle(color: Colors.green),
+    return AppBackground(
+      child: Scaffold(
+        backgroundColor: Colors.transparent,
+        appBar: AppBar(title: PixelTitle(art.sparkle, '魂の記憶')),
+        body: Column(
+          children: [
+            Card(
+              margin: const EdgeInsets.all(12),
+              child: Padding(
+                padding: const EdgeInsets.all(16),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      '未使用ポイント: ${game.soulPointsTotal} pt',
+                      style: const TextStyle(
+                        fontSize: 18,
+                        fontWeight: FontWeight.bold,
                       ),
                     ),
-                ],
+                    const SizedBox(height: 4),
+                    Text(
+                      '解放済み ${s.owned} / ${s.total}'
+                      '${s.fullLocked > 0 ? '（完全版で+${s.fullLocked}解放可）' : ''}',
+                      style: const TextStyle(fontSize: 13, color: Colors.grey),
+                    ),
+                    if (!game.isFull && s.fullLocked > 0) ...[
+                      const SizedBox(height: 10),
+                      FilledButton.icon(
+                        onPressed: () => showPaywall(context),
+                        icon: const Icon(Icons.lock_open),
+                        label: Text('完全版で ${s.unlockedByFull}項目を解放'),
+                      ),
+                    ],
+                    if (game.isFull)
+                      const Padding(
+                        padding: EdgeInsets.only(top: 8),
+                        child: Text(
+                          '✔ 完全版 購入済み',
+                          style: TextStyle(color: Colors.green),
+                        ),
+                      ),
+                  ],
+                ),
               ),
             ),
-          ),
-          Expanded(
-            child: ListView.builder(
-              itemCount: game.balance.unlocks.length,
-              itemBuilder: (c, i) =>
-                  _UnlockTile(game: game, def: game.balance.unlocks[i]),
+            Expanded(
+              child: ListView.builder(
+                itemCount: game.balance.unlocks.length,
+                itemBuilder: (c, i) =>
+                    _UnlockTile(game: game, def: game.balance.unlocks[i]),
+              ),
             ),
-          ),
-        ],
+          ],
+        ),
       ),
     );
   }

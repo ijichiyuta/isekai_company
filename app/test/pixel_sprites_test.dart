@@ -26,6 +26,7 @@ void main() {
       'ladyHd': ladyHd,
       'elderHd': elderHd,
       'adventurerHd': adventurerHd,
+      'barrel': barrel,
     };
     all.forEach((name, s) {
       final widths = s.rows.map((r) => r.length).toSet();
@@ -49,6 +50,7 @@ void main() {
       'ladyHd': ladyHd,
       'elderHd': elderHd,
       'adventurerHd': adventurerHd,
+      'barrel': barrel,
     };
     all.forEach((name, s) {
       for (final row in s.rows) {
@@ -158,6 +160,40 @@ void main() {
     await expectLater(
       find.byType(Scaffold),
       matchesGoldenFile('goldens/shop_hd_preview.png'),
+    );
+  });
+
+  testWidgets('hd icons + props', (tester) async {
+    if (!Platform.isMacOS) return;
+    tester.view.physicalSize = const Size(900, 640);
+    tester.view.devicePixelRatio = 1.0;
+    addTearDown(tester.view.resetPhysicalSize);
+    addTearDown(tester.view.resetDevicePixelRatio);
+    final items = <PixelSprite>[
+      coin, star, gear, beaker, factoryIcon, storefront, cart, flame, sparkle,
+      crate, barrel, window, plant, goddess,
+    ];
+    await tester.pumpWidget(
+      MaterialApp(
+        debugShowCheckedModeBanner: false,
+        home: Scaffold(
+          backgroundColor: const Color(0xFFEAD8AC),
+          body: Center(
+            child: Wrap(
+              alignment: WrapAlignment.center,
+              crossAxisAlignment: WrapCrossAlignment.center,
+              spacing: 16,
+              runSpacing: 16,
+              children: [for (final s in items) PixelView(s, pixelSize: 5)],
+            ),
+          ),
+        ),
+      ),
+    );
+    await tester.pumpAndSettle();
+    await expectLater(
+      find.byType(Scaffold),
+      matchesGoldenFile('goldens/hd_icons_preview.png'),
     );
   });
 

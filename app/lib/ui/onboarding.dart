@@ -116,10 +116,10 @@ class _Card extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final (sprite, spriteH) = switch (cut) {
-      _Cut.past => (art.shop, 116.0),
-      _Cut.goddess => (art.goddess, 150.0),
-      _Cut.goal => (art.beaker, 120.0),
+    final (sprite, px) = switch (cut) {
+      _Cut.past => (art.shop, 2.0),
+      _Cut.goddess => (art.goddess, 2.0),
+      _Cut.goal => (art.beaker, 4.0),
     };
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 28),
@@ -127,8 +127,8 @@ class _Card extends StatelessWidget {
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
           SizedBox(
-            height: 160,
-            child: Center(child: PixelView(sprite, height: spriteH)),
+            height: 172,
+            child: Center(child: PixelView(sprite, pixelSize: px)),
           ),
           const SizedBox(height: 24),
           Text(

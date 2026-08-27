@@ -23,7 +23,7 @@ class ProductionScreen extends ConsumerWidget {
     ];
 
     return Scaffold(
-      appBar: AppBar(title: const PixelTitle(art.factory, '生産')),
+      appBar: AppBar(title: PixelTitle(art.factoryIcon, '生産')),
       body: ListView(
         children: [
           _UpgradePanel(game: game),

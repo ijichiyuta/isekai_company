@@ -17,7 +17,7 @@ class SettingsScreen extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final game = ref.watch(gameControllerProvider);
     return Scaffold(
-      appBar: AppBar(title: const PixelTitle(art.gear, '設定')),
+      appBar: AppBar(title: PixelTitle(art.gear, '設定')),
       body: ListView(
         children: [
           ListTile(

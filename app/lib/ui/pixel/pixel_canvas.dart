@@ -1,3 +1,4 @@
+import 'dart:math' as math;
 import 'dart:ui' show Color;
 
 import 'pixel_art.dart';
@@ -123,6 +124,45 @@ class PixelCanvas {
         y += sy;
       }
     }
+  }
+
+  /// Fill a regular [points]-pointed star (outer radius [rO], inner [rI]),
+  /// shaded top→bottom by [tones] (light→dark).
+  void starFill(
+    double cx,
+    double cy,
+    double rO,
+    double rI,
+    int points,
+    List<String> tones,
+  ) {
+    final verts = <List<double>>[];
+    for (var i = 0; i < points * 2; i++) {
+      final a = -math.pi / 2 + i * math.pi / points;
+      final r = i.isEven ? rO : rI;
+      verts.add([cx + r * math.cos(a), cy + r * math.sin(a)]);
+    }
+    final top = cy - rO, bot = cy + rO;
+    for (var y = 0; y < height; y++) {
+      for (var x = 0; x < width; x++) {
+        if (!_inPoly(x + 0.5, y + 0.5, verts)) continue;
+        final f = ((y - top) / (bot - top)).clamp(0.0, 1.0);
+        final idx = (f * (tones.length - 1)).round().clamp(0, tones.length - 1);
+        set(x, y, tones[idx]);
+      }
+    }
+  }
+
+  static bool _inPoly(double px, double py, List<List<double>> v) {
+    var inside = false;
+    for (var i = 0, j = v.length - 1; i < v.length; j = i++) {
+      final xi = v[i][0], yi = v[i][1], xj = v[j][0], yj = v[j][1];
+      if (((yi > py) != (yj > py)) &&
+          (px < (xj - xi) * (py - yi) / (yj - yi) + xi)) {
+        inside = !inside;
+      }
+    }
+    return inside;
   }
 
   /// Fill only where currently transparent (paint "behind" existing pixels).

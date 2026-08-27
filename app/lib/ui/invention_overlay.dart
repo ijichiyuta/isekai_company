@@ -55,17 +55,17 @@ class _InventionOverlayState extends State<InventionOverlay>
                     children: [
                       Row(
                         mainAxisSize: MainAxisSize.min,
-                        children: const [
+                        children: [
                           PixelView(art.sparkle, height: 15),
-                          SizedBox(width: 6),
-                          Text(
+                          const SizedBox(width: 6),
+                          const Text(
                             '異世界初',
                             style: TextStyle(
                               fontSize: 16,
                               color: Color(0xFFC8991F),
                             ),
                           ),
-                          SizedBox(width: 6),
+                          const SizedBox(width: 6),
                           PixelView(art.sparkle, height: 15),
                         ],
                       ),

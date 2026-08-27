@@ -19,7 +19,7 @@ class SoulMemoryScreen extends ConsumerWidget {
     final game = ref.watch(gameControllerProvider);
     final s = game.unlockSummary;
     return Scaffold(
-      appBar: AppBar(title: const PixelTitle(art.sparkle, '魂の記憶')),
+      appBar: AppBar(title: PixelTitle(art.sparkle, '魂の記憶')),
       body: Column(
         children: [
           Card(

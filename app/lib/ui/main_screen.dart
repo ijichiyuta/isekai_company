@@ -218,39 +218,75 @@ class _ShopView extends StatelessWidget {
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
-              // A contained, populated diorama — the カイロ系 "shop room": back
-              // wall with windows, a floor, the storefront, and 店主 greeting a
-              // customer. Framed so it reads as a scene, not empty UI.
+              // A populated shop-room diorama (HD dot-art over a soft, non-pixel
+              // lit background): back wall with windows, floor, storefront, and
+              // 店主 greeting a customer with props flanking.
               SizedBox(
-                width: 330,
-                height: 306,
+                width: 356,
+                height: 330,
                 child: ClipRRect(
-                  borderRadius: BorderRadius.circular(16),
+                  borderRadius: BorderRadius.circular(20),
                   child: DecoratedBox(
                     decoration: BoxDecoration(
-                      borderRadius: BorderRadius.circular(16),
+                      borderRadius: BorderRadius.circular(20),
                       border: Border.all(
                         color: const Color(0xFFCBB488),
                         width: 2,
                       ),
-                      gradient: const LinearGradient(
-                        begin: Alignment.topCenter,
-                        end: Alignment.bottomCenter,
-                        colors: [Color(0xFFF6ECD0), Color(0xFFEAD8AC)],
-                      ),
                     ),
                     child: Stack(
                       children: [
+                        // Soft, lit room (non-pixel wallpaper).
+                        const Positioned.fill(
+                          child: DecoratedBox(
+                            decoration: BoxDecoration(
+                              gradient: LinearGradient(
+                                begin: Alignment.topCenter,
+                                end: Alignment.bottomCenter,
+                                colors: [
+                                  Color(0xFFFCF3DA),
+                                  Color(0xFFF3E4BE),
+                                  Color(0xFFE9D3A2),
+                                ],
+                              ),
+                            ),
+                          ),
+                        ),
+                        const Align(
+                          alignment: Alignment(0, -0.15),
+                          child: SizedBox(
+                            width: 360,
+                            height: 300,
+                            child: DecoratedBox(
+                              decoration: BoxDecoration(
+                                shape: BoxShape.circle,
+                                gradient: RadialGradient(
+                                  colors: [
+                                    Color(0x55FFFFFF),
+                                    Color(0x00FFFFFF),
+                                  ],
+                                ),
+                              ),
+                            ),
+                          ),
+                        ),
                         // Floor.
                         Align(
                           alignment: Alignment.bottomCenter,
                           child: FractionallySizedBox(
                             widthFactor: 1,
-                            heightFactor: 0.30,
-                            child: DecoratedBox(
+                            heightFactor: 0.26,
+                            child: const DecoratedBox(
                               decoration: BoxDecoration(
-                                color: const Color(0xFFD9BE86),
-                                border: const Border(
+                                gradient: LinearGradient(
+                                  begin: Alignment.topCenter,
+                                  end: Alignment.bottomCenter,
+                                  colors: [
+                                    Color(0xFFDCC08A),
+                                    Color(0xFFC9AC72),
+                                  ],
+                                ),
+                                border: Border(
                                   top: BorderSide(
                                     color: Color(0xFFB89A62),
                                     width: 2,
@@ -260,25 +296,25 @@ class _ShopView extends StatelessWidget {
                             ),
                           ),
                         ),
-                        // Back-wall windows for depth.
-                        const Align(
-                          alignment: Alignment(-0.62, -0.42),
-                          child: PixelView(art.window, height: 58),
+                        // Back-wall windows.
+                        Align(
+                          alignment: const Alignment(-0.62, -0.5),
+                          child: PixelView(art.window, pixelSize: 2),
                         ),
-                        const Align(
-                          alignment: Alignment(0.62, -0.42),
-                          child: PixelView(art.window, height: 58),
+                        Align(
+                          alignment: const Alignment(0.62, -0.5),
+                          child: PixelView(art.window, pixelSize: 2),
                         ),
                         // Storefront on the floor line.
                         Align(
-                          alignment: const Alignment(0, 0.30),
+                          alignment: const Alignment(0, -0.02),
                           child: PixelView(
                             art.shop,
-                            height: 138,
+                            pixelSize: 3,
                             semanticLabel: '異世界コンビニ商会',
                           ),
                         ),
-                        // 店主 greets a customer, with props flanking.
+                        // 店主 greets a customer, props flanking.
                         Align(
                           alignment: Alignment.bottomCenter,
                           child: Padding(
@@ -287,22 +323,22 @@ class _ShopView extends StatelessWidget {
                               mainAxisSize: MainAxisSize.min,
                               crossAxisAlignment: CrossAxisAlignment.end,
                               children: [
-                                const PixelView(art.plant, height: 48),
-                                const SizedBox(width: 6),
+                                PixelView(art.plant, pixelSize: 2),
+                                const SizedBox(width: 8),
                                 PixelView(
                                   art.hero,
-                                  height: 82,
+                                  pixelSize: 2,
                                   semanticLabel: '店主',
                                 ),
-                                const SizedBox(width: 18),
+                                const SizedBox(width: 22),
                                 PixelView(
                                   art.customer,
-                                  height: 74,
+                                  pixelSize: 2,
                                   flip: true,
                                   semanticLabel: '客',
                                 ),
-                                const SizedBox(width: 6),
-                                const PixelView(art.crate, height: 42),
+                                const SizedBox(width: 8),
+                                PixelView(art.barrel, pixelSize: 2),
                               ],
                             ),
                           ),
@@ -367,13 +403,13 @@ class _WeeklyResult extends StatelessWidget {
       child: Row(
         children: [
           if (game.lastRankedUp)
-            const Padding(
-              padding: EdgeInsets.only(right: 8),
+            Padding(
+              padding: const EdgeInsets.only(right: 8),
               child: Row(
                 mainAxisSize: MainAxisSize.min,
                 children: [
                   PixelView(art.sparkle, height: 14),
-                  SizedBox(width: 4),
+                  const SizedBox(width: 4),
                   Text(
                     '昇格！',
                     style: TextStyle(fontWeight: FontWeight.bold, color: kGold),
@@ -451,7 +487,7 @@ class _BottomNav extends StatelessWidget {
           ),
           _navItem(
             context,
-            PixelView(art.factory, height: 24),
+            PixelView(art.factoryIcon, height: 24),
             '生産',
             const ProductionScreen(),
           ),
@@ -553,7 +589,7 @@ class _LifeEndBanner extends StatelessWidget {
                       Row(
                         mainAxisSize: MainAxisSize.min,
                         children: [
-                          const PixelView(art.sparkle, height: 15),
+                          PixelView(art.sparkle, height: 15),
                           const SizedBox(width: 5),
                           Text(
                             '魂の記憶 +${game.pendingSoulPoints} pt',

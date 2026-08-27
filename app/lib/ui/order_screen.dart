@@ -18,7 +18,7 @@ class OrderScreen extends ConsumerWidget {
     final b = game.balance;
     return Scaffold(
       appBar: AppBar(
-        title: const PixelTitle(art.cart, '発注'),
+        title: PixelTitle(art.cart, '発注'),
         actions: [
           Padding(
             padding: const EdgeInsets.only(right: 12),
@@ -26,7 +26,7 @@ class OrderScreen extends ConsumerWidget {
               child: Row(
                 mainAxisSize: MainAxisSize.min,
                 children: [
-                  const PixelView(art.coin, height: 16),
+                  PixelView(art.coin, height: 16),
                   const SizedBox(width: 4),
                   Text(formatG(game.state.funds)),
                 ],

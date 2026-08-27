@@ -21,7 +21,7 @@ class SalesScreen extends ConsumerWidget {
         if (game.state.discovered[r.id]) r,
     ];
     return Scaffold(
-      appBar: AppBar(title: const PixelTitle(art.storefront, '販売')),
+      appBar: AppBar(title: PixelTitle(art.storefront, '販売')),
       body: Column(
         children: [
           Padding(

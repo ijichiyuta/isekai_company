@@ -48,7 +48,7 @@ class _DevelopScreenState extends ConsumerState<DevelopScreen> {
     final affordable = game.state.funds >= cost;
 
     return Scaffold(
-      appBar: AppBar(title: const PixelTitle(art.beaker, 'PB開発')),
+      appBar: AppBar(title: PixelTitle(art.beaker, 'PB開発')),
       // The primary action is pinned so it never scrolls off (the recipe list
       // grows as more materials/recipes are added).
       bottomNavigationBar: SafeArea(

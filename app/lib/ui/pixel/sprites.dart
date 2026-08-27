@@ -89,32 +89,8 @@ const Map<String, Color> kArtPal = {
 // product shelves + reflections, and a stone base. See _buildShop below. ---
 final PixelSprite shopHd = _buildShop();
 
-// Low-res storefront (32×20) still wired into the live screens; the HD build
-// above is being reviewed before the screen-by-screen migration.
-final String _ogGlass =
-    'nn' + 'l' * 8 + 'nn' + 'lllMMlll' + 'nn' + 'l' * 8; // 30
-final PixelSprite shop = PixelSprite([
-  '.' * 32,
-  'k' + 'D' * 30 + 'k',
-  'k' + 'G' * 30 + 'k',
-  'k' + 'G' * 13 + 'W' * 4 + 'G' * 13 + 'k',
-  'k' + 'G' * 30 + 'k',
-  'k' + 'D' * 30 + 'k',
-  'k' + ('rW' * 15) + 'k',
-  'k' + 'n' * 30 + 'k',
-  'k' + _ogGlass + 'k',
-  'k' + _ogGlass + 'k',
-  'k' + _ogGlass + 'k',
-  'k' + _ogGlass + 'k',
-  'k' + _ogGlass + 'k',
-  'k' + _ogGlass + 'k',
-  'k' + 'M' * 30 + 'k',
-  'k' + 'm' * 30 + 'k',
-  'k' + 'm' * 30 + 'k',
-  'k' * 32,
-  '.' + 'X' * 30 + '.',
-  '.' * 32,
-], kPal);
+/// Screen-facing storefront → the HD build.
+final PixelSprite shop = shopHd;
 
 /// HD townsfolk — one 48×54 `_person` build recolored per role: skin/hair/cloth
 /// ramps, a real face, uniform folds, selective outline. `heroHd` is the 店主.
@@ -449,276 +425,357 @@ PixelSprite _person({
   return c.toSprite(kArtPal);
 }
 
-// --- The reincarnated コンビニSV protagonist, chibi (16×19). ---
-final PixelSprite hero = PixelSprite([
-  '.' * 3 + 'k' * 10 + '.' * 3,
-  '.' * 3 + 'k' + 'h' * 8 + 'k' + '.' * 3,
-  '.' * 2 + 'k' + 'h' * 10 + 'k' + '.' * 2,
-  '.' * 2 + 'k' + 'h' * 2 + 's' * 6 + 'h' * 2 + 'k' + '.' * 2,
-  '.' * 2 + 'k' + 's' * 10 + 'k' + '.' * 2,
-  '.' * 2 + 'k' + 'ss' + 'k' + 'ssss' + 'k' + 'ss' + 'k' + '.' * 2, // eyes
-  '.' * 2 + 'k' + 's' * 4 + 'p' * 2 + 's' * 4 + 'k' + '.' * 2, // cheeks
-  '.' * 2 + 'k' + 's' * 10 + 'k' + '.' * 2,
-  '.' * 3 + 'k' + 's' * 8 + 'k' + '.' * 3, // chin
-  '.' * 2 + 'k' + 'b' * 10 + 'k' + '.' * 2, // shoulders
-  '.' * 2 + 'k' + 'b' * 2 + 'W' * 6 + 'b' * 2 + 'k' + '.' * 2, // apron
-  '.' * 2 + 'k' + 'b' + 'W' * 8 + 'b' + 'k' + '.' * 2,
-  '.' * 2 + 'k' + 'b' + 'W' * 8 + 'b' + 'k' + '.' * 2,
-  '.' * 2 + 'k' + 'b' * 2 + 'W' * 6 + 'b' * 2 + 'k' + '.' * 2,
-  '.' * 2 + 'k' + 'b' * 10 + 'k' + '.' * 2, // waist
-  '.' * 2 + 'k' + 'B' * 4 + 'kk' + 'B' * 4 + 'k' + '.' * 2, // legs
-  '.' * 2 + 'k' + 'B' * 4 + 'kk' + 'B' * 4 + 'k' + '.' * 2,
-  '.' * 2 + 'k' + 'M' * 4 + 'kk' + 'M' * 4 + 'k' + '.' * 2, // shoes
-  '.' * 3 + 'X' * 10 + '.' * 3, // shadow
-], kPal);
+// --- Screen-facing names now point at the HD builds ---
+final PixelSprite hero = heroHd;
+final PixelSprite customer = villagerHd;
+final PixelSprite goddess = _iGoddess();
 
-// --- A townsperson customer (16×19), same build as the hero, recolored. ---
-final PixelSprite customer = PixelSprite([
-  '.' * 3 + 'k' * 10 + '.' * 3,
-  '.' * 3 + 'k' + 'o' * 8 + 'k' + '.' * 3, // orange hair
-  '.' * 2 + 'k' + 'o' * 10 + 'k' + '.' * 2,
-  '.' * 2 + 'k' + 'o' * 2 + 's' * 6 + 'o' * 2 + 'k' + '.' * 2,
-  '.' * 2 + 'k' + 's' * 10 + 'k' + '.' * 2,
-  '.' * 2 + 'k' + 'ss' + 'k' + 'ssss' + 'k' + 'ss' + 'k' + '.' * 2,
-  '.' * 2 + 'k' + 's' * 4 + 'p' * 2 + 's' * 4 + 'k' + '.' * 2,
-  '.' * 2 + 'k' + 's' * 10 + 'k' + '.' * 2,
-  '.' * 3 + 'k' + 's' * 8 + 'k' + '.' * 3,
-  '.' * 2 + 'k' + 'r' * 10 + 'k' + '.' * 2, // red tunic
-  '.' * 2 + 'k' + 'r' * 10 + 'k' + '.' * 2,
-  '.' * 2 + 'k' + 'r' * 3 + 'R' * 4 + 'r' * 3 + 'k' + '.' * 2,
-  '.' * 2 + 'k' + 'r' * 10 + 'k' + '.' * 2,
-  '.' * 2 + 'k' + 'r' * 10 + 'k' + '.' * 2,
-  '.' * 2 + 'k' + 'r' * 10 + 'k' + '.' * 2,
-  '.' * 2 + 'k' + 'M' * 4 + 'kk' + 'M' * 4 + 'k' + '.' * 2, // brown pants
-  '.' * 2 + 'k' + 'M' * 4 + 'kk' + 'M' * 4 + 'k' + '.' * 2,
-  '.' * 2 + 'k' + 'X' * 4 + 'kk' + 'X' * 4 + 'k' + '.' * 2, // shoes
-  '.' * 3 + 'X' * 10 + '.' * 3,
-], kPal);
+// --- HD scene props ---
+final PixelSprite crate = _iCrate();
+final PixelSprite window = _iWindow();
+final PixelSprite plant = _iPlant();
+final PixelSprite barrel = _iBarrel();
 
-/// The 女神 who grants the past-life memory (14×17) — onboarding 転生 beat.
-const PixelSprite goddess = PixelSprite([
-  '....gggggg....',
-  '...g......g...',
-  '....kkkkkk....',
-  '...kyyyyyyk...',
-  '...kyssssyk...',
-  '...kskssksk...',
-  '...kssssssk...',
-  '....kssssk....',
-  '.wwkwwwwwwkww.',
-  '.wwkwwwwwwkww.',
-  '...kwwwwwwk...',
-  '...kwwwwwwk...',
-  '...kwGGGGwk...',
-  '...kwwwwwwk...',
-  '...kwwwwwwk...',
-  '...kkkkkkkk...',
-  '....XXXXXX....',
-], kPal);
-
-/// A wooden crate (12×12) — a scene prop / stock.
-const PixelSprite crate = PixelSprite([
-  '............',
-  'kkkkkkkkkkkk',
-  'kmmmmmmmmmmk',
-  'kMmmmmmmmMmk',
-  'kmMmmmmmMmmk',
-  'kmmMmmmMmmmk',
-  'kmmmMMMMmmmk',
-  'kmmmMMMMmmmk',
-  'kmmMmmmMmmmk',
-  'kMmmmmmmmMmk',
-  'kkkkkkkkkkkk',
-  '............',
-], kPal);
-
-/// A wall window looking out on a bright sky (14×10) — depth on the back wall.
-const PixelSprite window = PixelSprite([
-  'kkkkkkkkkkkkkk',
-  'kMMMMMMMMMMMMk',
-  'kMllllllllllMk',
-  'kMlwwwlllwwlMk',
-  'kMllllllllllMk',
-  'kMlllllwwwllMk',
-  'kMllllllllllMk',
-  'kMMMMMMMMMMMMk',
-  'kkkkkkkkkkkkkk',
-  '..MM......MM..',
-], kPal);
-
-/// A potted plant (12×14) — a scene prop / warmth.
-const PixelSprite plant = PixelSprite([
-  '...ee..ee...',
-  '..eeeeeeee..',
-  '.eeeeeeeeee.',
-  '.eeDeeeeDee.',
-  '.eeeeeeeeee.',
-  '..eeeeeeee..',
-  '...eeeeee...',
-  '.....DD.....',
-  '....kkkk....',
-  '...kmmmmk...',
-  '...kmmmmk...',
-  '...kMMMMk...',
-  '...kkkkkk...',
-  '............',
-], kPal);
-
-// --- 12×12 icons (replace every emoji / Material glyph in the HUD & nav). ---
-
-/// 資金 — a gold coin.
-const PixelSprite coin = PixelSprite([
-  '....kkkk....',
-  '..kkyyyykk..',
-  '.kyyggggyyk.',
-  '.kyggggggyk.',
-  'kyggggggggyk',
-  'kyggggggggyk',
-  'kyggggggggyk',
-  'kyggggggggyk',
-  '.kyggggggyk.',
-  '.kyyggggyyk.',
-  '..kkyyyykk..',
-  '....kkkk....',
-], kPal);
-
-/// 名声 — a star.
-const PixelSprite star = PixelSprite([
-  '.....kk.....',
-  '.....gg.....',
-  '....kggk....',
-  '....kggk....',
-  'kkkkggggkkkk',
-  '.kggggggggk.',
-  '..kgggggggk.',
-  '..kggggggk..',
-  '.kggk..kggk.',
-  '.kgk....kgk.',
-  'kkk......kkk',
-  '............',
-], kPal);
-
-/// 設定 — a gear.
-const PixelSprite gear = PixelSprite([
-  '...k.kk.k...',
-  '...kkXXkk...',
-  '.kkkXXXXkkk.',
-  '.kXXXXXXXXk.',
-  'kXXXkkkkXXXk',
-  'XXXkkwwkkXXX',
-  'XXXkkwwkkXXX',
-  'kXXXkkkkXXXk',
-  '.kXXXXXXXXk.',
-  '.kkkXXXXkkk.',
-  '...kkXXkk...',
-  '...k.kk.k...',
-], kPal);
-
-/// 開発 — a science beaker (フラスコ).
-const PixelSprite beaker = PixelSprite([
-  '...kkkkk....',
-  '...kwwwk....',
-  '...klllk....',
-  '...klllk....',
-  '..kklllkk...',
-  '..kleeelk...',
-  '.kkeeeeekk..',
-  '.kleeeeelk..',
-  '.kleeeeelk..',
-  '.kleeeeelk..',
-  '.kkkkkkkkk..',
-  '............',
-], kPal);
-
-/// 生産 — a factory.
-const PixelSprite factory = PixelSprite([
-  '.........k..',
-  '......kkkk..',
-  '......kXXk..',
-  '..k...kXXk..',
-  '..kk..kXXk..',
-  '..kXkkkXXkk.',
-  '.kXXXXXXXXXk',
-  'kXwwXwwXwwXk',
-  'kXwwXwwXwwXk',
-  'kXXXXXXXXXXk',
-  'kkkkkkkkkkkk',
-  '............',
-], kPal);
-
-/// 販売 — a market stall / storefront.
-const PixelSprite storefront = PixelSprite([
-  '.kkkkkkkkkk.',
-  'krWrWrWrWrWk', // striped awning
-  'krWrWrWrWrWk',
-  'kkkkkkkkkkkk',
-  'knnnnnnnnnnk',
-  'knllknnllnnk',
-  'knllknnllnnk',
-  'knnnknnnnnk.',
-  'knnnknnnnnnk',
-  'knnnknnnnnnk',
-  'kkkkkkkkkkkk',
-  '............',
-], kPal);
-
-/// 発注 — a shopping cart.
-const PixelSprite cart = PixelSprite([
-  'kk..........',
-  'kk...kkkkkk.',
-  'kk..kmmmmmk.',
-  'kk.kmmmmmk..',
-  'kkkmmmmmk...',
-  'kmmmmmmk....',
-  'kkkkkkkk....',
-  '.k....k.....',
-  'kkk..kkk....',
-  'kXk..kXk....',
-  'kkk..kkk....',
-  '............',
-], kPal);
-
-/// 流行 — a flame.
-const PixelSprite flame = PixelSprite([
-  '.....k......',
-  '.....ko.....',
-  '....koo.....',
-  '....kook....',
-  '...koook....',
-  '...koyok....',
-  '..koyyok....',
-  '..koyyyok...',
-  '.koyywyyok..',
-  '.koyyyyyok..',
-  '..kooooook..',
-  '...kkkkkk...',
-], kPal);
-
-/// 発明 — a sparkle.
-const PixelSprite sparkle = PixelSprite([
-  '.....kk.....',
-  '.....yy.....',
-  '....kyyk....',
-  '..k.kyyk.k..',
-  '.kkkkyykkkk.',
-  'kyyyyyyyyyyk',
-  'kyyyyyyyyyyk',
-  '.kkkkyykkkk.',
-  '..k.kyyk.k..',
-  '....kyyk....',
-  '.....yy.....',
-  '.....kk.....',
-], kPal);
+// --- HD icons (24×24) ---
+final PixelSprite coin = _iCoin();
+final PixelSprite star = _iStar();
+final PixelSprite gear = _iGear();
+final PixelSprite beaker = _iBeaker();
+final PixelSprite factoryIcon = _iFactory();
+final PixelSprite storefront = _iStorefront();
+final PixelSprite cart = _iCart();
+final PixelSprite flame = _iFlame();
+final PixelSprite sparkle = _iSparkle();
 
 /// Every named sprite, for the contact-sheet golden + width-invariant test.
-const Map<String, PixelSprite> kIconSprites = {
+final Map<String, PixelSprite> kIconSprites = {
   'coin': coin,
   'star': star,
   'gear': gear,
   'beaker': beaker,
-  'factory': factory,
+  'factory': factoryIcon,
   'storefront': storefront,
   'cart': cart,
   'flame': flame,
   'sparkle': sparkle,
 };
+
+// ------------------------------------------------------------------ icons ----
+
+PixelSprite _iCoin() {
+  final c = PixelCanvas(24, 24);
+  c.disc(12, 12, 11, 'u'); // rim
+  c.discShaded(12, 12, 9, ['x', 'w', 'w', 'v', 'v', 'u']); // face
+  c.disc(12, 12, 6, 'v'); // inner emboss ring
+  c.discShaded(12, 12, 5, ['x', 'w', 'v']);
+  c.set(8, 8, '#');
+  c.outline('K');
+  c.selout('K', '@');
+  return c.toSprite(kArtPal);
+}
+
+PixelSprite _iStar() {
+  final c = PixelCanvas(24, 24);
+  c.starFill(12, 12.5, 11.5, 4.8, 5, ['x', 'w', 'w', 'v', 'v', 'u']);
+  c.set(9, 8, '#');
+  c.set(10, 8, '#');
+  c.outline('K');
+  c.selout('K', '@');
+  return c.toSprite(kArtPal);
+}
+
+PixelSprite _iGear() {
+  final c = PixelCanvas(24, 24);
+  for (final t in [
+    [10, 1],
+    [10, 19],
+    [1, 10],
+    [19, 10],
+    [3, 3],
+    [17, 3],
+    [3, 17],
+    [17, 17],
+  ]) {
+    c.rect(t[0], t[1], 4, 4, 'Q');
+  }
+  c.discShaded(12, 12, 9, ['S', 'R', 'R', 'Q', 'Q', 'P']);
+  c.disc(12, 12, 3, 'P');
+  c.disc(12, 12, 2, 'K');
+  c.outline('K');
+  c.selout('K', '@');
+  return c.toSprite(kArtPal);
+}
+
+PixelSprite _iBeaker() {
+  final c = PixelCanvas(24, 24);
+  c.rect(9, 2, 6, 8, 'p'); // neck
+  c.rampV(9, 2, 6, 8, ['q', 'p', 'o']);
+  c.rect(8, 1, 8, 2, 'i'); // lip
+  for (var y = 10; y <= 20; y++) {
+    var half = y - 8;
+    if (half > 9) half = 9;
+    c.hline(12 - half, y, half * 2, 'p');
+    if (y >= 15) c.hline(12 - half, y, half * 2, y == 15 ? 'm' : 'l'); // liquid
+  }
+  c.vline(9, 12, 6, 'q'); // shine
+  c.set(14, 18, '#');
+  c.outline('K');
+  c.selout('K', '@');
+  return c.toSprite(kArtPal);
+}
+
+PixelSprite _iFactory() {
+  final c = PixelCanvas(24, 24);
+  c.disc(19, 3, 1, 'S'); // smoke
+  c.disc(21, 1, 1, 'R');
+  c.rect(16, 4, 4, 7, 'P'); // chimney
+  c.set(16, 4, 'R');
+  c.rect(2, 10, 20, 10, 'Q');
+  c.rampV(2, 10, 20, 10, ['R', 'Q', 'P']);
+  for (var x = 3; x < 21; x += 5) {
+    c.set(x + 1, 9, 'Q');
+    c.set(x + 2, 9, 'Q'); // saw-tooth roof
+  }
+  for (var wx = 4; wx < 20; wx += 5) {
+    c.rect(wx, 13, 3, 4, 'w');
+    c.set(wx, 13, 'x');
+  }
+  c.hline(2, 19, 20, 'P');
+  c.outline('K');
+  c.selout('K', '@');
+  return c.toSprite(kArtPal);
+}
+
+PixelSprite _iStorefront() {
+  final c = PixelCanvas(24, 24);
+  for (var x = 2; x < 22; x++) {
+    c.vline(x, 4, 3, (((x - 2) ~/ 3) % 2 == 0) ? 'N' : 'i');
+  }
+  c.hline(2, 4, 20, 'O');
+  c.rect(2, 7, 20, 13, 'g'); // wall
+  c.rect(3, 9, 4, 6, 'p'); // window
+  c.rampV(3, 9, 4, 6, ['q', 'p', 'o']);
+  c.rect(17, 9, 4, 6, 'p');
+  c.rampV(17, 9, 4, 6, ['q', 'p', 'o']);
+  c.rect(9, 10, 6, 10, 'c'); // door
+  c.rampV(9, 10, 6, 10, ['d', 'c', 'b']);
+  c.set(13, 15, 'w'); // knob
+  c.hline(2, 19, 20, 'b');
+  c.outline('K');
+  c.selout('K', '@');
+  return c.toSprite(kArtPal);
+}
+
+PixelSprite _iCart() {
+  final c = PixelCanvas(24, 24);
+  c.hline(3, 5, 4, 'Q'); // handle
+  c.vline(3, 5, 4, 'Q');
+  c.rect(6, 8, 13, 8, 'R'); // basket
+  c.rampV(6, 8, 13, 8, ['S', 'R', 'Q']);
+  for (var x = 9; x < 19; x += 3) {
+    c.vline(x, 8, 8, 'Q');
+  }
+  c.hline(6, 12, 13, 'Q');
+  c.disc(9, 19, 2, 'K'); // wheels
+  c.set(9, 19, 'Q');
+  c.disc(16, 19, 2, 'K');
+  c.set(16, 19, 'Q');
+  c.outline('K');
+  c.selout('K', '@');
+  return c.toSprite(kArtPal);
+}
+
+PixelSprite _iFlame() {
+  final c = PixelCanvas(24, 24);
+  for (var y = 3; y <= 21; y++) {
+    final w = ((y - 3) * (22 - y)) ~/ 9;
+    if (w <= 0) continue;
+    c.hline(12 - w, y, w * 2 + 1, y < 9 ? 'N' : 'O'); // outer flame
+  }
+  for (var y = 9; y <= 21; y++) {
+    final w = ((y - 9) * (22 - y)) ~/ 11;
+    if (w <= 0) continue;
+    c.hline(12 - w, y, w * 2 + 1, 'w'); // inner
+  }
+  c.disc(12, 17, 2, 'x'); // hot core
+  c.outline('K');
+  c.selout('K', '@');
+  return c.toSprite(kArtPal);
+}
+
+PixelSprite _iSparkle() {
+  final c = PixelCanvas(24, 24);
+  c.starFill(12, 12, 11, 2.4, 4, ['x', 'w', 'v']);
+  c.set(9, 9, '#');
+  c.set(4, 5, 'w');
+  c.set(19, 18, 'w');
+  c.outline('K');
+  c.selout('K', '@');
+  return c.toSprite(kArtPal);
+}
+
+// ------------------------------------------------------------------ props ----
+
+PixelSprite _iCrate() {
+  final c = PixelCanvas(24, 22);
+  c.rect(2, 2, 20, 18, 'c');
+  c.rampV(2, 2, 20, 18, ['d', 'c', 'b', 'a']);
+  c.border(2, 2, 20, 18, 'b');
+  c.hline(2, 8, 20, 'b'); // planks
+  c.hline(2, 14, 20, 'b');
+  c.vline(11, 2, 18, 'b');
+  c.line(3, 3, 20, 19, 'M'); // X brace
+  c.line(20, 3, 3, 19, 'M');
+  c.rect(2, 2, 2, 2, 'Q'); // metal corners
+  c.rect(20, 2, 2, 2, 'Q');
+  c.outline('K');
+  c.selout('K', '@');
+  return c.toSprite(kArtPal);
+}
+
+PixelSprite _iBarrel() {
+  final c = PixelCanvas(22, 24);
+  for (var y = 2; y <= 21; y++) {
+    final bulge = 2 - ((y - 11).abs() ~/ 5);
+    c.hline(3 - bulge, y, 16 + bulge * 2, 'c');
+  }
+  c.rampH(3, 2, 16, 20, ['b', 'c', 'd', 'c', 'b']);
+  c.hline(1, 5, 20, 'a'); // hoops
+  c.hline(1, 11, 20, 'a');
+  c.hline(1, 17, 20, 'a');
+  c.rect(5, 2, 12, 2, 'b'); // top rim
+  c.outline('K');
+  c.selout('K', '@');
+  return c.toSprite(kArtPal);
+}
+
+PixelSprite _iWindow() {
+  final c = PixelCanvas(28, 22);
+  c.rect(0, 0, 28, 20, 'b'); // frame
+  c.rect(2, 2, 24, 16, 'c');
+  c.rect(3, 3, 22, 14, 't'); // sky
+  c.rampV(3, 3, 22, 14, ['r', 's', 't']);
+  c.disc(8, 8, 2, '#'); // clouds
+  c.disc(11, 9, 2, '#');
+  c.disc(19, 12, 2, '#');
+  c.vline(13, 3, 14, 'c'); // mullions
+  c.hline(3, 10, 22, 'c');
+  c.rect(0, 18, 28, 3, 'b'); // sill
+  c.rampV(0, 18, 28, 3, ['c', 'b', 'a']);
+  c.outline('K');
+  c.selout('K', '@');
+  return c.toSprite(kArtPal);
+}
+
+PixelSprite _iPlant() {
+  final c = PixelCanvas(24, 28);
+  c.discShaded(12, 8, 7, ['V', 'U', 'U', 'T']); // foliage
+  c.discShaded(7, 12, 4, ['V', 'U', 'T']);
+  c.discShaded(17, 12, 4, ['V', 'U', 'T']);
+  c.set(10, 5, 'V');
+  c.set(14, 6, 'V');
+  c.vline(12, 14, 4, 'T'); // stem
+  for (var y = 18; y <= 26; y++) {
+    final half = 7 - ((y - 18) ~/ 3);
+    c.hline(12 - half, y, half * 2, 'c'); // pot
+  }
+  c.rampV(5, 18, 14, 9, ['d', 'c', 'b']);
+  c.rect(4, 17, 16, 3, 'd'); // rim
+  c.outline('K');
+  c.selout('K', '@');
+  return c.toSprite(kArtPal);
+}
+
+// ----------------------------------------------------------------- goddess ---
+
+/// The 女神 who grants the past-life memory (54×74) — a robed, haloed figure
+/// matching the character build (small face, hue-shifted robe + gold trim).
+PixelSprite _iGoddess() {
+  final c = PixelCanvas(54, 74);
+  const cx = 27, hy = 18, hr = 9;
+
+  // WINGS behind the shoulders.
+  for (var i = 0; i < 12; i++) {
+    c.vline(cx - 15 - i ~/ 3, 26 + i, 14 - i, 'J');
+    c.vline(cx + 14 + i ~/ 3, 26 + i, 14 - i, 'J');
+  }
+  c.vline(cx - 16, 28, 10, 'I');
+  c.vline(cx + 16, 28, 10, 'I');
+
+  // HALO — a gold ring above the head.
+  c.disc(cx, hy - 12, 7, 'w');
+  c.disc(cx, hy - 12, 5, '~');
+  c.discShaded(cx, hy - 12, 7, ['x', 'w', 'v', 'u']);
+  c.disc(cx, hy - 12, 4, '.');
+
+  // HEAD + hair (blonde) + minimal face.
+  c.discShaded(cx, hy, hr, ['B', 'A', 'A', 'z', 'z', 'y']);
+  const skin = {'B', 'A', 'z', 'y'};
+  for (var y = hy - 2; y <= hy + hr - 1; y++) {
+    for (var x = cx - hr + 1; x <= cx + hr - 1; x++) {
+      if (skin.contains(c.at(x, y))) {
+        final t = (y - (hy - 2)) / (hr + 2);
+        c.set(x, y, t < 0.7 ? 'A' : (t < 0.9 ? 'z' : 'y'));
+      }
+    }
+  }
+  for (var x = cx - hr - 1; x <= cx + hr + 1; x++) {
+    final dx = (x - cx).abs();
+    var hl = hy - 3 + dx;
+    if (hl > hy + 5) hl = hy + 5;
+    for (var y = hy - hr - 1; y <= hl; y++) {
+      if ((x - cx) * (x - cx) + (y - hy) * (y - hy) <= (hr + 1) * (hr + 1)) {
+        c.set(x, y, 'w'); // golden hair
+      }
+    }
+  }
+  for (var x = cx - 6; x <= cx - 1; x++) {
+    c.set(x, hy - hr + 1, 'x');
+  }
+  c.set(cx - 3, 19, 'F');
+  c.set(cx - 3, 20, 'K');
+  c.set(cx + 2, 19, 'F');
+  c.set(cx + 2, 20, 'K');
+  c.set(cx, 22, 'y');
+  c.set(cx - 1, 24, 'M');
+  c.set(cx, 24, 'M');
+  c.set(cx - 5, 22, 'Z');
+  c.set(cx + 4, 22, 'Z');
+
+  // ROBE — a long, flowing white gown with gold trim (no legs).
+  c.rect(cx - 3, 26, 6, 3, 'z'); // neck
+  for (var y = 28; y <= 70; y++) {
+    final half = 5 + ((y - 28) * 12 ~/ 42); // widens toward the hem
+    c.hline(cx - half, y, half * 2, 'J');
+    c.set(cx - half, y, 'L');
+    c.set(cx + half - 1, y, 'I');
+  }
+  // fold shadows
+  c.vline(cx - 4, 34, 34, 'I');
+  c.vline(cx + 3, 34, 34, 'I');
+  c.vline(cx, 30, 38, 'I');
+  // gold trim: collar, waist sash, hem
+  for (final p in [
+    [cx - 3, 28],
+    [cx - 2, 29],
+    [cx, 30],
+    [cx + 2, 29],
+    [cx + 3, 28],
+  ]) {
+    c.set(p[0], p[1], 'w');
+  }
+  c.rect(cx - 7, 40, 14, 2, 'w'); // sash
+  c.rampV(cx - 7, 40, 14, 2, ['x', 'v']);
+  c.hline(cx - 16, 69, 33, 'w'); // hem trim
+  c.hline(cx - 16, 70, 33, 'v');
+  // sleeves + hands
+  c.rect(cx - 9, 30, 4, 12, 'J');
+  c.rect(cx + 5, 30, 4, 12, 'J');
+  c.rect(cx - 9, 42, 4, 3, 'A');
+  c.rect(cx + 5, 42, 4, 3, 'A');
+
+  c.outline('K');
+  c.selout('K', '@');
+  c.shadow(cx, 73, 18, 1, '-');
+  return c.toSprite(kArtPal);
+}

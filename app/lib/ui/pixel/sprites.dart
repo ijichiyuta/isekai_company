@@ -4,6 +4,7 @@
 import 'package:flutter/material.dart';
 
 import 'pixel_art.dart';
+import 'pixel_canvas.dart';
 
 /// Shared warm/retro palette (カイロ系). One-char keys keep the sprite rows
 /// compact; `.` / ` ` are transparent.
@@ -35,31 +36,372 @@ const Map<String, Color> kPal = {
   'p': Color(0xFFE88FA6), // pink
 };
 
-// --- Hero: the 24h 異世界コンビニ商会 storefront (32×20). Built band-by-band
-// with string expressions so every row is provably 32 wide. ---
-final _glassRow = 'nn' + 'l' * 8 + 'nn' + 'lllMMlll' + 'nn' + 'l' * 8; // 30
+/// HIGH-FIDELITY palette (v2) — tonal RAMPS per material for proper shading
+/// (light source top-left). Single-char keys grouped by material, dark→light.
+/// Used by the PixelCanvas-drawn sprites; `.`/` ` transparent.
+const Map<String, Color> kArtPal = {
+  'K': Color(0xFF231A10), // outline (warm near-black)
+  // wood a→e
+  'a': Color(0xFF4A2C18), 'b': Color(0xFF6B4526), 'c': Color(0xFF8A5B33),
+  'd': Color(0xFFA87843), 'e': Color(0xFFC79A5C),
+  // wall plaster f→i
+  'f': Color(0xFFAF9663), 'g': Color(0xFFC6AE7E), 'h': Color(0xFFDCC79A),
+  'i': Color(0xFFEEE1BA),
+  // green (roof/sign) j→m
+  'j': Color(0xFF1C6B3A), 'k': Color(0xFF2A8B4E), 'l': Color(0xFF3BA862),
+  'm': Color(0xFF5FC57F),
+  // glass n→q
+  'n': Color(0xFF6FA6BE), 'o': Color(0xFF95C8D9), 'p': Color(0xFFBBE2EF),
+  'q': Color(0xFFDCF2F9),
+  // sky (window view) r→t
+  'r': Color(0xFF8AC4E6), 's': Color(0xFFB2DAF2), 't': Color(0xFFDCEFFB),
+  // gold u→x
+  'u': Color(0xFFA9761B), 'v': Color(0xFFD3A02B), 'w': Color(0xFFF0C33C),
+  'x': Color(0xFFFFE487),
+  // skin y,z,A,B
+  'y': Color(0xFFC6884F), 'z': Color(0xFFE3A473), 'A': Color(0xFFF3C79A),
+  'B': Color(0xFFFFE2C2),
+  // hair C→E
+  'C': Color(0xFF3A2614), 'D': Color(0xFF573A20), 'E': Color(0xFF77522C),
+  // cloth blue F→H
+  'F': Color(0xFF294F7E), 'G': Color(0xFF3B72B0), 'H': Color(0xFF5E9AD6),
+  // apron/white cloth I,J,L
+  'I': Color(0xFFC7C8CE), 'J': Color(0xFFE6E7EB), 'L': Color(0xFFFAFAFA),
+  // red (awning/tunic) M→O
+  'M': Color(0xFF8E2F24), 'N': Color(0xFFBC4130), 'O': Color(0xFFDD6753),
+  // gray/metal P→S
+  'P': Color(0xFF54524C), 'Q': Color(0xFF7C7970), 'R': Color(0xFFA6A399),
+  'S': Color(0xFFCCC9BE),
+  // leaf T→V
+  'T': Color(0xFF37853F), 'U': Color(0xFF5BAA5F), 'V': Color(0xFF86C97F),
+  // accents
+  'Z': Color(0xFFE486A0), // pink (cheeks)
+  '#': Color(0xFFFFFFFF), // pure white highlight
+  '-': Color(0x33000000), // soft shadow
+  '~': Color(0x1E000000), // faint shadow
+};
+
+// --- Hero: the 24h 異世界コンビニ商会 storefront, drawn procedurally at high
+// resolution (104×78) with shading ramps, awning scallop, glazed windows with
+// product shelves + reflections, and a stone base. See _buildShop below. ---
+final PixelSprite shopHd = _buildShop();
+
+// Low-res storefront (32×20) still wired into the live screens; the HD build
+// above is being reviewed before the screen-by-screen migration.
+final String _ogGlass =
+    'nn' + 'l' * 8 + 'nn' + 'lllMMlll' + 'nn' + 'l' * 8; // 30
 final PixelSprite shop = PixelSprite([
   '.' * 32,
-  'k' + 'D' * 30 + 'k', // roof
-  'k' + 'G' * 30 + 'k', // sign
-  'k' + 'G' * 13 + 'W' * 4 + 'G' * 13 + 'k', // sign logo plate
+  'k' + 'D' * 30 + 'k',
   'k' + 'G' * 30 + 'k',
-  'k' + 'D' * 30 + 'k', // sign shadow
-  'k' + ('rW' * 15) + 'k', // striped awning
-  'k' + 'n' * 30 + 'k', // wall
-  'k' + _glassRow + 'k',
-  'k' + _glassRow + 'k',
-  'k' + _glassRow + 'k',
-  'k' + _glassRow + 'k',
-  'k' + _glassRow + 'k',
-  'k' + _glassRow + 'k',
-  'k' + 'M' * 30 + 'k', // threshold
-  'k' + 'm' * 30 + 'k', // floor
+  'k' + 'G' * 13 + 'W' * 4 + 'G' * 13 + 'k',
+  'k' + 'G' * 30 + 'k',
+  'k' + 'D' * 30 + 'k',
+  'k' + ('rW' * 15) + 'k',
+  'k' + 'n' * 30 + 'k',
+  'k' + _ogGlass + 'k',
+  'k' + _ogGlass + 'k',
+  'k' + _ogGlass + 'k',
+  'k' + _ogGlass + 'k',
+  'k' + _ogGlass + 'k',
+  'k' + _ogGlass + 'k',
+  'k' + 'M' * 30 + 'k',
   'k' + 'm' * 30 + 'k',
-  'k' * 32, // base
-  '.' + 'X' * 30 + '.', // ground shadow
+  'k' + 'm' * 30 + 'k',
+  'k' * 32,
+  '.' + 'X' * 30 + '.',
   '.' * 32,
 ], kPal);
+
+/// HD townsfolk — one 48×54 `_person` build recolored per role: skin/hair/cloth
+/// ramps, a real face, uniform folds, selective outline. `heroHd` is the 店主.
+final PixelSprite heroHd = _person(
+  hair: ['C', 'D', 'E'],
+  top: ['F', 'G', 'H'],
+  pants: ['F', 'G'],
+  apron: true,
+  nameTag: true,
+);
+final PixelSprite villagerHd = _person(
+  hair: ['M', 'N', 'O'],
+  top: ['T', 'U', 'V'],
+  pants: ['a', 'b'],
+);
+final PixelSprite ladyHd = _person(
+  hair: ['u', 'v', 'w'],
+  top: ['M', 'N', 'O'],
+  pants: ['M', 'N'],
+);
+final PixelSprite elderHd = _person(
+  hair: ['P', 'Q', 'R'],
+  top: ['b', 'c', 'd'],
+  pants: ['P', 'Q'],
+);
+
+/// A glazed display window with wooden frame, product shelves and a reflection.
+void _shopWindow(PixelCanvas c, int x, int y, int w, int h) {
+  c.rect(x - 3, y - 3, w + 6, h + 6, 'a'); // outer frame (dark wood)
+  c.rect(x - 2, y - 2, w + 4, h + 4, 'c');
+  c.hline(x - 2, y - 2, w + 4, 'd'); // lit top of frame
+  c.rect(x, y, w, h, 'p'); // glass
+  c.rampV(x, y, w, h, ['q', 'p', 'o', 'n']); // sky-lit gradient
+  // three product shelves with little colored goods
+  const goods = ['N', 'w', 'H', 'O', 'U', 'M'];
+  for (var s = 0; s < 3; s++) {
+    final sy = y + 4 + s * ((h - 6) ~/ 3);
+    for (var ix = x + 2; ix < x + w - 2; ix += 5) {
+      final col = goods[((ix + sy) ~/ 5) % goods.length];
+      c.rect(ix, sy, 3, 4, col);
+      c.set(ix, sy, 'K'); // top-left shade of each good
+    }
+    c.hline(x, sy + 4, w, 'b'); // shelf board
+    c.hline(x, sy + 5, w, 'a');
+  }
+  // diagonal glass reflection (subtle)
+  for (var i = 0; i < h; i++) {
+    c.set(x + 3 + i, y + i, 'q');
+    c.set(x + 4 + i, y + i, '#');
+  }
+  // window cross (mullions) then outline
+  c.vline(x + w ~/ 2, y, h, 'c');
+  c.hline(x, y + h ~/ 2, w, 'c');
+  c.border(x - 3, y - 3, w + 6, h + 6, 'K');
+}
+
+PixelSprite _buildShop() {
+  final c = PixelCanvas(104, 78);
+
+  // ROOF — a thick eave, wider than the body, lit on top, shadowed beneath.
+  c.rect(2, 3, 100, 8, 'k');
+  c.rampV(2, 3, 100, 8, ['m', 'l', 'k', 'j']);
+  c.hline(2, 3, 100, 'm');
+  c.rect(2, 11, 100, 2, 'j');
+  c.border(2, 3, 100, 10, 'K');
+
+  // SIGNBOARD — green band with a beveled cream plaque + logo + gold rule.
+  c.rect(6, 13, 92, 13, 'k');
+  c.rampV(6, 13, 92, 13, ['l', 'k', 'j']);
+  c.rect(14, 14, 76, 10, 'a');
+  c.rect(15, 15, 74, 8, 'h');
+  c.rampV(15, 15, 74, 8, ['i', 'h', 'g']);
+  c.hline(15, 15, 74, 'i');
+  c.discShaded(24, 19, 4, ['m', 'l', 'k', 'j']); // logo mark
+  c.hline(33, 18, 50, 'w'); // gold rule
+  c.hline(33, 19, 50, 'v');
+  c.hline(33, 20, 50, 'u');
+  c.vline(6, 13, 13, 'K');
+  c.vline(97, 13, 13, 'K');
+
+  // AWNING — red/cream stripes with a scalloped valance and a cast shadow.
+  const ay = 27;
+  for (var i = 8; i < 96; i++) {
+    final red = (((i - 8) ~/ 7) % 2) == 0;
+    c.vline(i, ay, 6, red ? 'N' : 'i');
+  }
+  c.hline(8, ay, 88, 'O'); // lit front lip
+  c.hline(8, ay + 5, 88, '-'); // underside shadow
+  for (var s = 8; s < 96; s += 7) {
+    final red = (((s - 8) ~/ 7) % 2) == 0;
+    for (var k = 0; k < 3; k++) {
+      c.hline(s + k, ay + 6 + k, 7 - 2 * k, red ? 'M' : 'g');
+    }
+  }
+  c.vline(8, ay, 6, 'K');
+  c.vline(95, ay, 6, 'K');
+
+  // WALL + STOREFRONT — plaster wall, two display windows and a central door.
+  const wy = 35, wh = 33;
+  c.rect(6, wy, 92, wh, 'g');
+  for (var y = wy + 3; y < wy + wh; y += 5) {
+    c.hline(8, y, 88, 'f'); // faint plaster courses
+  }
+  _shopWindow(c, 13, wy + 4, 26, 24);
+  _shopWindow(c, 65, wy + 4, 26, 24);
+  // central double door
+  const dx = 45, dw = 14;
+  c.rect(dx - 3, wy, dw + 6, wh, 'a');
+  c.rect(dx - 2, wy + 1, dw + 4, wh - 1, 'c');
+  c.rect(dx, wy + 2, dw, wh - 6, 'p');
+  c.rampV(dx, wy + 2, dw, wh - 6, ['q', 'p', 'o', 'n']);
+  c.vline(dx + dw ~/ 2 - 1, wy + 2, wh - 6, 'c');
+  c.vline(dx + dw ~/ 2, wy + 2, wh - 6, 'b');
+  c.rect(dx + dw ~/ 2 - 3, wy + 15, 2, 4, 'w'); // handles
+  c.rect(dx + dw ~/ 2 + 1, wy + 15, 2, 4, 'w');
+  c.rect(dx + 2, wy + 5, dw - 4, 4, 'k'); // OPEN placard
+  c.hline(dx + 2, wy + 5, dw - 4, 'm');
+  c.rect(dx, wy + wh - 4, dw, 4, 'b'); // kick plate
+  c.rampV(dx, wy + wh - 4, dw, 4, ['d', 'c', 'b']);
+  for (var i = 0; i < wh - 6; i++) {
+    c.set(dx + 2 + i, wy + 2 + i, 'q'); // reflection
+  }
+  c.border(dx - 3, wy, dw + 6, wh, 'K');
+  c.border(6, wy, 92, wh, 'K');
+
+  // BASE — wood threshold over a stone plinth.
+  const by = wy + wh; // 68
+  c.rect(6, by, 92, 5, 'b');
+  c.rampV(6, by, 92, 5, ['d', 'c', 'b', 'a']);
+  c.hline(6, by, 92, 'e');
+  c.rect(4, by + 5, 96, 3, 'Q');
+  c.rampV(4, by + 5, 96, 3, ['R', 'Q', 'P']);
+  c.border(4, by + 5, 96, 3, 'K');
+
+  // GROUND SHADOW.
+  c.shadow(52, 77, 48, 2, '-');
+  return c.toSprite(kArtPal);
+}
+
+void _eye(PixelCanvas c, int x, int y) {
+  // Big round "kawaii" eye (6×6): glossy dark iris, rounded corners, a large
+  // top-left highlight + a small lower sparkle. No harsh lids.
+  c.rect(x + 1, y, 4, 6, 'F'); // vertical bar
+  c.rect(x, y + 1, 6, 4, 'F'); // horizontal bar → rounded square
+  c.hline(x + 1, y, 4, 'C'); // soft top lash
+  c.rect(x + 2, y + 2, 2, 3, 'G'); // mid-blue
+  c.rect(x + 1, y + 1, 2, 2, '#'); // big catch-light
+  c.set(x + 4, y + 4, 'q'); // lower sparkle
+}
+
+/// One chibi townsperson (48×64). [hair]/[top] are [shadow, base, highlight]
+/// ramps; [pants] is [base, highlight]. Optional white [apron] + gold [nameTag].
+PixelSprite _person({
+  required List<String> hair,
+  required List<String> top,
+  required List<String> pants,
+  bool apron = false,
+  bool nameTag = false,
+}) {
+  final hSh = hair[0], hBase = hair[1], hHi = hair[2];
+  final tSh = top[0], tBase = top[1], tHi = top[2];
+  final pBase = pants[0], pHi = pants[1];
+  final c = PixelCanvas(48, 64);
+  const cx = 24, hy = 20, hr = 14;
+
+  // HEAD — soft top-left-lit skin, with ears.
+  c.discShaded(cx, hy, hr, ['B', 'B', 'A', 'A', 'z', 'z', 'y']);
+  c.rect(9, hy + 1, 3, 5, 'z');
+  c.set(10, hy + 2, 'A');
+  c.rect(36, hy + 1, 3, 5, 'z');
+  c.set(37, hy + 3, 'y');
+
+  // HAIR — scalp cap, swept fringe, sideburns, highlight + shadow.
+  for (var y = hy - hr; y <= hy - 1; y++) {
+    for (var x = cx - hr; x <= cx + hr; x++) {
+      if ((x - cx) * (x - cx) + (y - hy) * (y - hy) <= hr * hr) {
+        c.set(x, y, hBase);
+      }
+    }
+  }
+  for (var x = cx - 12; x <= cx + 12; x++) {
+    final dip = hy - 1 + (3 - ((x - (cx - 5)).abs() ~/ 4)).clamp(0, 3);
+    for (var y = hy - 1; y <= dip; y++) {
+      if ((x - cx) * (x - cx) + (y - hy) * (y - hy) <= (hr + 1) * (hr + 1)) {
+        c.set(x, y, hBase);
+      }
+    }
+  }
+  c.vline(cx - hr + 1, hy - 3, 11, hBase);
+  c.vline(cx - hr + 2, hy - 1, 9, hBase);
+  c.vline(cx + hr - 1, hy - 3, 11, hBase);
+  c.vline(cx + hr - 2, hy - 1, 9, hBase);
+  for (var x = cx - 10; x <= cx - 2; x++) {
+    c.set(x, hy - hr + 2, hHi);
+  }
+  for (var x = cx - 8; x <= cx - 4; x++) {
+    c.set(x, hy - hr + 3, hHi);
+  }
+  for (var y = hy - hr + 3; y <= hy - 3; y++) {
+    c.set(cx + hr - 2, y, hSh);
+  }
+
+  // FACE — flat, soft lighting (no ball-seam) for a cuter look.
+  const skin = {'B', 'A', 'z', 'y'};
+  for (var y = hy - 2; y <= hy + hr - 1; y++) {
+    for (var x = cx - hr + 1; x <= cx + hr - 1; x++) {
+      if (skin.contains(c.at(x, y))) {
+        final t = (y - (hy - 2)) / (hr + 2);
+        c.set(x, y, t < 0.72 ? 'A' : (t < 0.9 ? 'z' : 'y'));
+      }
+    }
+  }
+  c.rect(cx - 7, hy + 1, 6, 2, 'B'); // soft forehead sheen
+  // big round eyes, set low + wide (kawaii)
+  _eye(c, 13, 23);
+  _eye(c, 29, 23);
+  // tiny nose + small happy mouth
+  c.set(cx, 29, 'z');
+  c.set(cx - 1, 31, 'M');
+  c.set(cx, 32, 'N');
+  c.set(cx + 1, 31, 'M');
+  // soft round blush, tucked under the eyes (inside the face)
+  c.rect(14, 30, 3, 2, 'Z');
+  c.rect(31, 30, 3, 2, 'Z');
+
+  // NECK.
+  c.rect(20, 34, 8, 4, 'z');
+  c.hline(20, 34, 8, 'y');
+
+  // TORSO — shoulders taper to waist, with fold shading.
+  for (var y = 38; y <= 56; y++) {
+    final half = 12 - ((y - 38) ~/ 7);
+    c.hline(cx - half, y, half * 2, tBase);
+    c.set(cx - half, y, tHi);
+    c.set(cx + half - 1, y, tSh);
+  }
+  c.vline(cx - 6, 42, 12, tSh); // folds
+  c.vline(cx + 5, 42, 12, tSh);
+  for (final p in [
+    [cx - 3, 38],
+    [cx - 2, 39],
+    [cx - 1, 40],
+    [cx, 41],
+    [cx + 1, 40],
+    [cx + 2, 39],
+    [cx + 3, 38],
+  ]) {
+    c.set(p[0], p[1], 'J'); // collar V
+  }
+  c.vline(cx, 41, 6, tSh); // placket
+  // sleeves + cuffs + hands
+  c.rect(cx - 15, 39, 5, 9, tBase);
+  c.set(cx - 15, 39, tHi);
+  c.hline(cx - 15, 47, 5, tSh);
+  c.rect(cx + 10, 39, 5, 9, tBase);
+  c.set(cx + 14, 39, tSh);
+  c.hline(cx + 10, 47, 5, tSh);
+  c.rect(cx - 15, 48, 5, 5, 'A');
+  c.set(cx - 15, 52, 'z');
+  c.rect(cx + 10, 48, 5, 5, 'A');
+  c.set(cx + 14, 52, 'z');
+
+  // APRON (optional).
+  if (apron) {
+    c.rect(cx - 5, 42, 10, 4, 'J'); // bib
+    c.rect(cx - 10, 46, 20, 12, 'J'); // skirt
+    c.rampV(cx - 10, 46, 20, 12, ['L', 'J', 'J', 'I']);
+    c.border(cx - 10, 46, 20, 12, 'I');
+    c.hline(cx - 10, 47, 20, 'I'); // waist string
+    c.hline(cx - 6, 53, 12, 'I'); // pocket seam
+  }
+  if (nameTag) {
+    c.rect(cx + 1, 43, 5, 2, 'w');
+    c.set(cx + 1, 43, 'x');
+  }
+
+  // LEGS + SHOES.
+  c.rect(cx - 8, 58, 6, 6, pBase);
+  c.rect(cx + 2, 58, 6, 6, pBase);
+  c.vline(cx - 8, 58, 6, pHi);
+  c.vline(cx + 2, 58, 6, pHi);
+  c.rect(cx - 9, 62, 7, 2, 'a');
+  c.rect(cx + 2, 62, 7, 2, 'a');
+  c.hline(cx - 9, 62, 7, 'b');
+  c.hline(cx + 2, 62, 7, 'b');
+
+  c.outline('K');
+  c.shadow(cx, 63, 16, 1, '-');
+  return c.toSprite(kArtPal);
+}
 
 // --- The reincarnated コンビニSV protagonist, chibi (16×19). ---
 final PixelSprite hero = PixelSprite([

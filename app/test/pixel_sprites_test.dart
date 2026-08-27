@@ -20,6 +20,11 @@ void main() {
       'plant': plant,
       'window': window,
       'goddess': goddess,
+      'shopHd': shopHd,
+      'heroHd': heroHd,
+      'villagerHd': villagerHd,
+      'ladyHd': ladyHd,
+      'elderHd': elderHd,
     };
     all.forEach((name, s) {
       final widths = s.rows.map((r) => r.length).toSet();
@@ -37,13 +42,18 @@ void main() {
       'plant': plant,
       'window': window,
       'goddess': goddess,
+      'shopHd': shopHd,
+      'heroHd': heroHd,
+      'villagerHd': villagerHd,
+      'ladyHd': ladyHd,
+      'elderHd': elderHd,
     };
     all.forEach((name, s) {
       for (final row in s.rows) {
         for (final ch in row.split('')) {
           if (ch == '.' || ch == ' ') continue;
           expect(
-            kPal.containsKey(ch),
+            s.palette.containsKey(ch),
             isTrue,
             reason: '$name uses unknown palette key "$ch"',
           );
@@ -100,6 +110,46 @@ void main() {
     await expectLater(
       find.byType(Scaffold),
       matchesGoldenFile('goldens/pixel_contact_sheet.png'),
+    );
+  });
+
+  testWidgets('shop HD preview (large)', (tester) async {
+    if (!Platform.isMacOS) return;
+    tester.view.physicalSize = const Size(1120, 940);
+    tester.view.devicePixelRatio = 1.0;
+    addTearDown(tester.view.resetPhysicalSize);
+    addTearDown(tester.view.resetDevicePixelRatio);
+    await tester.pumpWidget(
+      MaterialApp(
+        debugShowCheckedModeBanner: false,
+        home: Scaffold(
+          backgroundColor: const Color(0xFFEAD8AC),
+          body: Center(
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                PixelView(shopHd, pixelSize: 5),
+                const SizedBox(height: 40),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  crossAxisAlignment: CrossAxisAlignment.end,
+                  children: [
+                    for (final s in [heroHd, villagerHd, ladyHd, elderHd]) ...[
+                      PixelView(s, pixelSize: 5),
+                      const SizedBox(width: 24),
+                    ],
+                  ],
+                ),
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
+    await tester.pumpAndSettle();
+    await expectLater(
+      find.byType(Scaffold),
+      matchesGoldenFile('goldens/shop_hd_preview.png'),
     );
   });
 }

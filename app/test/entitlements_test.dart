@@ -158,6 +158,30 @@ void main() {
     expect(ts.fullLocked, 1);
   });
 
+  test('UnlockSummary moves a purchased node from buyable to owned (AC-16)', () {
+    // The AC-16 test above covers the fresh (owned == 0) tree. This covers the
+    // owned branch: buying a node must shift it OUT of the buyable pool and INTO
+    // owned, with the tree size unchanged — the "解放済み X/Y" counters the tree
+    // screen shows.
+    final meta = MetaState.initial()..ensureUnlockSlots(balance.unlocks.length);
+    meta.soulPoints = 1 << 30; // ample, so affordability never gates the test
+    final before = UnlockSummary.compute(MetaView(meta, balance.unlocks));
+
+    // A functional free node with no unmet prerequisites is buyable now, so it
+    // sits in freeReachable before purchase.
+    final node = balance.unlocks.firstWhere(
+      (u) =>
+          u.tier == 'free' && isUnlockFunctional(u) && u.requires.isEmpty,
+    );
+    expect(tryPurchaseUnlock(meta, balance.unlocks, node.id), isTrue);
+
+    final after = UnlockSummary.compute(MetaView(meta, balance.unlocks));
+    expect(after.total, before.total); // tree size is invariant
+    expect(after.owned, before.owned + 1); // the node is now owned
+    expect(after.freeReachable, before.freeReachable - 1); // left the buyable pool
+    expect(after.fullLocked, before.fullLocked); // full-tier counts untouched
+  });
+
   test('purchaseUnlock gates full-tier nodes behind 完全版', () {
     final g = GameController(balance: balance, clock: FakeTickClock(), seed: 1);
     g.meta.soulPoints = 9000;

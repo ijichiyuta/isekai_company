@@ -57,6 +57,7 @@ class OrderScreen extends ConsumerWidget {
         ),
         body: Column(
           children: [
+            maeseMemo('前世の記憶　「発注」＝仕入れ。素材を予約すると翌週に届く（予約制）。'),
             const _ReservationBanner(),
             Expanded(
               child: ListView(

@@ -28,9 +28,13 @@ class ProductionScreen extends ConsumerWidget {
       child: Scaffold(
         backgroundColor: Colors.transparent,
         appBar: pixelAppBar(title: PixelTitle(art.factoryIcon, '生産')),
-        body: ListView(
+        body: Column(
           children: [
-            _UpgradePanel(game: game),
+            maeseMemo('前世の記憶　「生産」＝設備と職人で量産する。設備・品質への再投資が伸びの要。'),
+            Expanded(
+              child: ListView(
+                children: [
+                  _UpgradePanel(game: game),
             Padding(
               padding: const EdgeInsets.fromLTRB(16, 4, 16, 8),
               child: Text(
@@ -100,6 +104,9 @@ class ProductionScreen extends ConsumerWidget {
                   ],
                 ),
               ),
+                ],
+              ),
+            ),
           ],
         ),
       ),

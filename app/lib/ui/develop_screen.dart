@@ -120,10 +120,14 @@ class _DevelopScreenState extends ConsumerState<DevelopScreen> {
             ),
           ),
         ),
-        body: ListView(
-          padding: const EdgeInsets.all(16),
+        body: Column(
           children: [
-            if (widget.tutorial)
+            maeseMemo('前世の記憶　「PB開発」＝自主企画商品。この世界にまだ無い品を、記憶を頼りに生み出す。'),
+            Expanded(
+              child: ListView(
+                padding: const EdgeInsets.all(16),
+                children: [
+                  if (widget.tutorial)
               Padding(
                 padding: const EdgeInsets.only(bottom: 12),
                 child: PixelBox(
@@ -177,6 +181,9 @@ class _DevelopScreenState extends ConsumerState<DevelopScreen> {
                   title: Text(r.name),
                   subtitle: Text('売値 ${gold(r.basePrice)}'),
                 ),
+                ],
+              ),
+            ),
           ],
         ),
       ),

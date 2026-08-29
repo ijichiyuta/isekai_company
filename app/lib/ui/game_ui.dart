@@ -143,6 +143,39 @@ class _PixelButtonState extends State<PixelButton> {
   }
 }
 
+/// A one-line "former-life memo" strip under an app bar — surfaces the
+/// 転生者チート framing on the management screens (§1.3: 前世用語は初出時に
+/// ワンライン説明). The book glyph + cool tint read as a flash of memory.
+Widget maeseMemo(String text) => Container(
+  width: double.infinity,
+  decoration: const BoxDecoration(
+    color: Color(0xFFEDE6CF),
+    border: Border(bottom: BorderSide(color: kInk, width: 1.5)),
+  ),
+  padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 6),
+  child: Row(
+    crossAxisAlignment: CrossAxisAlignment.start,
+    children: [
+      const Padding(
+        padding: EdgeInsets.only(top: 1),
+        child: Icon(Icons.auto_stories, size: 15, color: Color(0xFF7A5A86)),
+      ),
+      const SizedBox(width: 6),
+      Expanded(
+        child: Text(
+          text,
+          style: const TextStyle(
+            fontSize: 11.5,
+            height: 1.25,
+            fontWeight: FontWeight.w600,
+            color: kInkText,
+          ),
+        ),
+      ),
+    ],
+  ),
+);
+
 /// A flat, ink-bordered app bar (no Material elevation/tint) to match the
 /// panels — pass a PixelTitle as [title].
 PreferredSizeWidget pixelAppBar({required Widget title, List<Widget>? actions}) {

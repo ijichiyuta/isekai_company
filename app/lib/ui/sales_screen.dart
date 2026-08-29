@@ -28,6 +28,7 @@ class SalesScreen extends ConsumerWidget {
         appBar: pixelAppBar(title: PixelTitle(art.storefront, '販売')),
         body: Column(
           children: [
+            maeseMemo('前世の記憶　「棚割り」＝並べれば自動で売れる。売れ筋を切らさぬよう在庫を保て。'),
             Padding(
               padding: const EdgeInsets.all(12),
               child: Row(

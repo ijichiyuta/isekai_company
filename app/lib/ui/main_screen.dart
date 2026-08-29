@@ -252,9 +252,20 @@ class _ShopView extends StatelessWidget {
   const _ShopView({required this.game});
   final GameController game;
 
+  // The fantasy folk who drop by — a townsperson, a noble lady, an old
+  // gentleman, an adventurer. Rotates by week so the異世界 feels lived-in.
+  static final _visitors = [
+    art.villagerHd,
+    art.ladyHd,
+    art.elderHd,
+    art.adventurerHd,
+  ];
+  static const _visitorLabels = ['町人', '貴婦人', '老紳士', '冒険者'];
+
   @override
   Widget build(BuildContext context) {
     final s = game.state;
+    final vi = s.week % _visitors.length;
     return AppBackground(
       scenery: true,
       child: Center(
@@ -394,10 +405,10 @@ class _ShopView extends StatelessWidget {
                                 ),
                                 const SizedBox(width: 22),
                                 PixelView(
-                                  art.customer,
+                                  _visitors[vi],
                                   pixelSize: 2,
                                   flip: true,
-                                  semanticLabel: '客',
+                                  semanticLabel: _visitorLabels[vi],
                                 ),
                                 const SizedBox(width: 8),
                                 PixelView(art.barrel, pixelSize: 2),
@@ -475,10 +486,29 @@ class _WeeklyResult extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final r = game.lastWeekRevenue;
+    final chapter = calendar(game.state.week).year; // 1年＝1章 (§12.4)
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
       child: Row(
         children: [
+          Padding(
+            padding: const EdgeInsets.only(right: 8),
+            child: PixelBox(
+              raised: false,
+              fill: const Color(0xFFEDE6CF),
+              bevel: 1,
+              outline: 1.5,
+              padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 2),
+              child: Text(
+                '第$chapter章',
+                style: const TextStyle(
+                  fontSize: 11,
+                  fontWeight: FontWeight.bold,
+                  color: kInkText,
+                ),
+              ),
+            ),
+          ),
           if (game.lastRankedUp)
             Padding(
               padding: const EdgeInsets.only(right: 8),

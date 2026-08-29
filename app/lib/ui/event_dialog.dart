@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:isekai_core/isekai_core.dart';
 
+import 'game_ui.dart';
+
 /// Event dialog (requirements §3.7, §12.2 #12). Shows the event and its choices;
 /// tapping a choice applies its effects (via the controller) and resumes play.
 class EventDialog extends StatelessWidget {
@@ -14,42 +16,59 @@ class EventDialog extends StatelessWidget {
       child: Container(
         color: Colors.black.withValues(alpha: 0.6),
         child: Center(
-          child: Card(
-            margin: const EdgeInsets.all(24),
-            color: const Color(0xFFFBF3DE),
+          child: SingleChildScrollView(
             child: Padding(
-              padding: const EdgeInsets.all(20),
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  _KindChip(kind: event.kind),
-                  const SizedBox(height: 6),
-                  Text(
-                    event.title,
-                    textAlign: TextAlign.center,
-                    style: const TextStyle(
-                      fontSize: 18,
-                      fontWeight: FontWeight.bold,
-                    ),
-                  ),
-                  const SizedBox(height: 12),
-                  Text(
-                    event.body,
-                    style: const TextStyle(fontSize: 14, height: 1.4),
-                  ),
-                  const SizedBox(height: 20),
-                  for (var i = 0; i < event.choices.length; i++)
-                    Padding(
-                      padding: const EdgeInsets.only(bottom: 8),
-                      child: SizedBox(
-                        width: double.infinity,
-                        child: FilledButton.tonal(
-                          onPressed: () => onChoose(i),
-                          child: Text(event.choices[i].label),
-                        ),
+              padding: const EdgeInsets.all(24),
+              child: PixelBox(
+                fill: const Color(0xFFFBF3DE),
+                bevel: 3,
+                padding: const EdgeInsets.all(20),
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    _KindChip(kind: event.kind),
+                    const SizedBox(height: 8),
+                    Text(
+                      event.title,
+                      textAlign: TextAlign.center,
+                      style: const TextStyle(
+                        fontSize: 18,
+                        fontWeight: FontWeight.bold,
+                        color: kInkText,
                       ),
                     ),
-                ],
+                    const SizedBox(height: 12),
+                    Text(
+                      event.body,
+                      style: const TextStyle(
+                        fontSize: 14,
+                        height: 1.4,
+                        color: kInkText,
+                      ),
+                    ),
+                    const SizedBox(height: 20),
+                    for (var i = 0; i < event.choices.length; i++)
+                      Padding(
+                        padding: const EdgeInsets.only(bottom: 8),
+                        child: SizedBox(
+                          width: double.infinity,
+                          child: PixelButton(
+                            onTap: () => onChoose(i),
+                            padding: const EdgeInsets.symmetric(vertical: 11),
+                            child: Center(
+                              child: Text(
+                                event.choices[i].label,
+                                style: const TextStyle(
+                                  fontWeight: FontWeight.bold,
+                                  color: kInkText,
+                                ),
+                              ),
+                            ),
+                          ),
+                        ),
+                      ),
+                  ],
+                ),
               ),
             ),
           ),
@@ -77,13 +96,12 @@ class _KindChip extends StatelessWidget {
       'cycle' => ('巡る記憶', const Color(0xFF6A4FB6)),
       _ => ('できごと', const Color(0xFF6E665A)),
     };
-    return Container(
+    return PixelBox(
+      raised: false,
+      fill: const Color(0xFFF1E4C4),
+      bevel: 1,
+      outline: 1.5,
       padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 3),
-      decoration: BoxDecoration(
-        color: color.withValues(alpha: 0.14),
-        borderRadius: BorderRadius.circular(10),
-        border: Border.all(color: color.withValues(alpha: 0.5)),
-      ),
       child: Text(
         label,
         style: TextStyle(

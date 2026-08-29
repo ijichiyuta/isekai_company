@@ -59,7 +59,7 @@ void main() {
     // A fresh shop has 0 discoveries, so exactly the "レシピ未発見" hint shows.
     // The other hints are gated off: 100G start funds keeps "資金・素材不足"
     // away, and "在庫なし" only appears once something has been discovered.
-    final chip = find.widgetWithText(ActionChip, 'レシピ未発見');
+    final chip = find.text('レシピ未発見');
     expect(chip, findsOneWidget);
     expect(find.text('在庫なし'), findsNothing);
     expect(find.text('資金・素材不足'), findsNothing);

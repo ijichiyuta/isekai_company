@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 
+import '../game/format.dart';
 import '../game/game_controller.dart';
+import 'game_ui.dart';
 import 'pixel/pixel_art.dart';
 import 'pixel/sprites.dart' as art;
 
@@ -43,14 +45,15 @@ class _InventionOverlayState extends State<InventionOverlay>
           child: Center(
             child: ScaleTransition(
               scale: CurvedAnimation(parent: _c, curve: Curves.elasticOut),
-              child: Card(
-                color: const Color(0xFFFFF7E0),
-                child: Padding(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 28,
-                    vertical: 32,
-                  ),
-                  child: Column(
+              child: PixelBox(
+                fill: const Color(0xFFFFF7E0),
+                bevel: 3,
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 28,
+                  vertical: 32,
+                ),
+                child: Builder(
+                  builder: (context) => Column(
                     mainAxisSize: MainAxisSize.min,
                     children: [
                       Row(
@@ -83,18 +86,30 @@ class _InventionOverlayState extends State<InventionOverlay>
                         style: TextStyle(fontSize: 14),
                       ),
                       const SizedBox(height: 16),
-                      Row(
-                        mainAxisSize: MainAxisSize.min,
+                      Wrap(
+                        alignment: WrapAlignment.center,
+                        spacing: 16,
+                        runSpacing: 6,
                         children: [
-                          _bonus(art.coin, '+${widget.event.cashBonus}G'),
-                          const SizedBox(width: 16),
+                          _bonus(art.coin, '+${formatG(widget.event.cashBonus)}G'),
                           _bonus(art.star, '+${widget.event.fameBonus} 名声'),
                         ],
                       ),
                       const SizedBox(height: 20),
-                      TextButton(
-                        onPressed: widget.onDismiss,
-                        child: const Text('タップして続ける'),
+                      PixelButton(
+                        onTap: widget.onDismiss,
+                        fill: kAccent,
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 18,
+                          vertical: 9,
+                        ),
+                        child: const Text(
+                          'タップして続ける',
+                          style: TextStyle(
+                            fontWeight: FontWeight.bold,
+                            color: kInkText,
+                          ),
+                        ),
                       ),
                     ],
                   ),
@@ -108,10 +123,14 @@ class _InventionOverlayState extends State<InventionOverlay>
   }
 
   Widget _bonus(PixelSprite sprite, String text) => Row(
+    mainAxisSize: MainAxisSize.min,
     children: [
       PixelView(sprite, height: 18),
       const SizedBox(width: 5),
-      Text(text, style: const TextStyle(fontWeight: FontWeight.bold)),
+      Text(
+        text,
+        style: const TextStyle(fontWeight: FontWeight.bold, color: kInkText),
+      ),
     ],
   );
 }

@@ -429,21 +429,35 @@ class _ShopView extends StatelessWidget {
   Widget _bottleneck(BuildContext context, GameController game) {
     return Wrap(
       spacing: 8,
+      runSpacing: 6,
       children: [
         for (final b in game.state.bottlenecks(game))
-          ActionChip(
-            label: Text(b.label, style: const TextStyle(fontSize: 11)),
-            backgroundColor: const Color(0xFFEFC9A0),
-            visualDensity: VisualDensity.compact,
-            avatar: const Icon(Icons.arrow_forward, size: 14),
+          PixelButton(
+            fill: const Color(0xFFEFC9A0),
+            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
             // §12.3: tapping a bottleneck jumps straight to the screen that
             // resolves it.
-            onPressed: () {
+            onTap: () {
               game.pauseForScreen();
               Navigator.of(
                 context,
               ).push(MaterialPageRoute(builder: (_) => b.screen));
             },
+            child: Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                const Icon(Icons.arrow_forward, size: 14, color: kInkText),
+                const SizedBox(width: 4),
+                Text(
+                  b.label,
+                  style: const TextStyle(
+                    fontSize: 11,
+                    fontWeight: FontWeight.bold,
+                    color: kInkText,
+                  ),
+                ),
+              ],
+            ),
           ),
       ],
     );
@@ -661,10 +675,13 @@ class _LifeEndBanner extends StatelessWidget {
         color: Colors.black54,
         child: Center(
           child: SingleChildScrollView(
-            child: Card(
-              margin: const EdgeInsets.all(24),
-              child: Padding(
-                padding: const EdgeInsets.all(24),
+            child: Padding(
+              padding: const EdgeInsets.all(24),
+              child: SizedBox(
+                width: 320,
+                child: PixelBox(
+                bevel: 3,
+                padding: const EdgeInsets.all(20),
                 child: Column(
                   mainAxisSize: MainAxisSize.min,
                   children: [
@@ -673,14 +690,15 @@ class _LifeEndBanner extends StatelessWidget {
                       style: const TextStyle(
                         fontSize: 18,
                         fontWeight: FontWeight.bold,
+                        color: kInkText,
                       ),
                     ),
                     const SizedBox(height: 4),
                     Text(
                       '到達ランク: ${game.balance.ranks[game.state.rank].name}',
-                      style: const TextStyle(fontSize: 13),
+                      style: const TextStyle(fontSize: 13, color: kInkText),
                     ),
-                    const Divider(height: 24),
+                    const _InkRule(),
                     if (sc != null) ...[
                       _row('最終資産', sc.assetsPart),
                       _row('累積名声', sc.famePart),
@@ -689,7 +707,7 @@ class _LifeEndBanner extends StatelessWidget {
                         sc.recipesPart,
                       ),
                       _row('到達ランク', sc.rankPart),
-                      const Divider(height: 16),
+                      const _InkRule(),
                       _row('生涯スコア', sc.total, bold: true),
                       const SizedBox(height: 8),
                       Row(
@@ -702,6 +720,7 @@ class _LifeEndBanner extends StatelessWidget {
                             style: const TextStyle(
                               color: kFame,
                               fontWeight: FontWeight.bold,
+                              fontSize: 15,
                             ),
                           ),
                         ],
@@ -715,33 +734,35 @@ class _LifeEndBanner extends StatelessWidget {
                       ),
                     ],
                     const SizedBox(height: 20),
-                    OutlinedButton.icon(
-                      onPressed: () => Navigator.of(context).push(
+                    _wideBtn(
+                      Icons.auto_awesome,
+                      '魂の記憶ツリー（恒久アンロック）',
+                      () => Navigator.of(context).push(
                         MaterialPageRoute(
                           builder: (_) => const SoulMemoryScreen(),
                         ),
                       ),
-                      icon: const Icon(Icons.auto_awesome),
-                      label: const Text('魂の記憶ツリー（恒久アンロック）'),
                     ),
                     // Main paywall touchpoint (§14): surfaced from the 2nd life
                     // onward, and only when 完全版 isn't already owned.
                     if (!game.isFull && game.lifeNumber >= 2) ...[
                       const SizedBox(height: 8),
-                      TextButton.icon(
-                        onPressed: () => showPaywall(context),
-                        icon: const Icon(Icons.workspace_premium, size: 18),
-                        label: const Text('完全版で恒久強化を全解放'),
+                      _wideBtn(
+                        Icons.workspace_premium,
+                        '完全版で恒久強化を全解放',
+                        () => showPaywall(context),
                       ),
                     ],
                     const SizedBox(height: 8),
-                    FilledButton.icon(
-                      onPressed: game.rebirth,
-                      icon: const Icon(Icons.autorenew),
-                      label: const Text('転生する（次の人生へ）'),
+                    _wideBtn(
+                      Icons.autorenew,
+                      '転生する（次の人生へ）',
+                      game.rebirth,
+                      gold: true,
                     ),
                   ],
                 ),
+              ),
               ),
             ),
           ),
@@ -750,10 +771,42 @@ class _LifeEndBanner extends StatelessWidget {
     );
   }
 
+  Widget _wideBtn(
+    IconData icon,
+    String label,
+    VoidCallback onTap, {
+    bool gold = false,
+  }) => SizedBox(
+    width: double.infinity,
+    child: PixelButton(
+      onTap: onTap,
+      fill: gold ? kAccent : kPanel,
+      padding: const EdgeInsets.symmetric(vertical: 11),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          Icon(icon, size: 18, color: kInkText),
+          const SizedBox(width: 6),
+          Flexible(
+            child: Text(
+              label,
+              textAlign: TextAlign.center,
+              style: const TextStyle(
+                fontWeight: FontWeight.bold,
+                color: kInkText,
+              ),
+            ),
+          ),
+        ],
+      ),
+    ),
+  );
+
   Widget _row(String label, int pts, {bool bold = false}) {
     final style = TextStyle(
       fontWeight: bold ? FontWeight.bold : FontWeight.normal,
       fontSize: bold ? 16 : 14,
+      color: kInkText,
     );
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 2),
@@ -766,6 +819,30 @@ class _LifeEndBanner extends StatelessWidget {
       ),
     );
   }
+}
+
+/// A beveled divider rule (a dark line lit from below) — the pixel-GUI take on
+/// a Material Divider.
+class _InkRule extends StatelessWidget {
+  const _InkRule();
+  @override
+  Widget build(BuildContext context) => const Padding(
+    padding: EdgeInsets.symmetric(vertical: 10),
+    child: Column(
+      children: [
+        SizedBox(
+          width: double.infinity,
+          height: 2,
+          child: ColoredBox(color: kBevelShadeC),
+        ),
+        SizedBox(
+          width: double.infinity,
+          height: 1,
+          child: ColoredBox(color: kBevelLight),
+        ),
+      ],
+    ),
+  );
 }
 
 /// A bottleneck hint plus the screen that resolves it (§12.3 タップで直行).

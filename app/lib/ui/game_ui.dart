@@ -41,6 +41,14 @@ class PixelBox extends StatelessWidget {
   Widget build(BuildContext context) {
     final tl = raised ? kBevelLight : kBevelShadeC;
     final br = raised ? kBevelShadeC : kBevelLight;
+    // Establish a sane default text style from the theme. Panels are often used
+    // in overlays that sit OUTSIDE a Scaffold (the invention/event/転生 dialogs),
+    // where un-styled Text would otherwise inherit the framework's oversized,
+    // font-less fallback (→ tofu + overflow). Harmless where a Scaffold already
+    // provides one.
+    final base =
+        Theme.of(context).textTheme.bodyMedium ??
+        const TextStyle(fontSize: 14, color: kInkText);
     return ColoredBox(
       color: kInk,
       child: Padding(
@@ -56,7 +64,10 @@ class PixelBox extends StatelessWidget {
               bottom: BorderSide(color: br, width: bevel),
             ),
           ),
-          child: Padding(padding: padding, child: child),
+          child: Padding(
+            padding: padding,
+            child: DefaultTextStyle(style: base, child: child),
+          ),
         ),
       ),
     );

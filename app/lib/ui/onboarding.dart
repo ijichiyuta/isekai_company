@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import 'game_ui.dart';
 import 'pixel/pixel_art.dart';
 import 'pixel/sprites.dart' as art;
 import 'theme.dart';
@@ -88,14 +89,24 @@ class _OnboardingFlowState extends State<OnboardingFlow> {
               padding: const EdgeInsets.all(16),
               child: SizedBox(
                 width: double.infinity,
-                child: FilledButton(
-                  onPressed: last
+                child: PixelButton(
+                  onTap: last
                       ? widget.onDone
                       : () => _controller.nextPage(
                           duration: const Duration(milliseconds: 250),
                           curve: Curves.easeOut,
                         ),
-                  child: Text(last ? 'はじめる' : '次へ'),
+                  fill: kAccent,
+                  padding: const EdgeInsets.symmetric(vertical: 13),
+                  child: Center(
+                    child: Text(
+                      last ? 'はじめる' : '次へ',
+                      style: const TextStyle(
+                        fontWeight: FontWeight.bold,
+                        color: kInkText,
+                      ),
+                    ),
+                  ),
                 ),
               ),
             ),

@@ -33,6 +33,8 @@ void main() {
       'catMed': catMed,
       'catLux': catLux,
       'sack': sack,
+      for (var i = 0; i < kMaterialSprites.length; i++)
+        'mat$i': kMaterialSprites[i],
     };
     all.forEach((name, s) {
       final widths = s.rows.map((r) => r.length).toSet();
@@ -63,6 +65,8 @@ void main() {
       'catMed': catMed,
       'catLux': catLux,
       'sack': sack,
+      for (var i = 0; i < kMaterialSprites.length; i++)
+        'mat$i': kMaterialSprites[i],
     };
     all.forEach((name, s) {
       for (final row in s.rows) {
@@ -233,6 +237,56 @@ void main() {
     await expectLater(
       find.byType(Scaffold),
       matchesGoldenFile('goldens/hd_icons_preview.png'),
+    );
+  });
+
+  testWidgets('material icons (visual review)', (tester) async {
+    if (!Platform.isMacOS) return;
+    tester.view.physicalSize = const Size(1120, 1000);
+    tester.view.devicePixelRatio = 1.0;
+    addTearDown(tester.view.resetPhysicalSize);
+    addTearDown(tester.view.resetDevicePixelRatio);
+    const names = [
+      '小麦', '卵', '砂糖', '牛乳', '薬草', '鉄鉱石', '木材', '油脂', '米', '果実',
+      '香辛料', '肉', '魚', '塩', '銅鉱石', '灰', '綿', '羊毛', '皮革', '魔石',
+    ];
+    await tester.pumpWidget(
+      MaterialApp(
+        debugShowCheckedModeBanner: false,
+        home: Scaffold(
+          backgroundColor: const Color(0xFFEAD8AC),
+          body: Center(
+            child: Wrap(
+              alignment: WrapAlignment.center,
+              spacing: 20,
+              runSpacing: 14,
+              children: [
+                for (var i = 0; i < kMaterialSprites.length; i++)
+                  SizedBox(
+                    width: 96,
+                    child: Column(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        SizedBox(
+                          height: 78,
+                          child: Center(
+                            child: PixelView(kMaterialSprites[i], height: 72),
+                          ),
+                        ),
+                        Text(names[i], style: const TextStyle(fontSize: 13)),
+                      ],
+                    ),
+                  ),
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
+    await tester.pumpAndSettle();
+    await expectLater(
+      find.byType(Scaffold),
+      matchesGoldenFile('goldens/materials_preview.png'),
     );
   });
 

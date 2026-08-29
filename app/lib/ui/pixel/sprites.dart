@@ -466,6 +466,35 @@ PixelSprite categoryIcon(String category) => switch (category) {
   _ => sack,
 };
 
+// --- Raw material icons (§8.2): index matches materials.json ids. ---
+final List<PixelSprite> kMaterialSprites = [
+  _iMatWheat(), // 0 小麦
+  _iMatEgg(), // 1 卵
+  _iMatSugar(), // 2 砂糖
+  _iMatMilk(), // 3 牛乳
+  _iMatHerb(), // 4 薬草
+  _iMatIron(), // 5 鉄鉱石
+  _iMatWood(), // 6 木材
+  _iMatOil(), // 7 油脂
+  _iMatRice(), // 8 米
+  _iMatFruit(), // 9 果実
+  _iMatSpice(), // 10 香辛料
+  _iMatMeat(), // 11 肉
+  _iMatFish(), // 12 魚
+  _iMatSalt(), // 13 塩
+  _iMatCopper(), // 14 銅鉱石
+  _iMatAsh(), // 15 灰
+  _iMatCotton(), // 16 綿
+  _iMatWool(), // 17 羊毛
+  _iMatLeather(), // 18 皮革
+  _iMatMagic(), // 19 魔石
+];
+
+/// Icon for material [id] (order matches materials.json). Falls back to the
+/// generic sack if an id is ever out of range (defensive; never expected).
+PixelSprite materialIcon(int id) =>
+    (id >= 0 && id < kMaterialSprites.length) ? kMaterialSprites[id] : sack;
+
 /// Every named sprite, for the contact-sheet golden + width-invariant test.
 final Map<String, PixelSprite> kIconSprites = {
   'coin': coin,
@@ -721,6 +750,310 @@ PixelSprite _iSack() {
   c.hline(4, 6, 16, 'c'); // tie shadow
   c.set(10, 14, 'c'); // seam
   c.set(13, 16, 'c');
+  c.outline('K');
+  c.selout('K', '@');
+  return c.toSprite(kArtPal);
+}
+
+// -------------------------------------------------------------- materials ----
+// Each raw material gets a distinct 24×24 icon so the 発注 list reads at a
+// glance instead of 20 identical sacks. Same idiom: shade top-left lit, then
+// outline + selout.
+
+PixelSprite _iMatWheat() { // 0 小麦
+  final c = PixelCanvas(24, 24);
+  c.line(11, 20, 6, 12, 'U'); // leaf blades
+  c.line(12, 20, 17, 12, 'U');
+  c.vline(11, 6, 16, 'b'); // stalk
+  c.vline(12, 6, 16, 'c');
+  for (var y = 3; y <= 15; y += 3) {
+    c.discShaded(9, y + 1, 2, ['x', 'w', 'v']);
+    c.discShaded(15, y + 1, 2, ['x', 'w', 'v']);
+    c.discShaded(12, y, 2, ['x', 'w', 'u']);
+  }
+  c.outline('K');
+  c.selout('K', '@');
+  return c.toSprite(kArtPal);
+}
+
+PixelSprite _iMatEgg() { // 1 卵
+  final c = PixelCanvas(24, 24);
+  c.discShaded(12, 16, 6, ['L', 'J', 'I', 'z']);
+  c.discShaded(12, 10, 4, ['L', 'J', 'I', 'I']);
+  c.set(10, 12, '#');
+  c.set(9, 13, '#');
+  c.outline('K');
+  c.selout('K', '@');
+  return c.toSprite(kArtPal);
+}
+
+PixelSprite _iMatSugar() { // 2 砂糖 (cubes)
+  final c = PixelCanvas(24, 24);
+  void cube(int x, int y) {
+    c.rect(x, y, 8, 8, 'J');
+    c.rampV(x, y, 8, 8, ['L', 'J', 'I']);
+    c.border(x, y, 8, 8, 'I');
+    c.set(x + 1, y + 1, '#');
+  }
+  cube(3, 12);
+  cube(12, 12);
+  cube(8, 4);
+  c.outline('K');
+  c.selout('K', '@');
+  return c.toSprite(kArtPal);
+}
+
+PixelSprite _iMatMilk() { // 3 牛乳 (bottle)
+  final c = PixelCanvas(24, 24);
+  c.rect(9, 3, 6, 3, 'N'); // red cap
+  c.rect(10, 6, 4, 3, 'o'); // neck
+  c.rect(7, 9, 10, 12, 'p'); // glass body
+  c.rampH(7, 9, 10, 12, ['q', 'p', 'o', 'n']);
+  c.rect(8, 12, 8, 8, 'L'); // milk
+  c.rampV(8, 12, 8, 8, ['L', 'J', 'I']);
+  c.set(9, 10, '#');
+  c.outline('K');
+  c.selout('K', '@');
+  return c.toSprite(kArtPal);
+}
+
+PixelSprite _iMatHerb() { // 4 薬草 (sprig)
+  final c = PixelCanvas(24, 24);
+  c.line(12, 21, 12, 6, 'T'); // stem
+  c.discShaded(8, 16, 3, ['V', 'U', 'T']);
+  c.discShaded(16, 13, 3, ['V', 'U', 'T']);
+  c.discShaded(9, 10, 3, ['V', 'U', 'T']);
+  c.discShaded(14, 8, 2, ['V', 'U', 'T']);
+  c.discShaded(12, 5, 2, ['V', 'U', 'T']);
+  c.outline('K');
+  c.selout('K', '@');
+  return c.toSprite(kArtPal);
+}
+
+PixelSprite _iMatIron() { // 5 鉄鉱石
+  final c = PixelCanvas(24, 24);
+  c.discShaded(10, 14, 6, ['R', 'Q', 'P', 'P']);
+  c.discShaded(16, 11, 4, ['S', 'R', 'Q', 'P']);
+  c.set(14, 8, '#');
+  c.set(9, 11, '#');
+  c.set(15, 9, 'l');
+  c.outline('K');
+  c.selout('K', '@');
+  return c.toSprite(kArtPal);
+}
+
+PixelSprite _iMatWood() { // 6 木材 (log ends)
+  final c = PixelCanvas(24, 24);
+  void log(int cx, int cy) {
+    c.discShaded(cx, cy, 5, ['e', 'd', 'c', 'b']);
+    c.disc(cx, cy, 3, 'c');
+    c.disc(cx, cy, 1, 'b');
+    c.set(cx, cy, 'a');
+  }
+  log(8, 9);
+  log(15, 15);
+  c.outline('K');
+  c.selout('K', '@');
+  return c.toSprite(kArtPal);
+}
+
+PixelSprite _iMatOil() { // 7 油脂 (jar + droplet)
+  final c = PixelCanvas(24, 24);
+  c.rect(7, 10, 10, 11, 'c');
+  c.rampH(7, 10, 10, 11, ['d', 'c', 'b', 'a']);
+  c.rect(8, 12, 8, 6, 'w'); // oil window
+  c.rampV(8, 12, 8, 6, ['x', 'w', 'v', 'u']);
+  c.rect(9, 7, 6, 3, 'b'); // neck
+  c.discShaded(12, 4, 2, ['x', 'w', 'v']); // droplet
+  c.set(11, 3, '#');
+  c.outline('K');
+  c.selout('K', '@');
+  return c.toSprite(kArtPal);
+}
+
+PixelSprite _iMatRice() { // 8 米 (bowl)
+  final c = PixelCanvas(24, 24);
+  c.discShaded(12, 9, 6, ['L', 'J', 'I', 'I']); // heaped rice
+  c.set(9, 6, '#');
+  c.set(14, 10, '#');
+  c.rect(4, 13, 16, 2, 'H'); // rim
+  for (var y = 15; y <= 20; y++) {
+    final w = 8 - (y - 15);
+    final tone = y < 17 ? 'H' : (y < 19 ? 'G' : 'F');
+    c.hline(12 - w, y, w * 2, tone);
+  }
+  c.outline('K');
+  c.selout('K', '@');
+  return c.toSprite(kArtPal);
+}
+
+PixelSprite _iMatFruit() { // 9 果実 (cherries)
+  final c = PixelCanvas(24, 24);
+  c.line(11, 5, 9, 15, 'T');
+  c.line(13, 5, 16, 14, 'T');
+  c.discShaded(9, 16, 4, ['O', 'N', 'M', 'M']);
+  c.discShaded(16, 15, 4, ['O', 'N', 'M', 'M']);
+  c.set(8, 14, '#');
+  c.set(15, 13, '#');
+  c.discShaded(14, 4, 2, ['V', 'U', 'T']); // leaf
+  c.outline('K');
+  c.selout('K', '@');
+  return c.toSprite(kArtPal);
+}
+
+PixelSprite _iMatSpice() { // 10 香辛料 (chili)
+  final c = PixelCanvas(24, 24);
+  c.discShaded(13, 8, 3, ['O', 'N', 'M', 'M']);
+  c.discShaded(14, 11, 3, ['O', 'N', 'M', 'M']);
+  c.discShaded(13, 14, 2, ['O', 'N', 'M']);
+  c.discShaded(11, 16, 2, ['O', 'N', 'M']);
+  c.discShaded(9, 18, 1, ['N', 'M']);
+  c.rect(12, 4, 2, 3, 'T'); // stem
+  c.discShaded(12, 4, 1, ['V', 'U', 'T']);
+  c.set(12, 8, '#');
+  c.outline('K');
+  c.selout('K', '@');
+  return c.toSprite(kArtPal);
+}
+
+PixelSprite _iMatMeat() { // 11 肉 (drumstick)
+  final c = PixelCanvas(24, 24);
+  c.discShaded(13, 11, 6, ['z', 'O', 'N', 'M']);
+  c.discShaded(15, 9, 3, ['A', 'z', 'O']);
+  c.rect(6, 16, 6, 3, 'L'); // bone
+  c.disc(5, 17, 2, 'J');
+  c.disc(5, 20, 2, 'J');
+  c.outline('K');
+  c.selout('K', '@');
+  return c.toSprite(kArtPal);
+}
+
+PixelSprite _iMatFish() { // 12 魚
+  final c = PixelCanvas(24, 24);
+  c.rect(6, 9, 11, 7, 'G'); // body
+  c.rampV(6, 9, 11, 7, ['H', 'G', 'F']);
+  c.discShaded(8, 12, 4, ['H', 'G', 'F', 'F']); // head round
+  c.discShaded(15, 12, 4, ['H', 'G', 'F', 'F']);
+  c.line(18, 12, 22, 8, 'F'); // tail
+  c.line(18, 12, 22, 16, 'F');
+  c.line(22, 8, 22, 16, 'F');
+  c.line(9, 9, 13, 6, 'F'); // top fin
+  c.line(13, 6, 13, 9, 'F');
+  c.set(7, 10, '#'); // eye highlight
+  c.set(8, 11, 'K'); // pupil
+  c.outline('K');
+  c.selout('K', '@');
+  return c.toSprite(kArtPal);
+}
+
+PixelSprite _iMatSalt() { // 13 塩 (crystal pile)
+  final c = PixelCanvas(24, 24);
+  for (var y = 8; y <= 20; y++) {
+    final w = y - 6;
+    final tone = y < 12 ? 'L' : (y < 16 ? 'J' : 'I');
+    c.hline(12 - w, y, w * 2, tone);
+  }
+  c.line(12, 8, 6, 20, 'I');
+  c.line(12, 8, 18, 20, 'I');
+  c.set(12, 9, '#');
+  c.set(10, 13, '#');
+  c.set(14, 15, '#');
+  c.hline(2, 21, 20, 'n'); // cool base tint
+  c.outline('K');
+  c.selout('K', '@');
+  return c.toSprite(kArtPal);
+}
+
+PixelSprite _iMatCopper() { // 14 銅鉱石
+  final c = PixelCanvas(24, 24);
+  c.discShaded(10, 14, 6, ['e', 'd', 'c', 'b']);
+  c.discShaded(16, 11, 4, ['O', 'e', 'd', 'c']);
+  c.set(15, 9, '#');
+  c.set(9, 12, '#');
+  c.set(16, 12, 'O');
+  c.outline('K');
+  c.selout('K', '@');
+  return c.toSprite(kArtPal);
+}
+
+PixelSprite _iMatAsh() { // 15 灰 (mound + ember)
+  final c = PixelCanvas(24, 24);
+  for (var y = 13; y <= 20; y++) {
+    final w0 = y - 10;
+    final w = w0 > 9 ? 9 : w0;
+    final tone = y < 16 ? 'R' : (y < 19 ? 'Q' : 'P');
+    c.hline(12 - w, y, w * 2, tone);
+  }
+  c.set(9, 16, 'S');
+  c.set(14, 17, 'S');
+  c.set(11, 19, 'S');
+  c.set(13, 16, 'O'); // faint ember
+  c.outline('K');
+  c.selout('K', '@');
+  return c.toSprite(kArtPal);
+}
+
+PixelSprite _iMatCotton() { // 16 綿 (boll)
+  final c = PixelCanvas(24, 24);
+  c.discShaded(9, 11, 4, ['L', 'J', 'I', 'I']);
+  c.discShaded(15, 11, 4, ['L', 'J', 'I', 'I']);
+  c.discShaded(12, 8, 4, ['L', 'J', 'I', 'I']);
+  c.discShaded(12, 13, 4, ['L', 'J', 'I', 'I']);
+  c.line(12, 20, 8, 15, 'b'); // husk
+  c.line(12, 20, 16, 15, 'b');
+  c.line(12, 20, 12, 15, 'b');
+  c.set(10, 9, '#');
+  c.set(13, 7, '#');
+  c.outline('K');
+  c.selout('K', '@');
+  return c.toSprite(kArtPal);
+}
+
+PixelSprite _iMatWool() { // 17 羊毛 (yarn ball)
+  final c = PixelCanvas(24, 24);
+  c.discShaded(12, 13, 8, ['i', 'h', 'g', 'f']);
+  c.line(5, 10, 18, 16, 'f');
+  c.line(6, 15, 17, 9, 'f');
+  c.line(8, 7, 15, 20, 'g');
+  c.set(9, 9, '#');
+  c.outline('K');
+  c.selout('K', '@');
+  return c.toSprite(kArtPal);
+}
+
+PixelSprite _iMatLeather() { // 18 皮革 (rolled hide)
+  final c = PixelCanvas(24, 24);
+  c.rect(3, 8, 18, 9, 'c');
+  c.rampV(3, 8, 18, 9, ['d', 'c', 'b', 'a']);
+  c.discShaded(18, 12, 4, ['d', 'c', 'b', 'a']); // rolled end
+  c.disc(18, 12, 2, 'b');
+  c.set(18, 12, 'a');
+  c.vline(8, 8, 9, 'b'); // fold lines
+  c.vline(13, 8, 9, 'b');
+  c.outline('K');
+  c.selout('K', '@');
+  return c.toSprite(kArtPal);
+}
+
+PixelSprite _iMatMagic() { // 19 魔石 (glowing gem)
+  final c = PixelCanvas(24, 24);
+  c.rect(7, 8, 10, 2, 'Z'); // table
+  for (var y = 10; y <= 13; y++) {
+    final w = 5 + (y - 10);
+    c.hline(12 - w, y, w * 2, 'Z');
+  }
+  for (var y = 14; y <= 21; y++) {
+    var w = 8 - (y - 14);
+    if (w < 0) w = 0;
+    c.hline(12 - w, y, w * 2, 'Z');
+  }
+  c.disc(12, 13, 3, '#'); // inner glow
+  c.line(7, 10, 12, 21, 'p'); // facets
+  c.line(16, 10, 12, 21, 'p');
+  c.vline(12, 8, 20, 'p');
+  c.set(6, 6, '#'); // sparkles
+  c.set(19, 9, '#');
+  c.set(17, 18, '#');
   c.outline('K');
   c.selout('K', '@');
   return c.toSprite(kArtPal);

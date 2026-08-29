@@ -36,4 +36,23 @@ void main() {
     expect(identical(art.categoryIcon('unknown'), art.sack), isTrue);
     expect(identical(art.categoryIcon(''), art.sack), isTrue);
   });
+
+  test('every material maps to its own distinct icon (not the shared sack)', () {
+    final b = loadTestBalanceMarket();
+    expect(b.materials, isNotEmpty);
+    // Each bundled material id resolves to a real, non-fallback icon.
+    for (final m in b.materials) {
+      expect(
+        identical(art.materialIcon(m.id), art.sack),
+        isFalse,
+        reason: 'material "${m.name}" (id ${m.id}) falls back to the sack icon',
+      );
+    }
+    // All icons are distinct — no two materials share a sprite.
+    final icons = {for (final m in b.materials) art.materialIcon(m.id)};
+    expect(icons.length, b.materials.length);
+    // Out-of-range ids fall back to the generic sack (defensive).
+    expect(identical(art.materialIcon(-1), art.sack), isTrue);
+    expect(identical(art.materialIcon(9999), art.sack), isTrue);
+  });
 }

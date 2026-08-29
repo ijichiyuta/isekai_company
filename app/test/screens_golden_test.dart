@@ -212,6 +212,14 @@ void main() {
     );
   });
 
+  testWidgets('scene: メイン画面（冬）', (tester) async {
+    if (!Platform.isMacOS) return;
+    await _loadFonts();
+    final g = _seeded(loadTestBalanceMarket());
+    g.state.week = 18 * 48 + 44; // 冬(season 3)
+    await shot(tester, g, const MainScreen(), 'main_winter');
+  });
+
   testWidgets('scene: メイン画面（流行中バー）', (tester) async {
     if (!Platform.isMacOS) return;
     await _loadFonts();

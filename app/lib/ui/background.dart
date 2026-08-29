@@ -16,10 +16,12 @@ class AppBackground extends StatelessWidget {
     required this.child,
     this.mood = BgMood.interior,
     this.scenery = false,
+    this.season = -1, // 0春/1夏/2秋/3冬, -1 = none (tints the brick + motes)
   });
   final Widget child;
   final BgMood mood;
   final bool scenery;
+  final int season;
 
   List<Color> get _stops => switch (mood) {
     BgMood.interior => const [
@@ -84,7 +86,7 @@ class AppBackground extends StatelessWidget {
     final CustomPainter? painter = !scenery
         ? null
         : mood == BgMood.interior
-        ? _BrickPainter()
+        ? _BrickPainter(season: season)
         : _SceneryPainter(far: far, near: near, mote: mote);
     return DecoratedBox(
       decoration: BoxDecoration(
@@ -124,22 +126,40 @@ class AppBackground extends StatelessWidget {
   );
 }
 
-/// A warm sandstone brick wall for the indoor shop surround. Per-brick tone
-/// varies from a fixed hash (deterministic → golden-stable), with a lit top
-/// edge and a shadowed mortar so the wall has depth, not a flat repeat.
+/// A brick wall for the indoor shop surround. Per-brick tone varies from a
+/// fixed hash (deterministic → golden-stable), with a lit top edge + shadowed
+/// mortar. The palette shifts with the [season] and a few motes drift down
+/// (petals / leaves / snow) so the world feels seasonal, not static.
 class _BrickPainter extends CustomPainter {
-  static const _bw = 46.0; // brick width
-  static const _bh = 20.0; // brick height
+  const _BrickPainter({required this.season});
+  final int season;
+
+  static const _bw = 46.0;
+  static const _bh = 20.0;
   static const _mortar = 2.5;
-  static const _light = Color(0xFFE0C295); // brick highlight tone
-  static const _dark = Color(0xFFC69A67); // brick shadow tone
-  static const _mortarColor = Color(0xFFBBA47C);
   static const _topEdge = Color(0x33FFFFFF);
   static const _botEdge = Color(0x1A5A3A1E);
 
+  // (light brick, dark brick, mortar) per season; default = warm sandstone.
+  (Color, Color, Color) get _tones => switch (season) {
+    0 => const (Color(0xFFE7CFA6), Color(0xFFCBAD82), Color(0xFFBFA982)), // 春
+    2 => const (Color(0xFFDCAB74), Color(0xFFBC8850), Color(0xFFAE8A62)), // 秋
+    3 => const (Color(0xFFD3CCC0), Color(0xFFB0A594), Color(0xFFAEA48F)), // 冬
+    _ => const (Color(0xFFE0C295), Color(0xFFC69A67), Color(0xFFBBA47C)), // 夏/既定
+  };
+
+  // (mote colour, kind) — 0:petal 1:leaf 2:snow 3:none.
+  (Color, int) get _mote => switch (season) {
+    0 => const (Color(0x66F5C4D2), 0), // 春 花びら
+    2 => const (Color(0x66C9772F), 1), // 秋 落ち葉
+    3 => const (Color(0x88FFFFFF), 2), // 冬 雪
+    _ => const (Color(0x00000000), 3), // 夏 なし
+  };
+
   @override
   void paint(Canvas canvas, Size size) {
-    canvas.drawRect(Offset.zero & size, Paint()..color = _mortarColor);
+    final (light, dark, mortarColor) = _tones;
+    canvas.drawRect(Offset.zero & size, Paint()..color = mortarColor);
     final brick = Paint();
     final top = Paint()..color = _topEdge;
     final bot = Paint()..color = _botEdge;
@@ -148,10 +168,9 @@ class _BrickPainter extends CustomPainter {
       final rowOffset = row.isEven ? 0.0 : -_bw / 2;
       var col = 0;
       for (var x = rowOffset - _bw; x < size.width + _bw; x += _bw) {
-        // deterministic 0..1 from the brick's grid position
         final h = ((row * 73856093) ^ (col * 19349663)) & 0x7fffffff;
         final t = (h % 1000) / 1000.0;
-        brick.color = Color.lerp(_light, _dark, t)!;
+        brick.color = Color.lerp(light, dark, t)!;
         final r = Rect.fromLTWH(
           x + _mortar,
           y + _mortar,
@@ -159,20 +178,52 @@ class _BrickPainter extends CustomPainter {
           _bh - _mortar * 2,
         );
         canvas.drawRect(r, brick);
-        // lit top, shadowed bottom for a shallow bevel
         canvas.drawRect(Rect.fromLTWH(r.left, r.top, r.width, 1.5), top);
-        canvas.drawRect(
-          Rect.fromLTWH(r.left, r.bottom - 1.5, r.width, 1.5),
-          bot,
-        );
+        canvas.drawRect(Rect.fromLTWH(r.left, r.bottom - 1.5, r.width, 1.5), bot);
         col++;
       }
       row++;
     }
+    _drawMotes(canvas, size);
+  }
+
+  void _drawMotes(Canvas canvas, Size size) {
+    final (color, kind) = _mote;
+    if (kind == 3) return;
+    final p = Paint()..color = color;
+    var s = 137;
+    double rnd() {
+      s = (s * 1103515245 + 12345) & 0x7fffffff;
+      return s / 0x7fffffff;
+    }
+
+    for (var i = 0; i < 22; i++) {
+      final x = rnd() * size.width;
+      final y = rnd() * size.height;
+      final r = 2.0 + rnd() * 2.0;
+      if (kind == 2) {
+        canvas.drawCircle(Offset(x, y), r * 0.8, p); // snow
+      } else if (kind == 0) {
+        canvas.drawOval(Rect.fromCenter(center: Offset(x, y), width: r * 2, height: r), p); // petal
+      } else {
+        // leaf — a small tilted rounded rect
+        canvas.save();
+        canvas.translate(x, y);
+        canvas.rotate(rnd() * 3.14);
+        canvas.drawRRect(
+          RRect.fromRectAndRadius(
+            Rect.fromCenter(center: Offset.zero, width: r * 2.4, height: r * 1.3),
+            Radius.circular(r),
+          ),
+          p,
+        );
+        canvas.restore();
+      }
+    }
   }
 
   @override
-  bool shouldRepaint(_BrickPainter old) => false;
+  bool shouldRepaint(_BrickPainter old) => old.season != season;
 }
 
 /// Draws the distant town skyline + sky motes. Everything is derived from fixed

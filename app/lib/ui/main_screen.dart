@@ -269,6 +269,7 @@ class _ShopView extends StatelessWidget {
     final vi = s.week % _visitors.length;
     return AppBackground(
       scenery: true,
+      season: calendar(s.week).season, // 春夏秋冬で壁の色と舞い散りが変わる
       child: Center(
       child: Padding(
         padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),

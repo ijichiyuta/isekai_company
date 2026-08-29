@@ -4,6 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../game/providers.dart';
 import 'background.dart';
 import 'game_ui.dart';
+import 'how_to_play_screen.dart';
 import 'paywall.dart';
 import 'pixel/pixel_art.dart';
 import 'pixel/sprites.dart' as art;
@@ -26,6 +27,15 @@ class SettingsScreen extends ConsumerWidget {
         body: ListView(
           padding: const EdgeInsets.symmetric(vertical: 8),
           children: [
+            PixelListTile(
+              leading: const Icon(Icons.help_outline, color: kInkText),
+              title: const Text('遊び方'),
+              subtitle: const Text('ゲームの流れ・各ボタンの説明'),
+              trailing: const Icon(Icons.chevron_right, color: kInkText),
+              onTap: () => Navigator.of(context).push(
+                MaterialPageRoute(builder: (_) => const HowToPlayScreen()),
+              ),
+            ),
             PixelListTile(
               leading: PixelView(art.sparkle, height: 26),
               title: const Text('魂の記憶'),

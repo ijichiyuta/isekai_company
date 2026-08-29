@@ -106,7 +106,7 @@ void main() {
     // Intro plays first.
     expect(find.text('スキップ'), findsOneWidget);
     // Walk to the last intro card, then start.
-    for (var i = 0; i < 3; i++) {
+    for (var i = 0; i < 4; i++) {
       await tester.tap(find.text('次へ'));
       await tester.pumpAndSettle();
     }

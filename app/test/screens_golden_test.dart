@@ -12,6 +12,7 @@ import 'package:isekai_app/game/tick_clock.dart';
 import 'package:isekai_app/ui/develop_screen.dart';
 import 'package:isekai_app/ui/event_dialog.dart';
 import 'package:isekai_app/ui/invention_overlay.dart';
+import 'package:isekai_app/ui/how_to_play_screen.dart';
 import 'package:isekai_app/ui/main_screen.dart';
 import 'package:isekai_app/ui/title_screen.dart';
 import 'package:isekai_app/ui/onboarding.dart';
@@ -176,6 +177,28 @@ void main() {
       TitleScreen(onStart: () {}, onFull: () {}, hasProgress: false),
       'title',
     );
+  });
+
+  testWidgets('scene: 遊び方', (tester) async {
+    if (!Platform.isMacOS) return;
+    await _loadFonts();
+    await shot(
+      tester,
+      _seeded(loadTestBalanceMarket()),
+      const HowToPlayScreen(),
+      'how_to_play',
+    );
+  });
+
+  testWidgets('scene: メイン画面（初回ガイド）', (tester) async {
+    if (!Platform.isMacOS) return;
+    await _loadFonts();
+    final fresh = GameController(
+      balance: loadTestBalanceMarket(),
+      clock: FakeTickClock(),
+      seed: 7,
+    );
+    await shot(tester, fresh, const MainScreen(), 'main_welcome');
   });
 
   testWidgets('scene: メイン画面（中盤）', (tester) async {

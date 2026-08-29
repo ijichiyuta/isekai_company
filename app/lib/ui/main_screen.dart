@@ -10,6 +10,7 @@ import '../game/providers.dart';
 import 'background.dart';
 import 'develop_screen.dart';
 import 'game_ui.dart';
+import 'how_to_play_screen.dart';
 import 'event_dialog.dart';
 import 'invention_overlay.dart';
 import 'order_screen.dart';
@@ -426,6 +427,12 @@ class _ShopView extends StatelessWidget {
                 '従業員 ${s.employees}人 ・ 発見レシピ ${s.discoveries}種',
                 style: const TextStyle(fontSize: 13),
               ),
+              // Brand-new player (no products yet): a friendly what-to-do card.
+              if (s.discoveries == 0)
+                Padding(
+                  padding: const EdgeInsets.only(top: 10),
+                  child: _WelcomeGuide(game: game),
+                ),
               if (s.pendingHintCount(game) > 0)
                 Padding(
                   padding: const EdgeInsets.only(top: 8),
@@ -473,6 +480,79 @@ class _ShopView extends StatelessWidget {
             ),
           ),
       ],
+    );
+  }
+}
+
+/// A brand-new player's what-to-do card (shown until the first product exists).
+class _WelcomeGuide extends StatelessWidget {
+  const _WelcomeGuide({required this.game});
+  final GameController game;
+
+  void _open(BuildContext context, Widget screen) {
+    game.pauseForScreen();
+    Navigator.of(context).push(MaterialPageRoute(builder: (_) => screen));
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return PixelBox(
+      fill: const Color(0xFFFBEBBE),
+      padding: const EdgeInsets.all(12),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          const Text(
+            'ようこそ、異世界へ！',
+            style: TextStyle(
+              fontWeight: FontWeight.bold,
+              fontSize: 14,
+              color: kInkText,
+            ),
+          ),
+          const SizedBox(height: 4),
+          const Text(
+            'まずは下の「開発」で最初の商品を作ろう。並べれば自動で売れて、'
+            'お金と名声が貯まっていくよ。',
+            style: TextStyle(fontSize: 12.5, height: 1.4, color: kInkText),
+          ),
+          const SizedBox(height: 10),
+          Row(
+            children: [
+              PixelButton(
+                onTap: () => _open(context, const DevelopScreen()),
+                fill: kAccent,
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 14,
+                  vertical: 8,
+                ),
+                child: const Text(
+                  '開発をひらく',
+                  style: TextStyle(
+                    fontWeight: FontWeight.bold,
+                    color: kInkText,
+                  ),
+                ),
+              ),
+              const SizedBox(width: 8),
+              PixelButton(
+                onTap: () => _open(context, const HowToPlayScreen()),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 12,
+                  vertical: 8,
+                ),
+                child: const Text(
+                  '遊び方',
+                  style: TextStyle(
+                    fontWeight: FontWeight.w600,
+                    color: kInkText,
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ],
+      ),
     );
   }
 }

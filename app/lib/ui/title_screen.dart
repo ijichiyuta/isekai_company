@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 
 import 'background.dart';
 import 'game_ui.dart';
+import 'how_to_play_screen.dart';
 import 'pixel/pixel_art.dart';
 import 'pixel/sprites.dart' as art;
 
@@ -98,6 +99,18 @@ class TitleScreen extends StatelessWidget {
                           ),
                         ),
                       ),
+                    ),
+                  ),
+                  const SizedBox(height: 10),
+                  TextButton(
+                    onPressed: () => Navigator.of(context).push(
+                      MaterialPageRoute(
+                        builder: (_) => const HowToPlayScreen(),
+                      ),
+                    ),
+                    child: const Text(
+                      '遊び方を見る',
+                      style: TextStyle(color: Color(0xFFE8D6A8)),
                     ),
                   ),
                   const SizedBox(height: 16),

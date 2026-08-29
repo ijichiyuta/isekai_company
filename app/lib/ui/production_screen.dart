@@ -48,7 +48,7 @@ class ProductionScreen extends ConsumerWidget {
                 padding: EdgeInsets.all(24),
                 child: Center(
                   child: Text(
-                    'まずPB開発でレシピを発見しましょう',
+                    'まず「商品開発」でレシピを発見しましょう',
                     style: TextStyle(color: kInkText),
                   ),
                 ),

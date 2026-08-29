@@ -36,7 +36,7 @@ class _OnboardingFlowState extends State<OnboardingFlow> {
     ),
     (
       _Cut.goal,
-      'まずは「PB開発」で商品を発明しよう',
+      'まずは「商品開発」で商品を発明しよう',
       'この世界にまだ無い商品を作れば、街の人々が驚き、名声とお金が舞い込む。行商人から大商会主へ！',
     ),
   ];

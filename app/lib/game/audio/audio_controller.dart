@@ -49,12 +49,15 @@ class AudioController extends ChangeNotifier {
 
   /// Play [s] if 効果音 is on.
   void play(Sfx s) {
-    if (sfxEnabled) _backend.playSfx(wav(s));
+    if (!sfxEnabled) return;
+    if (kDebugMode) debugPrint('[audio] play $s');
+    _backend.playSfx(wav(s));
   }
 
   /// Kick off BGM at app start if 音楽 is on (setBgmEnabled is a no-op when the
   /// value is unchanged, so startup needs its own entry point).
   void begin() {
+    if (kDebugMode) debugPrint('[audio] begin (bgm=$bgmEnabled)');
     if (bgmEnabled) _backend.startBgm();
   }
 

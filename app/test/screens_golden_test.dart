@@ -261,7 +261,7 @@ void main() {
     );
   });
 
-  testWidgets('scene: PB開発', (tester) async {
+  testWidgets('scene: 商品開発', (tester) async {
     if (!Platform.isMacOS) return;
     await _loadFonts();
     await shot(

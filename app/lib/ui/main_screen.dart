@@ -284,228 +284,228 @@ class _ShopView extends StatelessWidget {
       scenery: true,
       season: calendar(s.week).season, // 春夏秋冬で壁の色と舞い散りが変わる
       child: Center(
-      child: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-        // scaleDown keeps the diorama crisp at native size on a phone, yet
-        // never overflows a shorter/odd viewport (e.g. the 800×600 test surface).
-        child: FittedBox(
-          fit: BoxFit.scaleDown,
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              // A populated shop-room diorama (HD dot-art over a soft, non-pixel
-              // lit background): back wall with windows, floor, storefront, and
-              // 店主 greeting a customer with props flanking.
-              Container(
-                width: 356,
-                height: 330,
-                padding: const EdgeInsets.all(2),
-                decoration: const BoxDecoration(
-                  color: kInk, // hard 2px outline frame (square, retro)
-                  boxShadow: [
-                    BoxShadow(
-                      color: Color(0x40000000),
-                      blurRadius: 16,
-                      offset: Offset(0, 8),
-                    ),
-                  ],
-                ),
-                child: ClipRRect(
-                  borderRadius: BorderRadius.zero,
-                  child: DecoratedBox(
-                    decoration: const BoxDecoration(
-                      // beveled inner edge: lit top-left, shaded bottom-right
-                      border: Border(
-                        top: BorderSide(color: kBevelLight, width: 3),
-                        left: BorderSide(color: kBevelLight, width: 3),
-                        right: BorderSide(color: kBevelShadeC, width: 3),
-                        bottom: BorderSide(color: kBevelShadeC, width: 3),
+        child: Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+          // scaleDown keeps the diorama crisp at native size on a phone, yet
+          // never overflows a shorter/odd viewport (e.g. the 800×600 test surface).
+          child: FittedBox(
+            fit: BoxFit.scaleDown,
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                // A populated shop-room diorama (HD dot-art over a soft, non-pixel
+                // lit background): back wall with windows, floor, storefront, and
+                // 店主 greeting a customer with props flanking.
+                Container(
+                  width: 356,
+                  height: 330,
+                  padding: const EdgeInsets.all(2),
+                  decoration: const BoxDecoration(
+                    color: kInk, // hard 2px outline frame (square, retro)
+                    boxShadow: [
+                      BoxShadow(
+                        color: Color(0x40000000),
+                        blurRadius: 16,
+                        offset: Offset(0, 8),
                       ),
-                    ),
-                    child: Stack(
-                      children: [
-                        // Soft, lit room (non-pixel wallpaper).
-                        const Positioned.fill(
-                          child: DecoratedBox(
-                            decoration: BoxDecoration(
-                              gradient: LinearGradient(
-                                begin: Alignment.topCenter,
-                                end: Alignment.bottomCenter,
-                                colors: [
-                                  Color(0xFFFCF3DA),
-                                  Color(0xFFF3E4BE),
-                                  Color(0xFFE9D3A2),
-                                ],
-                              ),
-                            ),
-                          ),
+                    ],
+                  ),
+                  child: ClipRRect(
+                    borderRadius: BorderRadius.zero,
+                    child: DecoratedBox(
+                      decoration: const BoxDecoration(
+                        // beveled inner edge: lit top-left, shaded bottom-right
+                        border: Border(
+                          top: BorderSide(color: kBevelLight, width: 3),
+                          left: BorderSide(color: kBevelLight, width: 3),
+                          right: BorderSide(color: kBevelShadeC, width: 3),
+                          bottom: BorderSide(color: kBevelShadeC, width: 3),
                         ),
-                        const Align(
-                          alignment: Alignment(0, -0.15),
-                          child: SizedBox(
-                            width: 360,
-                            height: 300,
+                      ),
+                      child: Stack(
+                        children: [
+                          // Soft, lit room (non-pixel wallpaper).
+                          const Positioned.fill(
                             child: DecoratedBox(
-                              decoration: BoxDecoration(
-                                shape: BoxShape.circle,
-                                gradient: RadialGradient(
-                                  colors: [
-                                    Color(0x55FFFFFF),
-                                    Color(0x00FFFFFF),
-                                  ],
-                                ),
-                              ),
-                            ),
-                          ),
-                        ),
-                        // Floor.
-                        Align(
-                          alignment: Alignment.bottomCenter,
-                          child: FractionallySizedBox(
-                            widthFactor: 1,
-                            heightFactor: 0.26,
-                            child: const DecoratedBox(
                               decoration: BoxDecoration(
                                 gradient: LinearGradient(
                                   begin: Alignment.topCenter,
                                   end: Alignment.bottomCenter,
                                   colors: [
-                                    Color(0xFFDCC08A),
-                                    Color(0xFFC9AC72),
+                                    Color(0xFFFCF3DA),
+                                    Color(0xFFF3E4BE),
+                                    Color(0xFFE9D3A2),
                                   ],
                                 ),
-                                border: Border(
-                                  top: BorderSide(
-                                    color: Color(0xFFB89A62),
-                                    width: 2,
+                              ),
+                            ),
+                          ),
+                          const Align(
+                            alignment: Alignment(0, -0.15),
+                            child: SizedBox(
+                              width: 360,
+                              height: 300,
+                              child: DecoratedBox(
+                                decoration: BoxDecoration(
+                                  shape: BoxShape.circle,
+                                  gradient: RadialGradient(
+                                    colors: [
+                                      Color(0x55FFFFFF),
+                                      Color(0x00FFFFFF),
+                                    ],
                                   ),
                                 ),
                               ),
                             ),
                           ),
-                        ),
-                        // Back-wall windows.
-                        Align(
-                          alignment: const Alignment(-0.62, -0.5),
-                          child: PixelView(art.window, pixelSize: 2),
-                        ),
-                        Align(
-                          alignment: const Alignment(0.62, -0.5),
-                          child: PixelView(art.window, pixelSize: 2),
-                        ),
-                        // Storefront on the floor line — grows with your rank
-                        // (露店 → 店舗 → 大商会).
-                        Align(
-                          alignment: const Alignment(0, -0.02),
-                          child: PixelView(
-                            art.shopForRank(s.rank),
-                            pixelSize: 3,
-                            semanticLabel: '自分の商店',
-                          ),
-                        ),
-                        // Your products on the shelf (reflect real inventory).
-                        if (onShelf.isNotEmpty)
+                          // Floor.
                           Align(
-                            alignment: const Alignment(0, -0.30),
-                            child: Semantics(
-                              label: '陳列中の商品',
-                              child: Wrap(
-                                spacing: 5,
-                                children: [
-                                  for (final r in onShelf)
-                                    PixelView(
-                                      art.categoryIcon(r.category),
-                                      height: 15,
+                            alignment: Alignment.bottomCenter,
+                            child: FractionallySizedBox(
+                              widthFactor: 1,
+                              heightFactor: 0.26,
+                              child: const DecoratedBox(
+                                decoration: BoxDecoration(
+                                  gradient: LinearGradient(
+                                    begin: Alignment.topCenter,
+                                    end: Alignment.bottomCenter,
+                                    colors: [
+                                      Color(0xFFDCC08A),
+                                      Color(0xFFC9AC72),
+                                    ],
+                                  ),
+                                  border: Border(
+                                    top: BorderSide(
+                                      color: Color(0xFFB89A62),
+                                      width: 2,
                                     ),
-                                ],
+                                  ),
+                                ),
                               ),
                             ),
                           ),
-                        // Your materials as sacks by the counter.
-                        if (matStock.isNotEmpty)
+                          // Back-wall windows.
                           Align(
-                            alignment: const Alignment(-0.86, 0.30),
-                            child: Semantics(
-                              label: '仕入れた素材',
-                              child: Column(
-                                mainAxisSize: MainAxisSize.min,
-                                children: [
-                                  for (final m in matStock)
-                                    Padding(
-                                      padding: const EdgeInsets.only(top: 1),
-                                      child: PixelView(
-                                        art.materialIcon(m),
-                                        height: 16,
+                            alignment: const Alignment(-0.62, -0.5),
+                            child: PixelView(art.window, pixelSize: 2),
+                          ),
+                          Align(
+                            alignment: const Alignment(0.62, -0.5),
+                            child: PixelView(art.window, pixelSize: 2),
+                          ),
+                          // Storefront on the floor line — grows with your rank
+                          // (露店 → 店舗 → 大商会).
+                          Align(
+                            alignment: const Alignment(0, -0.02),
+                            child: PixelView(
+                              art.shopForRank(s.rank),
+                              pixelSize: 3,
+                              semanticLabel: '自分の商店',
+                            ),
+                          ),
+                          // Your products on the shelf (reflect real inventory).
+                          if (onShelf.isNotEmpty)
+                            Align(
+                              alignment: const Alignment(0, -0.30),
+                              child: Semantics(
+                                label: '陳列中の商品',
+                                child: Wrap(
+                                  spacing: 5,
+                                  children: [
+                                    for (final r in onShelf)
+                                      PixelView(
+                                        art.categoryIcon(r.category),
+                                        height: 15,
                                       ),
-                                    ),
+                                  ],
+                                ),
+                              ),
+                            ),
+                          // Your materials as sacks by the counter.
+                          if (matStock.isNotEmpty)
+                            Align(
+                              alignment: const Alignment(-0.86, 0.30),
+                              child: Semantics(
+                                label: '仕入れた素材',
+                                child: Column(
+                                  mainAxisSize: MainAxisSize.min,
+                                  children: [
+                                    for (final m in matStock)
+                                      Padding(
+                                        padding: const EdgeInsets.only(top: 1),
+                                        child: PixelView(
+                                          art.materialIcon(m),
+                                          height: 16,
+                                        ),
+                                      ),
+                                  ],
+                                ),
+                              ),
+                            ),
+                          // 店主 greets a customer, props flanking.
+                          Align(
+                            alignment: Alignment.bottomCenter,
+                            child: Padding(
+                              padding: const EdgeInsets.only(bottom: 14),
+                              child: Row(
+                                mainAxisSize: MainAxisSize.min,
+                                crossAxisAlignment: CrossAxisAlignment.end,
+                                children: [
+                                  PixelView(art.plant, pixelSize: 2),
+                                  const SizedBox(width: 8),
+                                  PixelView(
+                                    art.hero,
+                                    pixelSize: 2,
+                                    semanticLabel: '店主',
+                                  ),
+                                  const SizedBox(width: 22),
+                                  PixelView(
+                                    _visitors[vi],
+                                    pixelSize: 2,
+                                    flip: true,
+                                    semanticLabel: _visitorLabels[vi],
+                                  ),
+                                  const SizedBox(width: 8),
+                                  PixelView(art.barrel, pixelSize: 2),
                                 ],
                               ),
                             ),
                           ),
-                        // 店主 greets a customer, props flanking.
-                        Align(
-                          alignment: Alignment.bottomCenter,
-                          child: Padding(
-                            padding: const EdgeInsets.only(bottom: 14),
-                            child: Row(
-                              mainAxisSize: MainAxisSize.min,
-                              crossAxisAlignment: CrossAxisAlignment.end,
-                              children: [
-                                PixelView(art.plant, pixelSize: 2),
-                                const SizedBox(width: 8),
-                                PixelView(
-                                  art.hero,
-                                  pixelSize: 2,
-                                  semanticLabel: '店主',
-                                ),
-                                const SizedBox(width: 22),
-                                PixelView(
-                                  _visitors[vi],
-                                  pixelSize: 2,
-                                  flip: true,
-                                  semanticLabel: _visitorLabels[vi],
-                                ),
-                                const SizedBox(width: 8),
-                                PixelView(art.barrel, pixelSize: 2),
-                              ],
-                            ),
-                          ),
-                        ),
-                      ],
+                        ],
+                      ),
                     ),
                   ),
                 ),
-              ),
-              const SizedBox(height: 10),
-              Text(
-                '従業員 ${s.employees}人 ・ 発見レシピ ${s.discoveries}種',
-                style: const TextStyle(fontSize: 13),
-              ),
-              // §12.4 年次決算 — a non-blocking chapter review at year turns.
-              if (game.pendingChapter != null)
-                Padding(
-                  padding: const EdgeInsets.only(top: 10),
-                  child: _ChapterReviewCard(
-                    review: game.pendingChapter!,
-                    onDismiss: game.acknowledgeChapter,
+                const SizedBox(height: 10),
+                Text(
+                  '従業員 ${s.employees}人 ・ 発見レシピ ${s.discoveries}種',
+                  style: const TextStyle(fontSize: 13),
+                ),
+                // §12.4 年次決算 — a non-blocking chapter review at year turns.
+                if (game.pendingChapter != null)
+                  Padding(
+                    padding: const EdgeInsets.only(top: 10),
+                    child: _ChapterReviewCard(
+                      review: game.pendingChapter!,
+                      onDismiss: game.acknowledgeChapter,
+                    ),
                   ),
-                ),
-              // Brand-new player (no products yet): a friendly what-to-do card.
-              if (s.discoveries == 0)
-                Padding(
-                  padding: const EdgeInsets.only(top: 10),
-                  child: _WelcomeGuide(game: game),
-                ),
-              if (s.pendingHintCount(game) > 0)
-                Padding(
-                  padding: const EdgeInsets.only(top: 8),
-                  child: _bottleneck(context, game),
-                ),
-            ],
+                // Brand-new player (no products yet): a friendly what-to-do card.
+                if (s.discoveries == 0)
+                  Padding(
+                    padding: const EdgeInsets.only(top: 10),
+                    child: _WelcomeGuide(game: game),
+                  ),
+                if (s.pendingHintCount(game) > 0)
+                  Padding(
+                    padding: const EdgeInsets.only(top: 8),
+                    child: _bottleneck(context, game),
+                  ),
+              ],
+            ),
           ),
         ),
       ),
-        ),
     );
   }
 
@@ -559,51 +559,51 @@ class _ChapterReviewCard extends StatelessWidget {
     return SizedBox(
       width: 320, // bounded (the shop view lives inside a FittedBox)
       child: PixelBox(
-      fill: const Color(0xFFF6E8C6),
-      padding: const EdgeInsets.all(12),
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Row(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              PixelView(art.sparkle, height: 15),
-              const SizedBox(width: 6),
-              Text(
-                '第${review.chapter}章 決算 ― この1年の記録',
-                style: const TextStyle(
-                  fontSize: 14,
-                  fontWeight: FontWeight.bold,
-                  color: kInkText,
-                ),
-              ),
-            ],
-          ),
-          const SizedBox(height: 8),
-          _row('到達ランク', review.rankName),
-          _row('今年の売上', '+${gold(review.revenue)}'),
-          _row('得た名声', '+${review.fameGain}'),
-          _row('発見レシピ', '${review.discoveries}種'),
-          const SizedBox(height: 10),
-          SizedBox(
-            width: double.infinity,
-            child: PixelButton(
-              onTap: onDismiss,
-              fill: kAccent,
-              padding: const EdgeInsets.symmetric(vertical: 9),
-              child: const Center(
-                child: Text(
-                  '次の章へ',
-                  style: TextStyle(
+        fill: const Color(0xFFF6E8C6),
+        padding: const EdgeInsets.all(12),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                PixelView(art.sparkle, height: 15),
+                const SizedBox(width: 6),
+                Text(
+                  '第${review.chapter}章 決算 ― この1年の記録',
+                  style: const TextStyle(
+                    fontSize: 14,
                     fontWeight: FontWeight.bold,
                     color: kInkText,
                   ),
                 ),
+              ],
+            ),
+            const SizedBox(height: 8),
+            _row('到達ランク', review.rankName),
+            _row('今年の売上', '+${gold(review.revenue)}'),
+            _row('得た名声', '+${review.fameGain}'),
+            _row('発見レシピ', '${review.discoveries}種'),
+            const SizedBox(height: 10),
+            SizedBox(
+              width: double.infinity,
+              child: PixelButton(
+                onTap: onDismiss,
+                fill: kAccent,
+                padding: const EdgeInsets.symmetric(vertical: 9),
+                child: const Center(
+                  child: Text(
+                    '次の章へ',
+                    style: TextStyle(
+                      fontWeight: FontWeight.bold,
+                      color: kInkText,
+                    ),
+                  ),
+                ),
               ),
             ),
-          ),
-        ],
-      ),
+          ],
+        ),
       ),
     );
   }
@@ -637,64 +637,101 @@ class _WelcomeGuide extends StatelessWidget {
     Navigator.of(context).push(MaterialPageRoute(builder: (_) => screen));
   }
 
-  @override
-  Widget build(BuildContext context) {
-    return PixelBox(
-      fill: const Color(0xFFFBEBBE),
-      padding: const EdgeInsets.all(12),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          const Text(
-            'ようこそ、異世界へ！',
-            style: TextStyle(
-              fontWeight: FontWeight.bold,
-              fontSize: 14,
+  /// One numbered "やること" line: a bold circled number + the instruction.
+  Widget _step(String num, String text) => Padding(
+    padding: const EdgeInsets.only(bottom: 4),
+    child: Row(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          num,
+          style: const TextStyle(
+            fontSize: 14,
+            fontWeight: FontWeight.bold,
+            color: kInk,
+          ),
+        ),
+        const SizedBox(width: 6),
+        Expanded(
+          child: Text(
+            text,
+            style: const TextStyle(
+              fontSize: 13.5,
+              height: 1.35,
               color: kInkText,
             ),
           ),
-          const SizedBox(height: 4),
-          const Text(
-            'まずは下の「開発」で最初の商品を作ろう。並べれば自動で売れて、'
-            'お金と名声が貯まっていくよ。',
-            style: TextStyle(fontSize: 12.5, height: 1.4, color: kInkText),
-          ),
-          const SizedBox(height: 10),
-          Row(
-            children: [
-              PixelButton(
-                onTap: () => _open(context, const DevelopScreen()),
-                fill: kAccent,
-                padding: const EdgeInsets.symmetric(
-                  horizontal: 14,
-                  vertical: 8,
-                ),
-                child: const Text(
-                  '開発をひらく',
-                  style: TextStyle(
-                    fontWeight: FontWeight.bold,
-                    color: kInkText,
+        ),
+      ],
+    ),
+  );
+
+  @override
+  Widget build(BuildContext context) {
+    return SizedBox(
+      width:
+          320, // bounded — the shop view lives inside a FittedBox (§ diorama)
+      child: PixelBox(
+        fill: const Color(0xFFFBEBBE),
+        padding: const EdgeInsets.all(12),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            const Text(
+              'ようこそ、異世界へ！',
+              style: TextStyle(
+                fontWeight: FontWeight.bold,
+                fontSize: 16,
+                color: kInkText,
+              ),
+            ),
+            const SizedBox(height: 6),
+            const Text(
+              'この世界にまだ無い商品を発明して、行商人から大商会主へ。'
+              'やることは3つだけ：',
+              style: TextStyle(fontSize: 13.5, height: 1.45, color: kInkText),
+            ),
+            const SizedBox(height: 8),
+            _step('①', '下の「開発」で新しい商品を発明する'),
+            _step('②', '「生産」でその商品を仕込む'),
+            _step('③', '「次の週へ」で時を進めると自動で売れる'),
+            const SizedBox(height: 10),
+            Row(
+              children: [
+                PixelButton(
+                  onTap: () => _open(context, const DevelopScreen()),
+                  fill: kAccent,
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 14,
+                    vertical: 8,
+                  ),
+                  child: const Text(
+                    '開発をひらく',
+                    style: TextStyle(
+                      fontWeight: FontWeight.bold,
+                      color: kInkText,
+                    ),
                   ),
                 ),
-              ),
-              const SizedBox(width: 8),
-              PixelButton(
-                onTap: () => _open(context, const HowToPlayScreen()),
-                padding: const EdgeInsets.symmetric(
-                  horizontal: 12,
-                  vertical: 8,
-                ),
-                child: const Text(
-                  '遊び方',
-                  style: TextStyle(
-                    fontWeight: FontWeight.w600,
-                    color: kInkText,
+                const SizedBox(width: 8),
+                PixelButton(
+                  onTap: () => _open(context, const HowToPlayScreen()),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 12,
+                    vertical: 8,
+                  ),
+                  child: const Text(
+                    '遊び方',
+                    style: TextStyle(
+                      fontWeight: FontWeight.w600,
+                      color: kInkText,
+                    ),
                   ),
                 ),
-              ),
-            ],
-          ),
-        ],
+              ],
+            ),
+          ],
+        ),
       ),
     );
   }
@@ -840,7 +877,11 @@ class _BottomNav extends StatelessWidget {
         ),
         border: Border(top: BorderSide(color: Color(0xFF8A5E30), width: 2)),
         boxShadow: [
-          BoxShadow(color: Color(0x33000000), blurRadius: 6, offset: Offset(0, -2)),
+          BoxShadow(
+            color: Color(0x33000000),
+            blurRadius: 6,
+            offset: Offset(0, -2),
+          ),
         ],
       ),
       child: SafeArea(
@@ -898,7 +939,7 @@ class _BottomNav extends StatelessWidget {
               Text(
                 label,
                 style: const TextStyle(
-                  fontSize: 11,
+                  fontSize: 12,
                   fontWeight: FontWeight.w700,
                   color: kInkText,
                 ),
@@ -935,89 +976,89 @@ class _LifeEndBanner extends StatelessWidget {
               child: SizedBox(
                 width: 320,
                 child: PixelBox(
-                bevel: 3,
-                padding: const EdgeInsets.all(20),
-                child: Column(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    Text(
-                      '${game.lifeNumber}周目の人生が終わった（$reason）',
-                      style: const TextStyle(
-                        fontSize: 18,
-                        fontWeight: FontWeight.bold,
-                        color: kInkText,
-                      ),
-                    ),
-                    const SizedBox(height: 4),
-                    Text(
-                      '到達ランク: ${game.balance.ranks[game.state.rank].name}',
-                      style: const TextStyle(fontSize: 13, color: kInkText),
-                    ),
-                    const _InkRule(),
-                    if (sc != null) ...[
-                      _row('最終資産', sc.assetsPart),
-                      _row('累積名声', sc.famePart),
-                      _row(
-                        '発見レシピ (${game.state.discoveries}種)',
-                        sc.recipesPart,
-                      ),
-                      _row('到達ランク', sc.rankPart),
-                      const _InkRule(),
-                      _row('生涯スコア', sc.total, bold: true),
-                      const SizedBox(height: 8),
-                      Row(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          PixelView(art.sparkle, height: 15),
-                          const SizedBox(width: 5),
-                          Text(
-                            '魂の記憶 +${game.pendingSoulPoints} pt',
-                            style: const TextStyle(
-                              color: kFame,
-                              fontWeight: FontWeight.bold,
-                              fontSize: 15,
-                            ),
-                          ),
-                        ],
-                      ),
+                  bevel: 3,
+                  padding: const EdgeInsets.all(20),
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
                       Text(
-                        '（累計 ${game.soulPointsTotal + game.pendingSoulPoints} pt）',
+                        '${game.lifeNumber}周目の人生が終わった（$reason）',
                         style: const TextStyle(
-                          fontSize: 12,
-                          color: Colors.grey,
+                          fontSize: 18,
+                          fontWeight: FontWeight.bold,
+                          color: kInkText,
                         ),
                       ),
-                    ],
-                    const SizedBox(height: 20),
-                    _wideBtn(
-                      Icons.auto_awesome,
-                      '魂の記憶ツリー（恒久アンロック）',
-                      () => Navigator.of(context).push(
-                        MaterialPageRoute(
-                          builder: (_) => const SoulMemoryScreen(),
+                      const SizedBox(height: 4),
+                      Text(
+                        '到達ランク: ${game.balance.ranks[game.state.rank].name}',
+                        style: const TextStyle(fontSize: 13, color: kInkText),
+                      ),
+                      const _InkRule(),
+                      if (sc != null) ...[
+                        _row('最終資産', sc.assetsPart),
+                        _row('累積名声', sc.famePart),
+                        _row(
+                          '発見レシピ (${game.state.discoveries}種)',
+                          sc.recipesPart,
+                        ),
+                        _row('到達ランク', sc.rankPart),
+                        const _InkRule(),
+                        _row('生涯スコア', sc.total, bold: true),
+                        const SizedBox(height: 8),
+                        Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            PixelView(art.sparkle, height: 15),
+                            const SizedBox(width: 5),
+                            Text(
+                              '魂の記憶 +${game.pendingSoulPoints} pt',
+                              style: const TextStyle(
+                                color: kFame,
+                                fontWeight: FontWeight.bold,
+                                fontSize: 15,
+                              ),
+                            ),
+                          ],
+                        ),
+                        Text(
+                          '（累計 ${game.soulPointsTotal + game.pendingSoulPoints} pt）',
+                          style: const TextStyle(
+                            fontSize: 12,
+                            color: Colors.grey,
+                          ),
+                        ),
+                      ],
+                      const SizedBox(height: 20),
+                      _wideBtn(
+                        Icons.auto_awesome,
+                        '魂の記憶ツリー（恒久アンロック）',
+                        () => Navigator.of(context).push(
+                          MaterialPageRoute(
+                            builder: (_) => const SoulMemoryScreen(),
+                          ),
                         ),
                       ),
-                    ),
-                    // Main paywall touchpoint (§14): surfaced from the 2nd life
-                    // onward, and only when 完全版 isn't already owned.
-                    if (!game.isFull && game.lifeNumber >= 2) ...[
+                      // Main paywall touchpoint (§14): surfaced from the 2nd life
+                      // onward, and only when 完全版 isn't already owned.
+                      if (!game.isFull && game.lifeNumber >= 2) ...[
+                        const SizedBox(height: 8),
+                        _wideBtn(
+                          Icons.workspace_premium,
+                          '完全版で恒久強化を全解放',
+                          () => showPaywall(context),
+                        ),
+                      ],
                       const SizedBox(height: 8),
                       _wideBtn(
-                        Icons.workspace_premium,
-                        '完全版で恒久強化を全解放',
-                        () => showPaywall(context),
+                        Icons.autorenew,
+                        '転生する（次の人生へ）',
+                        game.rebirth,
+                        gold: true,
                       ),
                     ],
-                    const SizedBox(height: 8),
-                    _wideBtn(
-                      Icons.autorenew,
-                      '転生する（次の人生へ）',
-                      game.rebirth,
-                      gold: true,
-                    ),
-                  ],
+                  ),
                 ),
-              ),
               ),
             ),
           ),

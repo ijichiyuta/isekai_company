@@ -158,15 +158,15 @@ Widget maeseMemo(String text) => Container(
     children: [
       const Padding(
         padding: EdgeInsets.only(top: 1),
-        child: Icon(Icons.auto_stories, size: 15, color: Color(0xFF7A5A86)),
+        child: Icon(Icons.auto_stories, size: 16, color: Color(0xFF7A5A86)),
       ),
       const SizedBox(width: 6),
       Expanded(
         child: Text(
           text,
           style: const TextStyle(
-            fontSize: 11.5,
-            height: 1.25,
+            fontSize: 12.5,
+            height: 1.3,
             fontWeight: FontWeight.w600,
             color: kInkText,
           ),
@@ -231,7 +231,7 @@ class PixelListTile extends StatelessWidget {
                 Padding(
                   padding: const EdgeInsets.only(top: 2),
                   child: DefaultTextStyle.merge(
-                    style: const TextStyle(fontSize: 12, color: Color(0xFF8A6A44)),
+                    style: const TextStyle(fontSize: 12.5, color: Color(0xFF8A6A44)),
                     child: subtitle!,
                   ),
                 ),

@@ -10,22 +10,38 @@ import 'game_ui.dart';
 import 'pixel/pixel_art.dart';
 import 'pixel/sprites.dart' as art;
 
-/// A selectable pill rendered as a pixel button (gold when selected).
-Widget _chip(String label, bool selected, VoidCallback? onTap) => PixelButton(
+/// A selectable pill rendered as a pixel button (gold when selected). An
+/// optional [icon] shows the material/thing at a glance so players don't have
+/// to read every label.
+Widget _chip(
+  String label,
+  bool selected,
+  VoidCallback? onTap, {
+  PixelSprite? icon,
+}) => PixelButton(
   onTap: onTap,
   fill: selected ? kAccent : kPanel,
-  padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
-  child: Text(
-    label,
-    style: TextStyle(
-      fontWeight: selected ? FontWeight.bold : FontWeight.w600,
-      fontSize: 13,
-      color: kInkText,
-    ),
+  padding: const EdgeInsets.symmetric(horizontal: 11, vertical: 8),
+  child: Row(
+    mainAxisSize: MainAxisSize.min,
+    children: [
+      if (icon != null) ...[
+        PixelView(icon, height: 22),
+        const SizedBox(width: 6),
+      ],
+      Text(
+        label,
+        style: TextStyle(
+          fontWeight: selected ? FontWeight.bold : FontWeight.w600,
+          fontSize: 15,
+          color: kInkText,
+        ),
+      ),
+    ],
   ),
 );
 
-/// PB開発 (requirements §4, §12.2): pick 2 material slots + 1 method. Missing
+/// 商品開発 (requirements §4, §12.2): pick 2 material slots + 1 method. Missing
 /// materials are auto-ordered so the loop stays smooth for new players. The
 /// invention overlay (if any) is driven by the controller after the step.
 class DevelopScreen extends ConsumerStatefulWidget {
@@ -68,7 +84,7 @@ class _DevelopScreenState extends ConsumerState<DevelopScreen> {
     return AppBackground(
       child: Scaffold(
         backgroundColor: Colors.transparent,
-        appBar: pixelAppBar(title: PixelTitle(art.beaker, 'PB開発')),
+        appBar: pixelAppBar(title: PixelTitle(art.beaker, '商品開発')),
         // The primary action is pinned so it never scrolls off (the recipe list
         // grows as more materials/recipes are added).
         bottomNavigationBar: SafeArea(
@@ -122,7 +138,7 @@ class _DevelopScreenState extends ConsumerState<DevelopScreen> {
         ),
         body: Column(
           children: [
-            maeseMemo('前世の記憶　「PB開発」＝自主企画商品。この世界にまだ無い品を、記憶を頼りに生み出す。'),
+            maeseMemo('前世の記憶　素材を2つと製法を選ぶだけ。この世界にまだ無い商品を、記憶を頼りに発明する。'),
             Expanded(
               child: ListView(
                 padding: const EdgeInsets.all(16),
@@ -229,6 +245,7 @@ class _DevelopScreenState extends ConsumerState<DevelopScreen> {
                 '${m.name}（${gold(m.cost)}）',
                 selected == m.id,
                 () => onPick(m.id),
+                icon: art.materialIcon(m.id),
               ),
           ],
         ),

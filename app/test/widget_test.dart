@@ -49,7 +49,7 @@ void main() {
 
     await tester.tap(find.text('開発'));
     await tester.pumpAndSettle();
-    expect(find.text('PB開発'), findsOneWidget);
+    expect(find.text('商品開発'), findsOneWidget);
   });
 
   testWidgets('§12.3: the bottleneck hint surfaces and taps straight to develop', (
@@ -69,7 +69,7 @@ void main() {
     // Tapping the hint jumps straight to the screen that resolves it.
     await tester.tap(chip);
     await tester.pumpAndSettle();
-    expect(find.text('PB開発'), findsOneWidget);
+    expect(find.text('商品開発'), findsOneWidget);
   });
 
   testWidgets('developing pudding plays the invention overlay', (tester) async {
@@ -80,10 +80,15 @@ void main() {
     await tester.pumpAndSettle();
 
     // Each material appears in both slots; pick wheat in slot 1 (first) and
-    // egg in slot 2 (last). cooling is method 0 (default).
-    await tester.tap(find.text('小麦（2ゴールド）').first);
+    // egg in slot 2 (last). cooling is method 0 (default). ensureVisible scrolls
+    // the chip into the list viewport (the pinned action bar would obscure it).
+    final wheat = find.text('小麦（2ゴールド）').first;
+    await tester.ensureVisible(wheat);
+    await tester.tap(wheat);
     await tester.pump();
-    await tester.tap(find.text('卵（3ゴールド）').last);
+    final egg = find.text('卵（3ゴールド）').last;
+    await tester.ensureVisible(egg);
+    await tester.tap(egg);
     await tester.pump();
     await tester.tap(find.textContaining('開発する'));
     await tester.pumpAndSettle();
@@ -114,7 +119,7 @@ void main() {
     await tester.pumpAndSettle();
 
     // The guided develop screen opens with pudding pre-selected + a hint.
-    expect(find.text('PB開発'), findsOneWidget);
+    expect(find.text('商品開発'), findsOneWidget);
     expect(find.textContaining('小麦 × 卵'), findsOneWidget);
 
     // Just press the develop button (unique "素材費" label) — materials are

@@ -97,11 +97,14 @@ final PixelSprite konbini = konbiniHd;
 
 /// HD townsfolk — one 48×54 `_person` build recolored per role: skin/hair/cloth
 /// ramps, a real face, uniform folds, selective outline. `heroHd` is the 店主.
+// 店主 — the transmigrated SV as a fantasy shopkeeper: a linen tunic under a
+// brown leather apron (his retail nod), warm trousers, a small gold pin.
 final PixelSprite heroHd = _person(
   hair: ['C', 'D', 'E'],
-  top: ['F', 'G', 'H'],
-  pants: ['F', 'G'],
+  top: ['f', 'g', 'h'], // warm linen tunic
+  pants: ['b', 'c'], // brown trousers
   apron: true,
+  apronRamp: ['b', 'c', 'd'], // leather
   nameTag: true,
 );
 final PixelSprite villagerHd = _person(
@@ -373,6 +376,7 @@ PixelSprite _person({
   required List<String> top,
   required List<String> pants,
   bool apron = false,
+  List<String> apronRamp = const ['I', 'J', 'L'], // shadow, base, highlight
   bool nameTag = false,
   bool cloak = false,
   List<String> cloakRamp = const ['M', 'N', 'O'],
@@ -510,18 +514,20 @@ PixelSprite _person({
   c.rect(cx - 2, 43, 4, 3, 'v');
   c.set(cx - 2, 43, 'x');
 
-  // APRON (optional) — bib + skirt with folds + pocket.
+  // APRON (optional) — bib + skirt with folds + pocket. Colour via [apronRamp]
+  // (white cloth by default; leather for the merchant 店主).
   if (apron) {
-    c.rect(cx - 5, 30, 10, 3, 'J');
-    c.rect(cx - 8, 33, 16, 13, 'J');
-    c.rampV(cx - 8, 33, 16, 13, ['L', 'J', 'J', 'I']);
-    c.border(cx - 8, 33, 16, 13, 'I');
-    c.hline(cx - 8, 34, 16, 'I');
-    c.hline(cx - 5, 40, 10, 'I');
-    c.vline(cx, 33, 13, 'I');
+    final aSh = apronRamp[0], aBase = apronRamp[1], aHi = apronRamp[2];
+    c.rect(cx - 5, 30, 10, 3, aBase);
+    c.rect(cx - 8, 33, 16, 13, aBase);
+    c.rampV(cx - 8, 33, 16, 13, [aHi, aBase, aBase, aSh]);
+    c.border(cx - 8, 33, 16, 13, aSh);
+    c.hline(cx - 8, 34, 16, aHi);
+    c.hline(cx - 5, 40, 10, aSh); // pocket seam
+    c.vline(cx, 33, 13, aSh);
   }
   if (nameTag) {
-    c.rect(cx + 1, 30, 4, 2, 'w');
+    c.rect(cx + 1, 30, 4, 2, 'w'); // a small gold merchant pin
     c.set(cx + 1, 30, 'x');
   }
 

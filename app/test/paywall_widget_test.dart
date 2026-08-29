@@ -70,6 +70,30 @@ void main() {
     expect(find.text('✔ 完全版 購入済み'), findsOneWidget); // header now owned
   });
 
+  testWidgets('paywall discloses price + non-consumable + legal links (景表法/3.1.2)', (
+    t,
+  ) async {
+    await _pump(t, const SoulMemoryScreen(), iap: _FakeIap(true));
+    await t.tap(find.byIcon(Icons.lock_open)); // open the paywall sheet
+    await t.pumpAndSettle();
+
+    // Price and the買い切り・非消耗・追加課金なし disclosure must be shown BEFORE
+    // purchase (景表法 表示義務 / App Store 3.1.2). A regression that drops this
+    // block would otherwise pass every other test yet risk review rejection.
+    expect(find.textContaining('¥1,200'), findsWidgets); // button + legal line
+    expect(find.textContaining('買い切り'), findsOneWidget);
+    expect(find.textContaining('非消耗'), findsOneWidget);
+    expect(find.textContaining('追加課金なし'), findsOneWidget);
+
+    // The three required legal links (要件§14.4 / §23.3).
+    expect(find.text('利用規約'), findsOneWidget);
+    expect(find.text('プライバシー'), findsOneWidget);
+    expect(find.text('特定商取引法に基づく表記'), findsOneWidget);
+
+    // The benefit is stated dynamically (AC-16: derived, never hardcoded).
+    expect(find.textContaining('項目 解放'), findsOneWidget);
+  });
+
   testWidgets('settings exposes a 復元 entry (App Store 3.1.1)', (t) async {
     await _pump(t, const SettingsScreen(), iap: _FakeIap(true));
     expect(find.text('購入を復元'), findsOneWidget);

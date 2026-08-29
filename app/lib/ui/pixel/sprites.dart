@@ -113,21 +113,26 @@ final PixelSprite heroHd = _person(
   apron: true,
   apronRamp: ['b', 'c', 'd'], // leather
   nameTag: true,
+  expression: 1, // a welcoming smile
 );
 final PixelSprite villagerHd = _person(
   hair: ['M', 'N', 'O'],
   top: ['T', 'U', 'V'],
   pants: ['a', 'b'],
+  hairStyle: 3, // spiky
 );
 final PixelSprite ladyHd = _person(
   hair: ['u', 'v', 'w'],
   top: ['M', 'N', 'O'],
   pants: ['M', 'N'],
+  hairStyle: 2, // bun
+  expression: 1, // smile
 );
 final PixelSprite elderHd = _person(
   hair: ['P', 'Q', 'R'],
   top: ['b', 'c', 'd'],
   pants: ['P', 'Q'],
+  hairStyle: 4, // receding
 );
 final PixelSprite adventurerHd = _person(
   hair: ['C', 'D', 'E'],
@@ -135,6 +140,7 @@ final PixelSprite adventurerHd = _person(
   pants: ['a', 'b'],
   cloak: true,
   cloakRamp: ['M', 'N', 'O'],
+  hairStyle: 1, // side-swept
 );
 
 /// A glazed display window with wooden frame, product shelves and a reflection.
@@ -518,6 +524,8 @@ PixelSprite _person({
   bool cloak = false,
   List<String> cloakRamp = const ['M', 'N', 'O'],
   List<String> boots = const ['a', 'b', 'c'],
+  int hairStyle = 0, // 0 short, 1 long, 2 ponytail, 3 spiky, 4 receding
+  int expression = 0, // 0 neutral, 1 smile, 2 surprised
 }) {
   final hSh = hair[0], hBase = hair[1], hHi = hair[2];
   final tSh = top[0], tBase = top[1], tHi = top[2];
@@ -581,6 +589,31 @@ PixelSprite _person({
     c.set(cx + hr - 1, y, hSh);
   }
 
+  // HAIRSTYLE accents (all within the head region so no draw-order changes).
+  if (hairStyle == 1) {
+    // side-swept: a bold diagonal highlight streak
+    for (var i = 0; i < 5; i++) {
+      c.set(cx - 5 + i, hy - hr + 2 + i, hHi);
+    }
+  } else if (hairStyle == 2) {
+    // ponytail bun at the back-top
+    c.discShaded(cx + hr - 1, hy - hr + 2, 3, [hHi, hBase, hSh]);
+    c.set(cx + hr, hy - hr + 1, hHi);
+  } else if (hairStyle == 3) {
+    // spikes above the fringe
+    for (final sx in [cx - 5, cx - 1, cx + 3]) {
+      c.set(sx, hy - hr - 1, hBase);
+      c.set(sx, hy - hr - 2, hSh);
+      c.set(sx + 1, hy - hr - 1, hBase);
+    }
+  } else if (hairStyle == 4) {
+    // receding: give more forehead (clear the low centre fringe → skin)
+    for (var x = cx - 3; x <= cx + 3; x++) {
+      if (c.at(x, hy - 2) == hBase) c.set(x, hy - 2, 'A');
+      if (c.at(x, hy - 1) == hBase) c.set(x, hy - 1, 'A');
+    }
+  }
+
   // FACE — minimal (FE-style): 1px eyes, tiny nose + mouth, faint blush.
   c.set(cx - 3, 15, 'F');
   c.set(cx - 3, 16, 'K');
@@ -588,10 +621,25 @@ PixelSprite _person({
   c.set(cx + 2, 16, 'K');
   c.set(cx - 4, 14, hSh);
   c.set(cx + 3, 14, hSh);
-  c.set(cx, 18, 'y');
-  c.set(cx - 1, 20, 'M');
-  c.set(cx, 20, 'M');
-  c.set(cx - 5, 18, 'Z');
+  c.set(cx, 18, 'y'); // nose
+  // MOUTH by expression.
+  if (expression == 1) {
+    // smile — a small upturned arc
+    c.set(cx - 2, 20, 'M');
+    c.set(cx - 1, 21, 'M');
+    c.set(cx, 21, 'M');
+    c.set(cx + 1, 20, 'M');
+  } else if (expression == 2) {
+    // surprised — a small round mouth
+    c.set(cx, 20, 'M');
+    c.set(cx, 21, 'M');
+    c.set(cx - 1, 20, 'M');
+    c.set(cx + 1, 20, 'M');
+  } else {
+    c.set(cx - 1, 20, 'M');
+    c.set(cx, 20, 'M');
+  }
+  c.set(cx - 5, 18, 'Z'); // blush
   c.set(cx + 4, 18, 'Z');
 
   // NECK.

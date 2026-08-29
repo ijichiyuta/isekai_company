@@ -486,62 +486,106 @@ class _BottomNav extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return BottomAppBar(
-      height: 64,
-      padding: EdgeInsets.zero,
-      child: Row(
-        children: [
-          _navItem(
-            context,
-            PixelView(art.beaker, height: 24),
-            '開発',
-            const DevelopScreen(),
-          ),
-          _navItem(
-            context,
-            PixelView(art.factoryIcon, height: 24),
-            '生産',
-            const ProductionScreen(),
-          ),
-          _navItem(
-            context,
-            PixelView(art.storefront, height: 24),
-            '販売',
-            const SalesScreen(),
-          ),
-          _navItem(
-            context,
-            PixelView(art.cart, height: 24),
-            '発注',
-            const OrderScreen(),
-          ),
-          if (kDebugMode)
-            _navItem(
-              context,
-              const Icon(Icons.bug_report, size: 22),
-              'デバッグ',
-              const DebugMenu(),
-            ),
+    // A wooden shelf the action "keys" sit on — chunky, warm, game-like (not a
+    // flat Material bottom bar).
+    return Container(
+      decoration: const BoxDecoration(
+        gradient: LinearGradient(
+          begin: Alignment.topCenter,
+          end: Alignment.bottomCenter,
+          colors: [Color(0xFFCBA66E), Color(0xFFB2894F)],
+        ),
+        border: Border(top: BorderSide(color: Color(0xFF8A5E30), width: 2)),
+        boxShadow: [
+          BoxShadow(color: Color(0x33000000), blurRadius: 6, offset: Offset(0, -2)),
         ],
+      ),
+      child: SafeArea(
+        top: false,
+        child: Padding(
+          padding: const EdgeInsets.fromLTRB(6, 7, 6, 7),
+          child: Row(
+            children: [
+              _navItem(context, art.beaker, '開発', const DevelopScreen()),
+              _navItem(
+                context,
+                art.factoryIcon,
+                '生産',
+                const ProductionScreen(),
+              ),
+              _navItem(context, art.storefront, '販売', const SalesScreen()),
+              _navItem(context, art.cart, '発注', const OrderScreen()),
+              if (kDebugMode)
+                _navItem(context, null, 'デバッグ', const DebugMenu()),
+            ],
+          ),
+        ),
       ),
     );
   }
 
+  // A single raised "key" button: warm gradient face, wood border, lit top edge
+  // and a soft drop shadow so it reads as a physical button, not a tab.
   Widget _navItem(
     BuildContext context,
-    Widget icon,
+    PixelSprite? sprite,
     String label,
     Widget screen,
   ) {
+    final icon = sprite != null
+        ? PixelView(sprite, height: 24)
+        : const Icon(Icons.bug_report, size: 22, color: Color(0xFF6B4A2B));
     return Expanded(
-      child: InkWell(
-        onTap: () => _open(context, screen),
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            SizedBox(height: 26, child: Center(child: icon)),
-            Text(label, style: const TextStyle(fontSize: 11)),
-          ],
+      child: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 3),
+        child: DecoratedBox(
+          decoration: BoxDecoration(
+            borderRadius: BorderRadius.circular(12),
+            boxShadow: const [
+              BoxShadow(
+                color: Color(0x30000000),
+                blurRadius: 3,
+                offset: Offset(0, 2),
+              ),
+            ],
+          ),
+          child: Material(
+            color: Colors.transparent,
+            borderRadius: BorderRadius.circular(12),
+            clipBehavior: Clip.antiAlias,
+            child: Ink(
+              decoration: BoxDecoration(
+                gradient: const LinearGradient(
+                  begin: Alignment.topCenter,
+                  end: Alignment.bottomCenter,
+                  colors: [Color(0xFFF8EBCB), Color(0xFFE7CF9E)],
+                ),
+                border: Border.all(color: const Color(0xFFAD8A55), width: 1.5),
+                borderRadius: BorderRadius.circular(12),
+              ),
+              child: InkWell(
+                onTap: () => _open(context, screen),
+                child: Padding(
+                  padding: const EdgeInsets.symmetric(vertical: 6),
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      SizedBox(height: 26, child: Center(child: icon)),
+                      const SizedBox(height: 1),
+                      Text(
+                        label,
+                        style: const TextStyle(
+                          fontSize: 11,
+                          fontWeight: FontWeight.w700,
+                          color: Color(0xFF6B4A2B),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            ),
+          ),
         ),
       ),
     );

@@ -267,6 +267,19 @@ class _ShopView extends StatelessWidget {
   Widget build(BuildContext context) {
     final s = game.state;
     final vi = s.week % _visitors.length;
+    // Products the shop currently has on hand — shown on the shelf so the
+    // diorama reflects your real inventory (§ user request).
+    final onShelf = <RecipeDef>[];
+    for (final r in game.balance.recipes) {
+      if (s.discovered[r.id] && s.productStock[r.id] > 0) onShelf.add(r);
+      if (onShelf.length >= 6) break;
+    }
+    // A couple of your best-stocked materials, shown as sacks by the counter.
+    final matStock = <int>[];
+    for (var i = 0; i < game.balance.materials.length; i++) {
+      if (s.materialStock[i] > 0) matStock.add(i);
+      if (matStock.length >= 3) break;
+    }
     return AppBackground(
       scenery: true,
       season: calendar(s.week).season, // 春夏秋冬で壁の色と舞い散りが変わる
@@ -389,6 +402,45 @@ class _ShopView extends StatelessWidget {
                             semanticLabel: '自分の商店',
                           ),
                         ),
+                        // Your products on the shelf (reflect real inventory).
+                        if (onShelf.isNotEmpty)
+                          Align(
+                            alignment: const Alignment(0, -0.30),
+                            child: Semantics(
+                              label: '陳列中の商品',
+                              child: Wrap(
+                                spacing: 5,
+                                children: [
+                                  for (final r in onShelf)
+                                    PixelView(
+                                      art.categoryIcon(r.category),
+                                      height: 15,
+                                    ),
+                                ],
+                              ),
+                            ),
+                          ),
+                        // Your materials as sacks by the counter.
+                        if (matStock.isNotEmpty)
+                          Align(
+                            alignment: const Alignment(-0.86, 0.30),
+                            child: Semantics(
+                              label: '仕入れた素材',
+                              child: Column(
+                                mainAxisSize: MainAxisSize.min,
+                                children: [
+                                  for (final m in matStock)
+                                    Padding(
+                                      padding: const EdgeInsets.only(top: 1),
+                                      child: PixelView(
+                                        art.materialIcon(m),
+                                        height: 16,
+                                      ),
+                                    ),
+                                ],
+                              ),
+                            ),
+                          ),
                         // 店主 greets a customer, props flanking.
                         Align(
                           alignment: Alignment.bottomCenter,

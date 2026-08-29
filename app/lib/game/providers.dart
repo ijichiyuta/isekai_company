@@ -2,6 +2,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:isekai_core/isekai_core.dart';
 
 import 'analytics.dart';
+import 'audio/audio_controller.dart';
 import 'balance_loader.dart';
 import 'entitlements.dart';
 import 'game_controller.dart';
@@ -42,6 +43,13 @@ final iapClientProvider = Provider<IapClient>((ref) => StubIapClient());
 /// Analytics client. NoopAnalytics for MVP; swap for the real SDK in M4 (needs
 /// the user's keys). Overridden in tests with a capturing fake.
 final analyticsProvider = Provider<AnalyticsClient>((ref) => const NoopAnalytics());
+
+/// Sound. Ships with a SilentAudioBackend (procedural SFX are rendered but not
+/// played until a device backend is wired — see game/audio/). The 音楽/効果音
+/// toggles live on this; it notifies so Settings rebuilds.
+final audioControllerProvider = ChangeNotifierProvider<AudioController>(
+  (ref) => AudioController(),
+);
 
 /// The completion-purchase entitlements, restored from their separate file
 /// (balance-hash-independent). Defaults to not-purchased.

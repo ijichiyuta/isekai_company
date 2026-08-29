@@ -18,6 +18,7 @@ class SettingsScreen extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final game = ref.watch(gameControllerProvider);
+    final audio = ref.watch(audioControllerProvider);
     return AppBackground(
       child: Scaffold(
         backgroundColor: Colors.transparent,
@@ -72,9 +73,48 @@ class SettingsScreen extends ConsumerWidget {
                 }
               },
             ),
+            PixelListTile(
+              leading: Icon(
+                audio.bgmEnabled ? Icons.music_note : Icons.music_off,
+                color: kInkText,
+              ),
+              title: const Text('音楽 (BGM)'),
+              trailing: _Toggle(
+                on: audio.bgmEnabled,
+                onTap: () => audio.setBgmEnabled(!audio.bgmEnabled),
+              ),
+            ),
+            PixelListTile(
+              leading: Icon(
+                audio.sfxEnabled ? Icons.volume_up : Icons.volume_off,
+                color: kInkText,
+              ),
+              title: const Text('効果音'),
+              trailing: _Toggle(
+                on: audio.sfxEnabled,
+                onTap: () => audio.setSfxEnabled(!audio.sfxEnabled),
+              ),
+            ),
           ],
         ),
       ),
     );
   }
+}
+
+/// A chunky ON/OFF pixel toggle (gold when on) — no Material Switch.
+class _Toggle extends StatelessWidget {
+  const _Toggle({required this.on, required this.onTap});
+  final bool on;
+  final VoidCallback onTap;
+  @override
+  Widget build(BuildContext context) => PixelButton(
+    onTap: onTap,
+    fill: on ? kAccent : kPanel,
+    padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 6),
+    child: Text(
+      on ? 'オン' : 'オフ',
+      style: const TextStyle(fontWeight: FontWeight.bold, color: kInkText),
+    ),
+  );
 }

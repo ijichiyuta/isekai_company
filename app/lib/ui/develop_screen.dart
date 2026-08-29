@@ -179,7 +179,23 @@ class _DevelopScreenState extends ConsumerState<DevelopScreen> {
                     semanticLabel: categoryJa(r.category),
                   ),
                   title: Text(r.name),
-                  subtitle: Text('売値 ${gold(r.basePrice)}'),
+                  subtitle: r.desc.isEmpty
+                      ? Text('売値 ${gold(r.basePrice)}')
+                      : Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text('売値 ${gold(r.basePrice)}'),
+                            const SizedBox(height: 2),
+                            Text(
+                              r.desc,
+                              style: const TextStyle(
+                                fontSize: 11,
+                                height: 1.3,
+                                color: Color(0xFF9A7A4A),
+                              ),
+                            ),
+                          ],
+                        ),
                 ),
                 ],
               ),

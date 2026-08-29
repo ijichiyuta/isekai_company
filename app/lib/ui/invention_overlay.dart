@@ -93,6 +93,21 @@ class _InventionOverlayState extends State<InventionOverlay>
                         '街の人々が驚いている……！',
                         style: TextStyle(fontSize: 14),
                       ),
+                      if (widget.event.desc.isNotEmpty) ...[
+                        const SizedBox(height: 10),
+                        SizedBox(
+                          width: 250,
+                          child: Text(
+                            widget.event.desc,
+                            textAlign: TextAlign.center,
+                            style: const TextStyle(
+                              fontSize: 12,
+                              height: 1.35,
+                              color: Color(0xFF7A5A2E),
+                            ),
+                          ),
+                        ),
+                      ],
                       const SizedBox(height: 16),
                       Wrap(
                         alignment: WrapAlignment.center,

@@ -20,7 +20,8 @@
       "base_price": 12,
       "invention": true,
       "band": 1,
-      "category": "food"
+      "category": "food",
+      "desc": "前世ではコンビニの定番デザート。とろける甘い卵菓子を、この世界の住民はまだ知らない。"
     },
     {
       "id": 1,
@@ -97,7 +98,8 @@
       "base_price": 16,
       "invention": true,
       "band": 1,
-      "category": "medicine"
+      "category": "medicine",
+      "desc": "汚れが落ちる清めの品。魔法に頼らぬ衛生の革命をこの世界に。"
     },
     {
       "id": 8,
@@ -119,7 +121,8 @@
       "base_price": 15,
       "invention": true,
       "band": 2,
-      "category": "luxury"
+      "category": "luxury",
+      "desc": "しゅわりと弾ける清涼飲料。ビー玉の栓に住民は目を丸くする。"
     },
     {
       "id": 10,
@@ -130,7 +133,8 @@
       "base_price": 18,
       "invention": true,
       "band": 2,
-      "category": "food"
+      "category": "food",
+      "desc": "卵と油の魔法のソース。何にかけても旨いと評判が広がる。"
     },
     {
       "id": 11,
@@ -141,7 +145,8 @@
       "base_price": 24,
       "invention": true,
       "band": 2,
-      "category": "food"
+      "category": "food",
+      "desc": "前世の国民食を呼ぶ香辛料。嗅いだ者の腹が鳴る。"
     },
     {
       "id": 12,
@@ -152,7 +157,8 @@
       "base_price": 9,
       "invention": true,
       "band": 2,
-      "category": "food"
+      "category": "food",
+      "desc": "携行できる米の握り飯。冒険者の携行食を一変させる。"
     },
     {
       "id": 13,
@@ -163,7 +169,8 @@
       "base_price": 14,
       "invention": true,
       "band": 3,
-      "category": "tool"
+      "category": "tool",
+      "desc": "歯を磨く習慣ごと持ち込む発明。貴族がこぞって求める。"
     },
     {
       "id": 14,
@@ -174,7 +181,8 @@
       "base_price": 12,
       "invention": true,
       "band": 3,
-      "category": "tool"
+      "category": "tool",
+      "desc": "綴じた紙の記録帳。商いと役所の効率を塗り替える。"
     },
     {
       "id": 15,
@@ -559,7 +567,8 @@
       "base_price": 14,
       "invention": true,
       "band": 1,
-      "category": "food"
+      "category": "food",
+      "desc": "発酵させた豆の調味料。深いうま味に食通が唸る。"
     },
     {
       "id": 50,
@@ -570,7 +579,8 @@
       "base_price": 14,
       "invention": true,
       "band": 1,
-      "category": "food"
+      "category": "food",
+      "desc": "黒く芳しい万能調味料。料理の常識を覆す一滴。"
     },
     {
       "id": 51,
@@ -647,7 +657,8 @@
       "base_price": 16,
       "invention": true,
       "band": 2,
-      "category": "food"
+      "category": "food",
+      "desc": "乳を固めた保存食。葡萄酒と合わせて貴族の食卓へ。"
     },
     {
       "id": 58,
@@ -669,7 +680,8 @@
       "base_price": 15,
       "invention": true,
       "band": 2,
-      "category": "food"
+      "category": "food",
+      "desc": "乳を発酵させた酸味の食品。体に良いと評判が広がる。"
     },
     {
       "id": 60,
@@ -680,7 +692,8 @@
       "base_price": 26,
       "invention": true,
       "band": 2,
-      "category": "food"
+      "category": "food",
+      "desc": "肉を詰めた保存食。祭りの屋台の定番になる。"
     },
     {
       "id": 61,
@@ -702,7 +715,8 @@
       "base_price": 20,
       "invention": true,
       "band": 2,
-      "category": "food"
+      "category": "food",
+      "desc": "ふんわり焼いた祝いの菓子。婚礼と式典の華に。"
     },
     {
       "id": 63,
@@ -713,7 +727,8 @@
       "base_price": 28,
       "invention": true,
       "band": 2,
-      "category": "luxury"
+      "category": "luxury",
+      "desc": "香りをまとう嗜好品。社交界で引く手あまた。"
     },
     {
       "id": 64,
@@ -735,7 +750,8 @@
       "base_price": 16,
       "invention": true,
       "band": 2,
-      "category": "tool"
+      "category": "tool",
+      "desc": "なめらかに書ける筆記の血。書物と契約を支える。"
     },
     {
       "id": 66,
@@ -768,7 +784,8 @@
       "base_price": 26,
       "invention": true,
       "band": 2,
-      "category": "tool"
+      "category": "tool",
+      "desc": "前世の冶金知識で鍛えた業物。冒険者と兵が列を成す。"
     },
     {
       "id": 69,
@@ -779,7 +796,8 @@
       "base_price": 40,
       "invention": true,
       "band": 3,
-      "category": "luxury"
+      "category": "luxury",
+      "desc": "魔石と機構を組んだ灯り。夜の街を明るく変える。"
     },
     {
       "id": 70,
@@ -790,7 +808,8 @@
       "base_price": 38,
       "invention": true,
       "band": 3,
-      "category": "medicine"
+      "category": "medicine",
+      "desc": "効能を安定させた調合薬。治療院がこぞって仕入れる。"
     },
     {
       "id": 71,
@@ -801,7 +820,8 @@
       "base_price": 42,
       "invention": true,
       "band": 3,
-      "category": "tool"
+      "category": "tool",
+      "desc": "歯車で時を刻む機械。時間の概念ごと作り変える。"
     },
     {
       "id": 72,
@@ -812,7 +832,8 @@
       "base_price": 36,
       "invention": true,
       "band": 3,
-      "category": "luxury"
+      "category": "luxury",
+      "desc": "魔石を加工した装飾。王侯貴族が垂涎する。"
     },
     {
       "id": 73,
@@ -823,7 +844,8 @@
       "base_price": 35,
       "invention": true,
       "band": 3,
-      "category": "clothing"
+      "category": "clothing",
+      "desc": "規格化した織りの反物。仕立て屋の格を上げる。"
     },
     {
       "id": 74,
@@ -834,7 +856,8 @@
       "base_price": 34,
       "invention": true,
       "band": 3,
-      "category": "medicine"
+      "category": "medicine",
+      "desc": "錬金術と現代知識の結晶。ひと財産を生む秘薬。"
     }
   ]
 }

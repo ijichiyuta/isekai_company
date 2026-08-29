@@ -32,12 +32,14 @@ class InventionEvent {
   final String name;
   final int cashBonus;
   final int fameBonus;
+  final String desc; // flavor (前世の正体＋異世界での新規性)
   const InventionEvent(
     this.recipeId,
     this.name,
     this.cashBonus,
-    this.fameBonus,
-  );
+    this.fameBonus, {
+    this.desc = '',
+  });
 }
 
 /// The whole app-facing game state. Owns the deterministic [GameState] and the
@@ -414,6 +416,7 @@ class GameController extends ChangeNotifier {
             balance.recipes[inv.recipeId].name,
             inv.cashBonus,
             inv.fameBonus,
+            desc: balance.recipes[inv.recipeId].desc,
           ),
         );
       }

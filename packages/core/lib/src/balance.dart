@@ -30,6 +30,7 @@ class RecipeDef {
   final bool invention;
   final int band; // 1=life1, 2=life2+, 3=full version
   final String category; // market category (v0.9 season/trend); '' if absent
+  final String desc; // flavor (前世の正体＋異世界での新規性); display-only, unhashed
   const RecipeDef({
     required this.id,
     required this.name,
@@ -40,6 +41,7 @@ class RecipeDef {
     required this.invention,
     required this.band,
     this.category = '',
+    this.desc = '',
   });
 }
 
@@ -533,6 +535,7 @@ class Balance {
         band: band,
         category:
             m.containsKey('category') ? _reqStr(m, 'category', 'recipes.json') : '',
+        desc: m.containsKey('desc') ? _reqStr(m, 'desc', 'recipes.json') : '',
       ));
     }
     if (recipes.isEmpty) {
@@ -616,10 +619,19 @@ class Balance {
 
     // Content hash covers events/unlocks/market ONLY when present, so a world
     // without them (headless) keeps the exact pre-feature hash (audit A-D1).
+    // recipe.desc is display-only flavor — strip it from the hash input so it
+    // never perturbs balance_hash / determinism (saves stay compatible).
+    final recipesForHash = <String, dynamic>{
+      ...recipesJson,
+      'recipes': [
+        for (final r in _reqList(recipesJson, 'recipes', 'recipes.json'))
+          Map<String, dynamic>.from(r as Map)..remove('desc'),
+      ],
+    };
     final hashInput = <String, dynamic>{
       'economy': economyJson,
       'materials': materialsJson,
-      'recipes': recipesJson,
+      'recipes': recipesForHash,
       'ranks': ranksJson,
     };
     if (events.isNotEmpty) hashInput['events'] = eventsJson;

@@ -152,7 +152,7 @@ void main() {
           children: [
             Container(color: const Color(0xFFF3E9D2)),
             InventionOverlay(
-              event: const InventionEvent(0, 'プリン', 300, 30),
+              event: const InventionEvent(0, 'プリン', 300, 30, desc: '前世ではコンビニの定番デザート。とろける甘い卵菓子を、この世界の住民はまだ知らない。'),
               onDismiss: () {},
             ),
           ],

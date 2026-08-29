@@ -2,6 +2,11 @@ import 'package:flutter/foundation.dart';
 
 import 'chiptune.dart';
 
+/// App-global SFX hook so leaf widgets (e.g. every [PixelButton]) can click
+/// without threading a provider through the tree. main() points it at the live
+/// controller; it stays a no-op in tests (no audio plugin touched).
+void Function(Sfx sfx) playSfxHook = (_) {};
+
 /// Plays sound. Swappable so the app stays testable and plugin-free: the
 /// default [SilentAudioBackend] is a no-op, and a real backend (audioplayers'
 /// BytesSource playing [renderSfx] output, or CC0 assets) drops in on device.
@@ -45,6 +50,12 @@ class AudioController extends ChangeNotifier {
   /// Play [s] if 効果音 is on.
   void play(Sfx s) {
     if (sfxEnabled) _backend.playSfx(wav(s));
+  }
+
+  /// Kick off BGM at app start if 音楽 is on (setBgmEnabled is a no-op when the
+  /// value is unchanged, so startup needs its own entry point).
+  void begin() {
+    if (bgmEnabled) _backend.startBgm();
   }
 
   void setSfxEnabled(bool on) {

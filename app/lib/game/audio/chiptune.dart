@@ -66,6 +66,34 @@ Uint8List renderSfx(Sfx sfx) {
   return _wav(pcm);
 }
 
+/// A gentle, low-volume looping arpeggio for background music (placeholder —
+/// swap for a CC0 track when one is sourced). Softer amplitude than the SFX so
+/// it sits under them. Deterministic.
+Uint8List renderBgm() {
+  const loop = [
+    _Note(523, 260), _Note(659, 260), _Note(784, 260), _Note(659, 260), // C E G E
+    _Note(587, 260), _Note(784, 260), _Note(988, 260), _Note(784, 260), // D G B G
+  ];
+  var total = 0;
+  for (final n in loop) {
+    total += _sampleRate * n.ms ~/ 1000;
+  }
+  final pcm = Int16List(total);
+  var i = 0;
+  for (final n in loop) {
+    final count = _sampleRate * n.ms ~/ 1000;
+    final period = _sampleRate / n.freq;
+    for (var s = 0; s < count; s++) {
+      final square = (s % period) / period < 0.5 ? 1.0 : -1.0;
+      // soft attack/decay so notes don't click and the loop stays mellow
+      final t = s / count;
+      final env = (t < 0.1 ? t / 0.1 : (1.0 - t) / 0.9).clamp(0.0, 1.0);
+      pcm[i++] = (square * env * 0.14 * 32767).toInt();
+    }
+  }
+  return _wav(pcm);
+}
+
 Uint8List _wav(Int16List pcm) {
   final dataLen = pcm.length * 2;
   final out = BytesBuilder();

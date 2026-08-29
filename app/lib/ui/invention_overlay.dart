@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 
+import '../game/audio/audio_controller.dart';
+import '../game/audio/chiptune.dart';
 import '../game/format.dart';
 import '../game/game_controller.dart';
 import 'game_ui.dart';
@@ -28,6 +30,12 @@ class _InventionOverlayState extends State<InventionOverlay>
     vsync: this,
     duration: const Duration(milliseconds: 600),
   )..forward();
+
+  @override
+  void initState() {
+    super.initState();
+    playSfxHook(Sfx.invent); // the §12.5 emotional peak — a little fanfare
+  }
 
   @override
   void dispose() {

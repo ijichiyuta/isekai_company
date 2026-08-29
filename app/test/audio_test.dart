@@ -44,6 +44,16 @@ void main() {
         expect(renderSfx(s).length, greaterThan(44));
       }
     });
+
+    test('renderBgm is a valid, deterministic WAV loop', () {
+      final a = renderBgm();
+      expect(_tag(a, 0), 'RIFF');
+      expect(_tag(a, 8), 'WAVE');
+      final bd = ByteData.sublistView(a);
+      expect(a.length, 44 + bd.getUint32(40, Endian.little));
+      expect(a, renderBgm()); // stable
+      expect(a.length, greaterThan(1000)); // a real loop, not a blip
+    });
   });
 
   group('AudioController', () {

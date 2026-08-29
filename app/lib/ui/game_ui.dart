@@ -1,5 +1,8 @@
 import 'package:flutter/material.dart';
 
+import '../game/audio/audio_controller.dart';
+import '../game/audio/chiptune.dart';
+
 /// Retro pixel-GUI kit — hard-edged, beveled panels/buttons in the parchment &
 /// wood palette. Deliberately NO smooth border-radius and NO Material ripple
 /// (those read as a modern app); depth comes from a dark outline plus a light
@@ -116,7 +119,12 @@ class _PixelButtonState extends State<PixelButton> {
         onTapDown: (_) => set(true),
         onTapUp: (_) => set(false),
         onTapCancel: () => set(false),
-        onTap: enabled ? widget.onTap : null,
+        onTap: enabled
+            ? () {
+                playSfxHook(Sfx.tap); // arcade click on every press
+                widget.onTap!();
+              }
+            : null,
         child: Opacity(
           opacity: enabled ? 1 : 0.45,
           child: Transform.translate(

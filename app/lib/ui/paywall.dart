@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../game/audio/audio_controller.dart';
+import '../game/audio/chiptune.dart';
 import '../game/entitlements.dart';
 import '../game/providers.dart';
 import 'game_ui.dart';
@@ -66,6 +68,7 @@ class _PaywallSheet extends ConsumerWidget {
                 onTap: available
                     ? () async {
                         final ok = await game.purchaseFull();
+                        if (ok) playSfxHook(Sfx.coin);
                         await notify(ok ? '完全版を購入しました' : '購入に失敗しました');
                         if (ok && context.mounted) Navigator.of(context).pop();
                       }

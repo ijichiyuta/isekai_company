@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../game/entitlements.dart';
 import '../game/providers.dart';
+import 'game_ui.dart';
 
 /// 完全版 paywall (§14). Shows the dynamic benefit ("+N項目を解放" — AC-16, from
 /// balance) and the 購入 / 復元 actions (restore is required by App Store 3.1.1
@@ -61,25 +62,45 @@ class _PaywallSheet extends ConsumerWidget {
                 style: TextStyle(fontSize: 11, color: Colors.grey),
               ),
               const SizedBox(height: 16),
-              FilledButton(
-                onPressed: available
+              PixelButton(
+                onTap: available
                     ? () async {
                         final ok = await game.purchaseFull();
                         await notify(ok ? '完全版を購入しました' : '購入に失敗しました');
                         if (ok && context.mounted) Navigator.of(context).pop();
                       }
                     : null,
-                child: Text(
-                  available ? '完全版を購入（$fullVersionPriceLabel）' : '準備中（近日公開）',
+                fill: kAccent,
+                padding: const EdgeInsets.symmetric(vertical: 13),
+                child: Center(
+                  child: Text(
+                    available
+                        ? '完全版を購入（$fullVersionPriceLabel）'
+                        : '準備中（近日公開）',
+                    style: const TextStyle(
+                      fontWeight: FontWeight.bold,
+                      color: kInkText,
+                    ),
+                  ),
                 ),
               ),
-              TextButton(
-                onPressed: () async {
+              const SizedBox(height: 8),
+              PixelButton(
+                onTap: () async {
                   final ok = await game.restorePurchases();
                   await notify(ok ? '購入を復元しました' : '復元できる購入がありません');
                   if (ok && context.mounted) Navigator.of(context).pop();
                 },
-                child: const Text('購入を復元'),
+                padding: const EdgeInsets.symmetric(vertical: 9),
+                child: const Center(
+                  child: Text(
+                    '購入を復元',
+                    style: TextStyle(
+                      fontWeight: FontWeight.w600,
+                      color: kInkText,
+                    ),
+                  ),
+                ),
               ),
               if (!available)
                 const Text(

@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../game/providers.dart';
 import 'background.dart';
+import 'game_ui.dart';
 import 'paywall.dart';
 import 'pixel/pixel_art.dart';
 import 'pixel/sprites.dart' as art;
@@ -20,35 +21,47 @@ class SettingsScreen extends ConsumerWidget {
     return AppBackground(
       child: Scaffold(
         backgroundColor: Colors.transparent,
-        appBar: AppBar(title: PixelTitle(art.gear, '設定')),
+        appBar: pixelAppBar(title: PixelTitle(art.gear, '設定')),
         body: ListView(
+          padding: const EdgeInsets.symmetric(vertical: 8),
           children: [
-            ListTile(
-              leading: const Icon(Icons.auto_awesome),
+            PixelListTile(
+              leading: PixelView(art.sparkle, height: 26),
               title: const Text('魂の記憶'),
               subtitle: Text('未使用 ${game.soulPointsTotal} pt'),
-              trailing: const Icon(Icons.chevron_right),
+              trailing: const Icon(Icons.chevron_right, color: kInkText),
               onTap: () => Navigator.of(context).push(
                 MaterialPageRoute(builder: (_) => const SoulMemoryScreen()),
               ),
             ),
-            const Divider(),
-            ListTile(
+            PixelListTile(
               leading: Icon(
                 game.isFull ? Icons.verified : Icons.workspace_premium,
+                color: kInkText,
               ),
               title: Text(game.isFull ? '完全版 購入済み' : '完全版'),
               subtitle: Text(game.isFull ? 'すべての機能が利用できます' : '完全版でフル機能を解放'),
               trailing: game.isFull
                   ? null
-                  : TextButton(
-                      onPressed: () => showPaywall(context),
-                      child: const Text('見る'),
+                  : PixelButton(
+                      onTap: () => showPaywall(context),
+                      fill: kAccent,
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 12,
+                        vertical: 7,
+                      ),
+                      child: const Text(
+                        '見る',
+                        style: TextStyle(
+                          fontWeight: FontWeight.bold,
+                          color: kInkText,
+                        ),
+                      ),
                     ),
             ),
             // Restore is ALWAYS visible (App Store 3.1.1) — even when purchased.
-            ListTile(
-              leading: const Icon(Icons.restore),
+            PixelListTile(
+              leading: const Icon(Icons.restore, color: kInkText),
               title: const Text('購入を復元'),
               onTap: () async {
                 final ok = await game.restorePurchases();

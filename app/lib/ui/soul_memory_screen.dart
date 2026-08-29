@@ -4,8 +4,9 @@ import 'package:isekai_core/isekai_core.dart';
 
 import '../game/game_controller.dart';
 import '../game/providers.dart';
-import 'paywall.dart';
 import 'background.dart';
+import 'game_ui.dart';
+import 'paywall.dart';
 import 'pixel/pixel_art.dart';
 import 'pixel/sprites.dart' as art;
 
@@ -22,13 +23,13 @@ class SoulMemoryScreen extends ConsumerWidget {
     return AppBackground(
       child: Scaffold(
         backgroundColor: Colors.transparent,
-        appBar: AppBar(title: PixelTitle(art.sparkle, '魂の記憶')),
+        appBar: pixelAppBar(title: PixelTitle(art.sparkle, '魂の記憶')),
         body: Column(
           children: [
-            Card(
-              margin: const EdgeInsets.all(12),
-              child: Padding(
-                padding: const EdgeInsets.all(16),
+            Padding(
+              padding: const EdgeInsets.all(12),
+              child: PixelBox(
+                padding: const EdgeInsets.all(14),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
@@ -37,20 +38,45 @@ class SoulMemoryScreen extends ConsumerWidget {
                       style: const TextStyle(
                         fontSize: 18,
                         fontWeight: FontWeight.bold,
+                        color: kInkText,
                       ),
                     ),
                     const SizedBox(height: 4),
                     Text(
                       '解放済み ${s.owned} / ${s.total}'
                       '${s.fullLocked > 0 ? '（完全版で+${s.fullLocked}解放可）' : ''}',
-                      style: const TextStyle(fontSize: 13, color: Colors.grey),
+                      style: const TextStyle(
+                        fontSize: 13,
+                        color: Color(0xFF8A6A44),
+                      ),
                     ),
                     if (!game.isFull && s.fullLocked > 0) ...[
-                      const SizedBox(height: 10),
-                      FilledButton.icon(
-                        onPressed: () => showPaywall(context),
-                        icon: const Icon(Icons.lock_open),
-                        label: Text('完全版で ${s.unlockedByFull}項目を解放'),
+                      const SizedBox(height: 12),
+                      PixelButton(
+                        onTap: () => showPaywall(context),
+                        fill: kAccent,
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 14,
+                          vertical: 9,
+                        ),
+                        child: Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            const Icon(
+                              Icons.lock_open,
+                              size: 18,
+                              color: kInkText,
+                            ),
+                            const SizedBox(width: 6),
+                            Text(
+                              '完全版で ${s.unlockedByFull}項目を解放',
+                              style: const TextStyle(
+                                fontWeight: FontWeight.bold,
+                                color: kInkText,
+                              ),
+                            ),
+                          ],
+                        ),
                       ),
                     ],
                     if (game.isFull)
@@ -58,7 +84,10 @@ class SoulMemoryScreen extends ConsumerWidget {
                         padding: EdgeInsets.only(top: 8),
                         child: Text(
                           '✔ 完全版 購入済み',
-                          style: TextStyle(color: Colors.green),
+                          style: TextStyle(
+                            color: Color(0xFF2F7D3A),
+                            fontWeight: FontWeight.bold,
+                          ),
                         ),
                       ),
                   ],
@@ -67,6 +96,7 @@ class SoulMemoryScreen extends ConsumerWidget {
             ),
             Expanded(
               child: ListView.builder(
+                padding: const EdgeInsets.only(bottom: 8),
                 itemCount: game.balance.unlocks.length,
                 itemBuilder: (c, i) =>
                     _UnlockTile(game: game, def: game.balance.unlocks[i]),
@@ -95,24 +125,34 @@ class _UnlockTile extends StatelessWidget {
 
     Widget trailing;
     if (auto && owned) {
-      trailing = const _Tag('自動付与', Colors.blueGrey);
+      trailing = const _Tag('自動付与', Color(0xFF5B7186));
     } else if (owned && !def.infinite) {
-      trailing = const _Tag('取得済', Colors.green);
+      trailing = const _Tag('取得済', Color(0xFF2F7D3A));
     } else if (!isUnlockFunctional(def)) {
       // Effect not shipped yet — don't let the player spend points on a no-op.
-      trailing = const _Tag('今後有効化', Colors.orange);
+      trailing = const _Tag('今後有効化', Color(0xFFB5731E));
     } else if (fullLocked) {
-      trailing = TextButton.icon(
-        onPressed: () => showPaywall(context),
-        icon: const Icon(Icons.lock, size: 16),
-        label: const Text('完全版'),
+      trailing = PixelButton(
+        onTap: () => showPaywall(context),
+        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: const [
+            Icon(Icons.lock, size: 15, color: kInkText),
+            SizedBox(width: 4),
+            Text(
+              '完全版',
+              style: TextStyle(fontWeight: FontWeight.bold, color: kInkText),
+            ),
+          ],
+        ),
       );
     } else if (!reqOk) {
-      trailing = const _Tag('前提未取得', Colors.grey);
+      trailing = const _Tag('前提未取得', Color(0xFF8A6A44));
     } else {
       final canAfford = game.soulPointsTotal >= cost;
-      trailing = FilledButton(
-        onPressed: canAfford
+      trailing = PixelButton(
+        onTap: canAfford
             ? () {
                 if (!game.purchaseUnlock(def.id)) {
                   ScaffoldMessenger.of(context).showSnackBar(
@@ -124,12 +164,16 @@ class _UnlockTile extends StatelessWidget {
                 }
               }
             : null,
-        child: Text('$cost pt'),
+        fill: canAfford ? kAccent : kPanel,
+        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 7),
+        child: Text(
+          '$cost pt',
+          style: const TextStyle(fontWeight: FontWeight.bold, color: kInkText),
+        ),
       );
     }
 
-    return ListTile(
-      dense: true,
+    return PixelListTile(
       title: Text(def.infinite && owned ? '${def.name}（Lv$level）' : def.name),
       subtitle: Text(def.desc),
       trailing: trailing,
@@ -142,12 +186,15 @@ class _Tag extends StatelessWidget {
   final String text;
   final Color color;
   @override
-  Widget build(BuildContext context) => Container(
-    padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-    decoration: BoxDecoration(
-      color: color.withValues(alpha: 0.15),
-      borderRadius: BorderRadius.circular(6),
+  Widget build(BuildContext context) => PixelBox(
+    raised: false,
+    fill: const Color(0xFFF1E4C4),
+    bevel: 1,
+    outline: 1.5,
+    padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+    child: Text(
+      text,
+      style: TextStyle(fontSize: 12, color: color, fontWeight: FontWeight.w600),
     ),
-    child: Text(text, style: TextStyle(fontSize: 12, color: color)),
   );
 }

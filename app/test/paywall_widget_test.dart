@@ -56,8 +56,8 @@ void main() {
     await _pump(t, const SoulMemoryScreen());
     expect(find.text('魂の記憶'), findsOneWidget); // app bar
     expect(find.text('貯えの記憶 I'), findsOneWidget); // top free node (§8.4 #1a)
-    // Full-tier nodes render a 完全版 lock affordance.
-    expect(find.widgetWithText(TextButton, '完全版'), findsWidgets);
+    // Full-tier nodes render a 完全版 lock affordance (pixel button).
+    expect(find.text('完全版'), findsWidgets);
   });
 
   testWidgets('paywall purchase (fake IAP) flips to 完全版', (t) async {

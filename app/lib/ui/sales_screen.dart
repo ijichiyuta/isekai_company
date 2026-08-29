@@ -34,7 +34,7 @@ class SalesScreen extends ConsumerWidget {
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
                   Text(
-                    '累計売上 ${formatG(game.state.totalRevenue)}',
+                    '累計売上 ${gold(game.state.totalRevenue)}',
                     style: const TextStyle(
                       fontWeight: FontWeight.bold,
                       color: kInkText,
@@ -69,7 +69,7 @@ class SalesScreen extends ConsumerWidget {
                               semanticLabel: categoryJa(r.category),
                             ),
                             title: Text(r.name),
-                            subtitle: Text('売値 ${r.basePrice}G'),
+                            subtitle: Text('売値 ${gold(r.basePrice)}'),
                             trailing: PixelBox(
                               raised: false,
                               fill: const Color(0xFFF6EBCB),

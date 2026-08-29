@@ -42,7 +42,7 @@ class OrderScreen extends ConsumerWidget {
                       PixelView(art.coin, height: 16, semanticLabel: '資金'),
                       const SizedBox(width: 4),
                       Text(
-                        formatG(game.state.funds),
+                        gold(game.state.funds),
                         style: const TextStyle(
                           fontWeight: FontWeight.bold,
                           color: kInkText,
@@ -71,7 +71,7 @@ class OrderScreen extends ConsumerWidget {
                       ),
                       title: Text(m.name),
                       subtitle: Text(
-                        '単価 ${m.cost}G ・ 在庫 ${game.state.materialStock[m.id]}',
+                        '単価 ${gold(m.cost)} ・ 在庫 ${game.state.materialStock[m.id]}',
                       ),
                       trailing: Row(
                         mainAxisSize: MainAxisSize.min,

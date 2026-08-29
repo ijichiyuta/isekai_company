@@ -79,9 +79,9 @@ void main() {
 
     // Each material appears in both slots; pick wheat in slot 1 (first) and
     // egg in slot 2 (last). cooling is method 0 (default).
-    await tester.tap(find.text('小麦 (2G)').first);
+    await tester.tap(find.text('小麦（2ゴールド）').first);
     await tester.pump();
-    await tester.tap(find.text('卵 (3G)').last);
+    await tester.tap(find.text('卵（3ゴールド）').last);
     await tester.pump();
     await tester.tap(find.textContaining('開発する'));
     await tester.pumpAndSettle();

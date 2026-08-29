@@ -91,7 +91,7 @@ class _InventionOverlayState extends State<InventionOverlay>
                         spacing: 16,
                         runSpacing: 6,
                         children: [
-                          _bonus(art.coin, '+${formatG(widget.event.cashBonus)}G'),
+                          _bonus(art.coin, '+${gold(widget.event.cashBonus)}'),
                           _bonus(art.star, '+${widget.event.fameBonus} 名声'),
                         ],
                       ),

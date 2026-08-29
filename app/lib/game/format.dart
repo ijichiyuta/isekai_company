@@ -20,6 +20,11 @@ String formatG(int g) {
   return neg ? '-$out' : out;
 }
 
+/// Money with the ゴールド unit (the player-facing currency; the bare "G" was
+/// ambiguous). Large amounts keep the compact K/M/B/T magnitude for space
+/// (§10.5): e.g. 2→"2ゴールド", 128000→"128Kゴールド".
+String gold(int g) => '${formatG(g)}ゴールド';
+
 /// value/divisor with up to 3 significant digits, truncated, integer math.
 String _sig(int value, int divisor, String suffix) {
   final whole = value ~/ divisor;

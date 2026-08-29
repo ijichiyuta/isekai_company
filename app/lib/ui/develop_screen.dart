@@ -104,7 +104,7 @@ class _DevelopScreenState extends ConsumerState<DevelopScreen> {
                           const SizedBox(width: 6),
                           Text(
                             canDevelop
-                                ? '開発する（素材費 ${cost}G）'
+                                ? '開発する（素材費 ${gold(cost)}）'
                                 : '素材を2つ選んでください',
                             style: const TextStyle(
                               fontWeight: FontWeight.bold,
@@ -175,7 +175,7 @@ class _DevelopScreenState extends ConsumerState<DevelopScreen> {
                     semanticLabel: categoryJa(r.category),
                   ),
                   title: Text(r.name),
-                  subtitle: Text('売値 ${r.basePrice}G'),
+                  subtitle: Text('売値 ${gold(r.basePrice)}'),
                 ),
           ],
         ),
@@ -203,7 +203,7 @@ class _DevelopScreenState extends ConsumerState<DevelopScreen> {
           children: [
             for (final m in b.materials)
               _chip(
-                '${m.name} (${m.cost}G)',
+                '${m.name}（${gold(m.cost)}）',
                 selected == m.id,
                 () => onPick(m.id),
               ),

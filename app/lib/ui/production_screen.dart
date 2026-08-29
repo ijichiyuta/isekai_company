@@ -141,7 +141,7 @@ class _UpgradePanel extends StatelessWidget {
               label: '設備レベル ${game.equipmentLevel} / ${game.equipMaxLevel}',
               sub: '週次生産能力を拡大',
               costLabel: game.canUpgradeEquipment
-                  ? '${formatG(eqCost)} で強化'
+                  ? '${gold(eqCost)} で強化'
                   : '最大',
               enabled:
                   game.isAlive &&
@@ -159,7 +159,7 @@ class _UpgradePanel extends StatelessWidget {
                   '（販売単価 ×$priceMult）',
               sub: 'すべての商品の売値を引き上げ',
               costLabel: game.canUpgradeQuality
-                  ? '${formatG(qCost)} で向上'
+                  ? '${gold(qCost)} で向上'
                   : '最大',
               enabled:
                   game.isAlive &&

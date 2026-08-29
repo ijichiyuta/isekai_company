@@ -28,6 +28,14 @@ void main() {
     expect(categoryJa(''), '');
   });
 
+  test('gold spells the ゴールド unit and keeps K/M magnitude', () {
+    expect(gold(0), '0ゴールド');
+    expect(gold(2), '2ゴールド');
+    expect(gold(850), '850ゴールド');
+    expect(gold(128000), '128Kゴールド');
+    expect(gold(49000000), '49Mゴールド');
+  });
+
   test('methodJa localizes every bundled craft method (no English leaks)', () {
     expect(methodJa('cooling'), '冷却');
     expect(methodJa('heating'), '加熱');

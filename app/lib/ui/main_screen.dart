@@ -85,6 +85,8 @@ class _Hud extends StatelessWidget {
       padding: const EdgeInsets.fromLTRB(12, 9, 8, 9),
       child: Row(
         children: [
+          // The HUD stays compact (coin icon + "資金" already say ゴールド);
+          // the ゴールド unit is spelled out in the roomier price/cost contexts.
           _stat(art.coin, formatG(s.funds), '資金'),
           const SizedBox(width: 8),
           _stat(art.star, '${s.fame}', '名声'),
@@ -493,7 +495,7 @@ class _WeeklyResult extends StatelessWidget {
               ),
             ),
           Text(
-            r > 0 ? '先週の売上 +${formatG(r)}（${game.lastWeekSold}個）' : '先週の売上 —',
+            r > 0 ? '先週の売上 +${gold(r)}（${game.lastWeekSold}個）' : '先週の売上 —',
             style: const TextStyle(fontSize: 13),
           ),
         ],

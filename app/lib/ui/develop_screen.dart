@@ -151,7 +151,7 @@ class _DevelopScreenState extends ConsumerState<DevelopScreen> {
               children: [
                 for (var i = 0; i < b.methods.length; i++)
                   _chip(
-                    b.methods[i],
+                    methodJa(b.methods[i]),
                     _method == i,
                     () => setState(() => _method = i),
                   ),

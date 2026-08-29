@@ -1,4 +1,5 @@
 import 'package:flutter_test/flutter_test.dart';
+import 'package:isekai_app/game/format.dart';
 import 'package:isekai_app/ui/pixel/sprites.dart' as art;
 
 import 'helpers.dart';
@@ -54,5 +55,19 @@ void main() {
     // Out-of-range ids fall back to the generic sack (defensive).
     expect(identical(art.materialIcon(-1), art.sack), isTrue);
     expect(identical(art.materialIcon(9999), art.sack), isTrue);
+  });
+
+  test('every bundled craft method is localized to Japanese (no English UI)', () {
+    final b = loadTestBalanceMarket();
+    expect(b.methods, isNotEmpty);
+    for (final m in b.methods) {
+      // A mapped method returns a different (Japanese) string; an unmapped one
+      // would leak its raw English key into the develop screen.
+      expect(
+        methodJa(m),
+        isNot(m),
+        reason: 'method "$m" has no Japanese label in methodJa()',
+      );
+    }
   });
 }

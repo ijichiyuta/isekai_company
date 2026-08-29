@@ -58,3 +58,18 @@ const _categoryJa = {
 };
 
 String categoryJa(String category) => _categoryJa[category] ?? category;
+
+/// Craft-method ids are English logic keys (recipes.json / determinism); the
+/// player sees them in Japanese. Unknown keys pass through unchanged.
+const _methodJa = {
+  'cooling': '冷却',
+  'heating': '加熱',
+  'fermentation': '発酵',
+  'drying': '乾燥',
+  'grinding': '粉砕',
+  'precision': '精密',
+  'sewing': '裁縫',
+  'compounding': '調合',
+};
+
+String methodJa(String method) => _methodJa[method] ?? method;

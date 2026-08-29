@@ -28,6 +28,19 @@ void main() {
     expect(categoryJa(''), '');
   });
 
+  test('methodJa localizes every bundled craft method (no English leaks)', () {
+    expect(methodJa('cooling'), '冷却');
+    expect(methodJa('heating'), '加熱');
+    expect(methodJa('fermentation'), '発酵');
+    expect(methodJa('drying'), '乾燥');
+    expect(methodJa('grinding'), '粉砕');
+    expect(methodJa('precision'), '精密');
+    expect(methodJa('sewing'), '裁縫');
+    expect(methodJa('compounding'), '調合');
+    // Unknown ids pass through rather than vanish.
+    expect(methodJa('alchemy'), 'alchemy');
+  });
+
   test('calendar maps absolute weeks to year/season/week', () {
     expect(calendar(0), (year: 1, season: 0, weekOfSeason: 1));
     expect(calendar(11), (year: 1, season: 0, weekOfSeason: 12));

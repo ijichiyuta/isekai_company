@@ -84,13 +84,16 @@ const Map<String, Color> kArtPal = {
   '~': Color(0x1E000000), // faint shadow
 };
 
-// --- Hero: the 24h 異世界コンビニ商会 storefront, drawn procedurally at high
-// resolution (104×78) with shading ramps, awning scallop, glazed windows with
-// product shelves + reflections, and a stone base. See _buildShop below. ---
-final PixelSprite shopHd = _buildShop();
+// --- Storefronts. The DEFAULT is a humble fantasy merchant shop
+// (_buildFantasyShop) — timber frame, cloth awning, hanging coin-sign, a
+// market counter of wares. The modern コンビニ (_buildKonbini) is reserved for
+// the 異世界コンビニ hidden ending (§11.3 #4), NOT the starting look. ---
+final PixelSprite shopHd = _buildFantasyShop();
+final PixelSprite konbiniHd = _buildKonbini(); // hidden-ending storefront
 
-/// Screen-facing storefront → the HD build.
+/// Screen-facing storefront → the fantasy build.
 final PixelSprite shop = shopHd;
+final PixelSprite konbini = konbiniHd;
 
 /// HD townsfolk — one 48×54 `_person` build recolored per role: skin/hair/cloth
 /// ramps, a real face, uniform folds, selective outline. `heroHd` is the 店主.
@@ -154,7 +157,131 @@ void _shopWindow(PixelCanvas c, int x, int y, int w, int h) {
   c.border(x - 3, y - 3, w + 6, h + 6, 'K');
 }
 
-PixelSprite _buildShop() {
+/// The humble fantasy merchant shop shown from the start (行商人〜) — a
+/// timber-framed plaster shop under a shingled gable, a cloth awning, a hanging
+/// coin-sign, small leaded windows and an open counter of wares.
+PixelSprite _buildFantasyShop() {
+  final c = PixelCanvas(104, 78);
+
+  // GABLE ROOF — a shingled triangle over a heavy overhanging eave.
+  for (var y = 2; y <= 12; y++) {
+    final half = (y - 2) * 4 + 5;
+    final tone = y < 5 ? 'd' : (y < 9 ? 'c' : 'b');
+    c.hline(52 - half, y, half * 2, tone);
+  }
+  for (var y = 4; y <= 11; y += 2) {
+    c.hline(52 - ((y - 2) * 4 + 5), y, ((y - 2) * 4 + 5) * 2, 'a'); // shingle seams
+  }
+  c.set(52, 2, 'e'); // lit ridge tip
+  c.rect(2, 12, 100, 4, 'b'); // eave board (overhang)
+  c.rampV(2, 12, 100, 4, ['d', 'c', 'b', 'a']);
+  c.hline(2, 12, 100, 'e'); // lit lip
+  for (var x = 8; x < 98; x += 7) {
+    c.set(x, 14, 'a'); // rafter tails
+  }
+
+  // TIMBER-FRAME PLASTER WALL — cream plaster with dark beams (half-timbering).
+  const wy = 16, wh = 50;
+  c.rect(4, wy, 96, wh, 'h');
+  c.rampV(4, wy, 96, wh, ['i', 'h', 'g', 'f']);
+  c.rect(4, wy, 4, wh, 'b'); // corner posts
+  c.rect(96, wy, 4, wh, 'b');
+  c.rampV(4, wy, 4, wh, ['c', 'b', 'a']);
+  c.rampV(96, wy, 4, wh, ['c', 'b', 'a']);
+  c.rect(4, wy, 96, 3, 'b'); // top plate
+  c.hline(4, wy, 96, 'c');
+  c.line(8, wy + 22, 22, wy + 3, 'b'); // decorative braces
+  c.line(96, wy + 22, 82, wy + 3, 'b');
+
+  // HANGING COIN-SIGN off the eave, top-left.
+  c.vline(20, 16, 4, 'a'); // bracket down
+  c.hline(12, 20, 9, 'a'); // bracket arm
+  c.rect(11, 22, 18, 12, 'c'); // board
+  c.rampV(11, 22, 18, 12, ['d', 'c', 'b']);
+  c.border(11, 22, 18, 12, 'K');
+  c.discShaded(20, 28, 3, ['x', 'w', 'v', 'u']); // gold coin motif
+  c.set(18, 26, '#');
+
+  // CLOTH AWNING — cream + canvas-brown stripes with a scalloped valance.
+  const ay = 35;
+  for (var i = 30; i < 96; i++) {
+    final cream = (((i - 30) ~/ 8) % 2) == 0;
+    c.vline(i, ay, 5, cream ? 'i' : 'c');
+  }
+  c.hline(30, ay, 66, 'i'); // lit front lip
+  c.hline(30, ay + 4, 66, '-'); // underside shadow
+  for (var s = 30; s < 96; s += 8) {
+    final cream = (((s - 30) ~/ 8) % 2) == 0;
+    for (var k = 0; k < 3; k++) {
+      c.hline(s + k, ay + 5 + k, 8 - 2 * k, cream ? 'g' : 'b');
+    }
+  }
+  c.vline(30, ay, 5, 'K');
+  c.vline(95, ay, 5, 'K');
+
+  // OPEN SHOPFRONT — a dim interior with two goods shelves, behind a wood
+  // counter stacked with wares.
+  const sy = 42, sh = 15;
+  c.rect(32, sy, 40, sh, 'a'); // interior shadow
+  c.rampV(32, sy, 40, sh, ['b', 'a']);
+  for (var s = 0; s < 2; s++) {
+    final ry = sy + 3 + s * 6;
+    for (var ix = 35; ix < 69; ix += 6) {
+      final col = const ['N', 'w', 'U', 'O', 'H', 'd'][((ix + ry) ~/ 6) % 6];
+      c.rect(ix, ry, 3, 4, col);
+      c.set(ix, ry, 'K');
+    }
+    c.hline(33, ry + 4, 38, 'b'); // shelf board
+  }
+  const cy = 57; // counter top
+  c.rect(6, cy, 92, 8, 'c');
+  c.rampV(6, cy, 92, 8, ['d', 'c', 'b', 'a']);
+  c.hline(6, cy, 92, 'e'); // lit counter edge
+  // wares on the counter: sacks, produce, a small barrel
+  c.discShaded(16, cy - 2, 3, ['d', 'c', 'b']); // sack
+  c.discShaded(24, cy - 1, 2, ['U', 'T']); // green produce
+  c.discShaded(30, cy - 1, 2, ['O', 'N']); // red produce
+  c.rect(80, cy - 4, 8, 5, 'c'); // little barrel
+  c.rampH(80, cy - 4, 8, 5, ['b', 'c', 'd', 'c', 'b']);
+  c.hline(80, cy - 2, 8, 'a');
+
+  // LEADED WINDOWS with shutters, flanking the shopfront.
+  _leadedWindow(c, 10, 42, 16, 13);
+  _leadedWindow(c, 78, 42, 16, 13);
+
+  // BASE — timber threshold over a stone plinth.
+  const by = 65;
+  c.rect(4, by, 96, 4, 'b');
+  c.rampV(4, by, 96, 4, ['d', 'c', 'b', 'a']);
+  c.hline(4, by, 96, 'e');
+  c.rect(2, by + 4, 100, 3, 'Q');
+  c.rampV(2, by + 4, 100, 3, ['R', 'Q', 'P']);
+  c.border(2, by + 4, 100, 3, 'K');
+
+  c.shadow(52, 74, 46, 3, '-'); // ground shadow
+  c.outline('K');
+  c.selout('K', '@');
+  return c.toSprite(kArtPal);
+}
+
+/// A small leaded (cross-hatched) window with a wood frame and open shutters.
+void _leadedWindow(PixelCanvas c, int x, int y, int w, int h) {
+  c.rect(x - 2, y - 2, w + 4, h + 4, 'b'); // frame
+  c.rect(x, y, w, h, 'o'); // glass
+  c.rampV(x, y, w, h, ['p', 'o', 'n']);
+  for (var gx = x + 2; gx < x + w; gx += 3) {
+    c.vline(gx, y, h, 'n'); // leading
+  }
+  for (var gy = y + 2; gy < y + h; gy += 3) {
+    c.hline(x, gy, w, 'n');
+  }
+  c.set(x + 1, y + 1, '#'); // glint
+  c.rect(x - 5, y - 2, 3, h + 4, 'c'); // left shutter
+  c.rect(x + w + 2, y - 2, 3, h + 4, 'c'); // right shutter
+  c.border(x - 2, y - 2, w + 4, h + 4, 'K');
+}
+
+PixelSprite _buildKonbini() {
   final c = PixelCanvas(104, 78);
 
   // ROOF — a thick eave, wider than the body, lit on top, shadowed beneath.

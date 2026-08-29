@@ -128,7 +128,7 @@ class _Card extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final (sprite, px) = switch (cut) {
-      _Cut.past => (art.shop, 2.0),
+      _Cut.past => (art.konbini, 2.0), // his previous world — the 24h コンビニ
       _Cut.goddess => (art.goddess, 2.0),
       _Cut.goal => (art.beaker, 4.0),
     };

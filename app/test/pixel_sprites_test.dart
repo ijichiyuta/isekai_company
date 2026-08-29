@@ -14,6 +14,7 @@ void main() {
     final all = <String, PixelSprite>{
       ...kIconSprites,
       'shop': shop,
+      'konbini': konbini,
       'hero': hero,
       'customer': customer,
       'crate': crate,
@@ -46,6 +47,7 @@ void main() {
     final all = <String, PixelSprite>{
       ...kIconSprites,
       'shop': shop,
+      'konbini': konbini,
       'hero': hero,
       'customer': customer,
       'crate': crate,

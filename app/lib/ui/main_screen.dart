@@ -373,7 +373,7 @@ class _ShopView extends StatelessWidget {
                           child: PixelView(
                             art.shop,
                             pixelSize: 3,
-                            semanticLabel: '異世界コンビニ商会',
+                            semanticLabel: '自分の商店',
                           ),
                         ),
                         // 店主 greets a customer, props flanking.

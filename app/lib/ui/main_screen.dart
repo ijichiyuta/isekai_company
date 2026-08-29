@@ -9,6 +9,7 @@ import '../game/game_controller.dart';
 import '../game/providers.dart';
 import 'background.dart';
 import 'develop_screen.dart';
+import 'game_ui.dart';
 import 'event_dialog.dart';
 import 'invention_overlay.dart';
 import 'order_screen.dart';
@@ -73,12 +74,19 @@ class _Hud extends StatelessWidget {
     final cal = calendar(s.week);
     final rank = game.balance.ranks[s.rank];
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
-      color: const Color(0xFFE7D6AE),
+      decoration: const BoxDecoration(
+        gradient: LinearGradient(
+          begin: Alignment.topCenter,
+          end: Alignment.bottomCenter,
+          colors: [Color(0xFFECDBB0), Color(0xFFDDC88F)],
+        ),
+        border: Border(bottom: BorderSide(color: kInk, width: 2)),
+      ),
+      padding: const EdgeInsets.fromLTRB(12, 9, 8, 9),
       child: Row(
         children: [
           _stat(art.coin, formatG(s.funds), '資金'),
-          const SizedBox(width: 16),
+          const SizedBox(width: 8),
           _stat(art.star, '${s.fame}', '名声'),
           const Spacer(),
           Column(
@@ -86,42 +94,60 @@ class _Hud extends StatelessWidget {
             children: [
               Text(
                 rank.name,
-                style: const TextStyle(fontWeight: FontWeight.bold),
+                style: const TextStyle(
+                  fontWeight: FontWeight.bold,
+                  fontSize: 14,
+                  color: kInkText,
+                ),
               ),
               Text(
                 '${cal.year}年 ${seasonNames[cal.season]} ${cal.weekOfSeason}週',
-                style: const TextStyle(fontSize: 12),
+                style: const TextStyle(fontSize: 12, color: kInkText),
               ),
             ],
           ),
-          IconButton(
-            icon: PixelView(art.gear, height: 20, semanticLabel: '設定'),
-            tooltip: '設定',
-            visualDensity: VisualDensity.compact,
-            onPressed: () {
+          const SizedBox(width: 8),
+          PixelButton(
+            semanticLabel: '設定',
+            padding: const EdgeInsets.all(6),
+            onTap: () {
               game.pauseForScreen();
               Navigator.of(
                 context,
               ).push(MaterialPageRoute(builder: (_) => const SettingsScreen()));
             },
+            child: PixelView(art.gear, height: 20),
           ),
         ],
       ),
     );
   }
 
+  // A sunken "readout" plate — icon + value, like a little status window.
   Widget _stat(PixelSprite sprite, String value, String label) => Semantics(
     label: label,
     value: value,
-    child: Row(
-      children: [
-        PixelView(sprite, height: 20),
-        const SizedBox(width: 5),
-        Text(
-          value,
-          style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
-        ),
-      ],
+    child: PixelBox(
+      raised: false,
+      fill: const Color(0xFFF6EBCB),
+      bevel: 1.5,
+      outline: 1.5,
+      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          PixelView(sprite, height: 18),
+          const SizedBox(width: 5),
+          Text(
+            value,
+            style: const TextStyle(
+              fontWeight: FontWeight.bold,
+              fontSize: 16,
+              color: kInkText,
+            ),
+          ),
+        ],
+      ),
     ),
   );
 }
@@ -141,8 +167,20 @@ class _TrendBar extends StatelessWidget {
     final mult = (game.trendMultPercent / 100).toStringAsFixed(1);
     return Container(
       width: double.infinity,
-      color: active ? const Color(0xFFFFE0B2) : const Color(0xFFE1F5FE),
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 5),
+      decoration: BoxDecoration(
+        gradient: LinearGradient(
+          begin: Alignment.topCenter,
+          end: Alignment.bottomCenter,
+          colors: active
+              ? const [Color(0xFFF6C97A), Color(0xFFEDB458)]
+              : const [Color(0xFFC2E1EC), Color(0xFFA9D2E2)],
+        ),
+        border: const Border(
+          top: BorderSide(color: kInk, width: 2),
+          bottom: BorderSide(color: kInk, width: 2),
+        ),
+      ),
+      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 5),
       child: Row(
         children: [
           PixelView(
@@ -156,7 +194,11 @@ class _TrendBar extends StatelessWidget {
               active
                   ? '流行中: $cat（需要×$mult・あと$weeks週）'
                   : '流行予告: $cat（あと$weeks週で開始）',
-              style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w600),
+              style: const TextStyle(
+                fontSize: 12,
+                fontWeight: FontWeight.w700,
+                color: kInkText,
+              ),
             ),
           ),
         ],
@@ -184,16 +226,20 @@ class _NextRankBar extends StatelessWidget {
       minFame: next.minFame,
     );
     return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
+      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 6),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text('次のランク: ${next.name}', style: const TextStyle(fontSize: 12)),
-          const SizedBox(height: 2),
-          ClipRRect(
-            borderRadius: BorderRadius.circular(4),
-            child: LinearProgressIndicator(value: ratio, minHeight: 8),
+          Text(
+            '次のランク: ${next.name}',
+            style: const TextStyle(
+              fontSize: 12,
+              fontWeight: FontWeight.w600,
+              color: kInkText,
+            ),
           ),
+          const SizedBox(height: 3),
+          PixelMeter(value: ratio, height: 12),
         ],
       ),
     );
@@ -225,24 +271,27 @@ class _ShopView extends StatelessWidget {
               Container(
                 width: 356,
                 height: 330,
-                decoration: BoxDecoration(
-                  borderRadius: BorderRadius.circular(20),
-                  boxShadow: const [
+                padding: const EdgeInsets.all(2),
+                decoration: const BoxDecoration(
+                  color: kInk, // hard 2px outline frame (square, retro)
+                  boxShadow: [
                     BoxShadow(
                       color: Color(0x40000000),
-                      blurRadius: 18,
-                      offset: Offset(0, 9),
+                      blurRadius: 16,
+                      offset: Offset(0, 8),
                     ),
                   ],
                 ),
                 child: ClipRRect(
-                  borderRadius: BorderRadius.circular(20),
+                  borderRadius: BorderRadius.zero,
                   child: DecoratedBox(
-                    decoration: BoxDecoration(
-                      borderRadius: BorderRadius.circular(20),
-                      border: Border.all(
-                        color: const Color(0xFFCBB488),
-                        width: 2,
+                    decoration: const BoxDecoration(
+                      // beveled inner edge: lit top-left, shaded bottom-right
+                      border: Border(
+                        top: BorderSide(color: kBevelLight, width: 3),
+                        left: BorderSide(color: kBevelLight, width: 3),
+                        right: BorderSide(color: kBevelShadeC, width: 3),
+                        bottom: BorderSide(color: kBevelShadeC, width: 3),
                       ),
                     ),
                     child: Stack(
@@ -453,9 +502,21 @@ class _SpeedBar extends StatelessWidget {
           // Manual week advance (§2.1): applies reservations without running the
           // clock. Only useful while paused.
           if (game.speed == GameSpeed.paused)
-            FilledButton.tonal(
-              onPressed: game.isAlive ? game.step : null,
-              child: Text(pending > 0 ? '次の週へ ($pending)' : '次の週へ'),
+            PixelButton(
+              onTap: game.isAlive ? game.step : null,
+              gradient: const LinearGradient(
+                begin: Alignment.topCenter,
+                end: Alignment.bottomCenter,
+                colors: [Color(0xFF9AD37F), Color(0xFF66B257)],
+              ),
+              padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
+              child: Text(
+                pending > 0 ? '次の週へ ($pending)' : '次の週へ',
+                style: const TextStyle(
+                  fontWeight: FontWeight.bold,
+                  color: Color(0xFF2C4720),
+                ),
+              ),
             ),
           const Spacer(),
           for (final sp in GameSpeed.values)
@@ -463,10 +524,23 @@ class _SpeedBar extends StatelessWidget {
             if (sp != GameSpeed.x3 || game.speedX3Unlocked)
               Padding(
                 padding: const EdgeInsets.only(left: 6),
-                child: ChoiceChip(
-                  label: Text(sp.label),
-                  selected: game.speed == sp,
-                  onSelected: game.isAlive ? (_) => game.setSpeed(sp) : null,
+                child: PixelButton(
+                  onTap: game.isAlive ? () => game.setSpeed(sp) : null,
+                  fill: game.speed == sp ? kAccent : kPanel,
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 12,
+                    vertical: 7,
+                  ),
+                  child: Text(
+                    sp.label,
+                    style: TextStyle(
+                      fontWeight: game.speed == sp
+                          ? FontWeight.bold
+                          : FontWeight.w600,
+                      fontSize: 14,
+                      color: kInkText,
+                    ),
+                  ),
                 ),
               ),
         ],
@@ -524,8 +598,8 @@ class _BottomNav extends StatelessWidget {
     );
   }
 
-  // A single raised "key" button: warm gradient face, wood border, lit top edge
-  // and a soft drop shadow so it reads as a physical button, not a tab.
+  // A single square, beveled "key" (press-invert, no ripple) — reads as a
+  // physical button, not a tab.
   Widget _navItem(
     BuildContext context,
     PixelSprite? sprite,
@@ -534,57 +608,33 @@ class _BottomNav extends StatelessWidget {
   ) {
     final icon = sprite != null
         ? PixelView(sprite, height: 24)
-        : const Icon(Icons.bug_report, size: 22, color: Color(0xFF6B4A2B));
+        : const Icon(Icons.bug_report, size: 22, color: kInkText);
     return Expanded(
       child: Padding(
         padding: const EdgeInsets.symmetric(horizontal: 3),
-        child: DecoratedBox(
-          decoration: BoxDecoration(
-            borderRadius: BorderRadius.circular(12),
-            boxShadow: const [
-              BoxShadow(
-                color: Color(0x30000000),
-                blurRadius: 3,
-                offset: Offset(0, 2),
+        child: PixelButton(
+          onTap: () => _open(context, screen),
+          semanticLabel: label,
+          gradient: const LinearGradient(
+            begin: Alignment.topCenter,
+            end: Alignment.bottomCenter,
+            colors: [Color(0xFFF8EBCB), Color(0xFFE7CF9E)],
+          ),
+          padding: const EdgeInsets.symmetric(vertical: 6),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              SizedBox(height: 26, child: Center(child: icon)),
+              const SizedBox(height: 1),
+              Text(
+                label,
+                style: const TextStyle(
+                  fontSize: 11,
+                  fontWeight: FontWeight.w700,
+                  color: kInkText,
+                ),
               ),
             ],
-          ),
-          child: Material(
-            color: Colors.transparent,
-            borderRadius: BorderRadius.circular(12),
-            clipBehavior: Clip.antiAlias,
-            child: Ink(
-              decoration: BoxDecoration(
-                gradient: const LinearGradient(
-                  begin: Alignment.topCenter,
-                  end: Alignment.bottomCenter,
-                  colors: [Color(0xFFF8EBCB), Color(0xFFE7CF9E)],
-                ),
-                border: Border.all(color: const Color(0xFFAD8A55), width: 1.5),
-                borderRadius: BorderRadius.circular(12),
-              ),
-              child: InkWell(
-                onTap: () => _open(context, screen),
-                child: Padding(
-                  padding: const EdgeInsets.symmetric(vertical: 6),
-                  child: Column(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      SizedBox(height: 26, child: Center(child: icon)),
-                      const SizedBox(height: 1),
-                      Text(
-                        label,
-                        style: const TextStyle(
-                          fontSize: 11,
-                          fontWeight: FontWeight.w700,
-                          color: Color(0xFF6B4A2B),
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-              ),
-            ),
           ),
         ),
       ),

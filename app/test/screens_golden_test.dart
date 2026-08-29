@@ -212,6 +212,28 @@ void main() {
     );
   });
 
+  testWidgets('scene: 章決算', (tester) async {
+    if (!Platform.isMacOS) return;
+    await _loadFonts();
+    // Events-less balance so stepping over a year boundary raises only the
+    // chapter review (no invention/event competes for the modal).
+    final g = GameController(
+      balance: loadTestBalance(),
+      clock: FakeTickClock(),
+      seed: 7,
+    );
+    g.state.week = 47;
+    g.state.rank = 2;
+    for (final r in g.balance.recipes) {
+      if (r.band == 1) {
+        g.state.discovered[r.id] = true;
+        g.state.productStock[r.id] = 5;
+      }
+    }
+    g.step(); // cross into a new year → 章決算
+    await shot(tester, g, const MainScreen(), 'chapter');
+  });
+
   testWidgets('scene: メイン画面（大商会）', (tester) async {
     if (!Platform.isMacOS) return;
     await _loadFonts();

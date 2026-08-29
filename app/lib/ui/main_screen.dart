@@ -481,6 +481,15 @@ class _ShopView extends StatelessWidget {
                 '従業員 ${s.employees}人 ・ 発見レシピ ${s.discoveries}種',
                 style: const TextStyle(fontSize: 13),
               ),
+              // §12.4 年次決算 — a non-blocking chapter review at year turns.
+              if (game.pendingChapter != null)
+                Padding(
+                  padding: const EdgeInsets.only(top: 10),
+                  child: _ChapterReviewCard(
+                    review: game.pendingChapter!,
+                    onDismiss: game.acknowledgeChapter,
+                  ),
+                ),
               // Brand-new player (no products yet): a friendly what-to-do card.
               if (s.discoveries == 0)
                 Padding(
@@ -536,6 +545,86 @@ class _ShopView extends StatelessWidget {
       ],
     );
   }
+}
+
+/// §12.4 年次決算＝「章」— a short, non-blocking annual review card shown in the
+/// shop view at each year boundary (dismiss with 次の章へ).
+class _ChapterReviewCard extends StatelessWidget {
+  const _ChapterReviewCard({required this.review, required this.onDismiss});
+  final ChapterReview review;
+  final VoidCallback onDismiss;
+
+  @override
+  Widget build(BuildContext context) {
+    return SizedBox(
+      width: 320, // bounded (the shop view lives inside a FittedBox)
+      child: PixelBox(
+      fill: const Color(0xFFF6E8C6),
+      padding: const EdgeInsets.all(12),
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              PixelView(art.sparkle, height: 15),
+              const SizedBox(width: 6),
+              Text(
+                '第${review.chapter}章 決算 ― この1年の記録',
+                style: const TextStyle(
+                  fontSize: 14,
+                  fontWeight: FontWeight.bold,
+                  color: kInkText,
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 8),
+          _row('到達ランク', review.rankName),
+          _row('今年の売上', '+${gold(review.revenue)}'),
+          _row('得た名声', '+${review.fameGain}'),
+          _row('発見レシピ', '${review.discoveries}種'),
+          const SizedBox(height: 10),
+          SizedBox(
+            width: double.infinity,
+            child: PixelButton(
+              onTap: onDismiss,
+              fill: kAccent,
+              padding: const EdgeInsets.symmetric(vertical: 9),
+              child: const Center(
+                child: Text(
+                  '次の章へ',
+                  style: TextStyle(
+                    fontWeight: FontWeight.bold,
+                    color: kInkText,
+                  ),
+                ),
+              ),
+            ),
+          ),
+        ],
+      ),
+      ),
+    );
+  }
+
+  Widget _row(String label, String value) => Padding(
+    padding: const EdgeInsets.symmetric(vertical: 3),
+    child: Row(
+      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+      children: [
+        Text(label, style: const TextStyle(fontSize: 14, color: kInkText)),
+        Text(
+          value,
+          style: const TextStyle(
+            fontSize: 14,
+            fontWeight: FontWeight.bold,
+            color: kInkText,
+          ),
+        ),
+      ],
+    ),
+  );
 }
 
 /// A brand-new player's what-to-do card (shown until the first product exists).

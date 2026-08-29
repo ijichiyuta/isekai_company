@@ -17,6 +17,20 @@ void main() {
     g.step();
   }
 
+  test('a year boundary raises a 章決算 review, cleared on acknowledge (§12.4)', () {
+    final g = GameController(balance: balance, clock: FakeTickClock(), seed: 1);
+    g.state.week = 47; // last week of year 1
+    expect(g.pendingChapter, isNull);
+    g.step(); // → week 48, year 2 begins; chapter 1 just closed
+    expect(g.pendingChapter, isNotNull);
+    expect(g.pendingChapter!.chapter, 1);
+    g.acknowledgeChapter();
+    expect(g.pendingChapter, isNull);
+    // A mid-year step raises nothing.
+    g.step();
+    expect(g.pendingChapter, isNull);
+  });
+
   test('developing pudding discovers it and raises an invention event', () {
     final g = GameController(balance: balance, clock: FakeTickClock(), seed: 1);
     expect(g.state.discovered[0], isFalse);

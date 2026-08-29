@@ -42,6 +42,23 @@ class InventionEvent {
   });
 }
 
+/// A year just closed — the §12.4 「章」決算. Surfaced so the UI can show a
+/// short annual review before the next chapter.
+class ChapterReview {
+  final int chapter; // the year that just ended (1-based)
+  final int revenue; // this year's sales
+  final int fameGain; // this year's fame gained
+  final String rankName;
+  final int discoveries;
+  const ChapterReview(
+    this.chapter,
+    this.revenue,
+    this.fameGain,
+    this.rankName,
+    this.discoveries,
+  );
+}
+
 /// The whole app-facing game state. Owns the deterministic [GameState] and the
 /// real-time clock; UI reads via [ChangeNotifier]. All player actions are
 /// RESERVATIONS applied on the next tick (§2.1 予約制) — no APM required.
@@ -173,6 +190,16 @@ class GameController extends ChangeNotifier {
   int lastWeekSold = 0;
   bool lastRankedUp = false;
 
+  // §12.4 章決算 — deltas measured from the start of the current year.
+  int _yearBaseRevenue = 0;
+  int _yearBaseFame = 0;
+  ChapterReview? _pendingChapter;
+  ChapterReview? get pendingChapter => _pendingChapter;
+  void acknowledgeChapter() {
+    _pendingChapter = null;
+    notifyListeners();
+  }
+
   // --- Second-layer loop: life evaluation & rebirth (§8, requirements §24) ---
   int lifeNumber = 1;
 
@@ -230,6 +257,9 @@ class GameController extends ChangeNotifier {
     lastWeekRevenue = 0;
     lastWeekSold = 0;
     lastRankedUp = false;
+    _yearBaseRevenue = 0;
+    _yearBaseFame = 0;
+    _pendingChapter = null;
     _speed = GameSpeed.paused;
     clock.stop();
     // Auto-tier unlocks (§8.4 #3) are granted on rebirth from a completed life.
@@ -399,12 +429,28 @@ class GameController extends ChangeNotifier {
   /// debug menu / tests.
   void step() {
     if (!_state.alive) return;
+    final oldWeek = _state.week;
     final result = engine.tick(_state, List<Command>.of(_pending));
     _pending.clear();
 
     lastWeekRevenue = result.weeklyRevenue;
     lastWeekSold = result.weeklySold;
     lastRankedUp = result.rankedUp;
+
+    // A year closed → the §12.4 「章」決算. Surfaced as a non-blocking inline
+    // card (no forced pause — the clock keeps running so fast-play isn't
+    // interrupted 60× a life); refreshes each year until dismissed.
+    if (_state.alive && _state.week ~/ 48 > oldWeek ~/ 48) {
+      _pendingChapter = ChapterReview(
+        _state.week ~/ 48,
+        _state.totalRevenue - _yearBaseRevenue,
+        _state.fame - _yearBaseFame,
+        balance.ranks[_state.rank].name,
+        _state.discoveries,
+      );
+      _yearBaseRevenue = _state.totalRevenue;
+      _yearBaseFame = _state.fame;
+    }
 
     // Exact invention bonuses come from the engine now (no funds-delta guess).
     // Queue them so simultaneous inventions each get their moment (§12.5).

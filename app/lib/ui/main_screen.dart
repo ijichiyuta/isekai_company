@@ -7,6 +7,7 @@ import '../debug/debug_menu.dart';
 import '../game/format.dart';
 import '../game/game_controller.dart';
 import '../game/providers.dart';
+import 'background.dart';
 import 'develop_screen.dart';
 import 'event_dialog.dart';
 import 'invention_overlay.dart';
@@ -206,7 +207,9 @@ class _ShopView extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final s = game.state;
-    return Center(
+    return AppBackground(
+      scenery: true,
+      child: Center(
       child: Padding(
         padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
         // scaleDown keeps the diorama crisp at native size on a phone, yet
@@ -219,9 +222,19 @@ class _ShopView extends StatelessWidget {
               // A populated shop-room diorama (HD dot-art over a soft, non-pixel
               // lit background): back wall with windows, floor, storefront, and
               // 店主 greeting a customer with props flanking.
-              SizedBox(
+              Container(
                 width: 356,
                 height: 330,
+                decoration: BoxDecoration(
+                  borderRadius: BorderRadius.circular(20),
+                  boxShadow: const [
+                    BoxShadow(
+                      color: Color(0x40000000),
+                      blurRadius: 18,
+                      offset: Offset(0, 9),
+                    ),
+                  ],
+                ),
                 child: ClipRRect(
                   borderRadius: BorderRadius.circular(20),
                   child: DecoratedBox(
@@ -360,6 +373,7 @@ class _ShopView extends StatelessWidget {
           ),
         ),
       ),
+        ),
     );
   }
 

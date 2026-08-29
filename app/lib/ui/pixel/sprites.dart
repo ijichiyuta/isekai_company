@@ -90,10 +90,17 @@ const Map<String, Color> kArtPal = {
 // the 異世界コンビニ hidden ending (§11.3 #4), NOT the starting look. ---
 final PixelSprite shopHd = _buildFantasyShop();
 final PixelSprite konbiniHd = _buildKonbini(); // hidden-ending storefront
+final PixelSprite stallHd = _buildStall(); // tier 0 (行商人/露店)
+final PixelSprite emporiumHd = _buildEmporium(); // tier 2 (御用達/大陸)
 
 /// Screen-facing storefront → the fantasy build.
 final PixelSprite shop = shopHd;
 final PixelSprite konbini = konbiniHd;
+
+/// The shop grows with your rank: humble stall → fantasy shop → grand emporium.
+/// ranks: 0 行商人 / 1 露店 / 2 店舗 / 3 商会 / 4 王国御用達 / 5 大陸商会.
+PixelSprite shopForRank(int rank) =>
+    rank <= 1 ? stallHd : (rank >= 4 ? emporiumHd : shopHd);
 
 /// HD townsfolk — one 48×54 `_person` build recolored per role: skin/hair/cloth
 /// ramps, a real face, uniform folds, selective outline. `heroHd` is the 店主.
@@ -282,6 +289,136 @@ void _leadedWindow(PixelCanvas c, int x, int y, int w, int h) {
   c.rect(x - 5, y - 2, 3, h + 4, 'c'); // left shutter
   c.rect(x + w + 2, y - 2, 3, h + 4, 'c'); // right shutter
   c.border(x - 2, y - 2, w + 4, h + 4, 'K');
+}
+
+/// Tier 0 — a humble open-air market stall (行商人/露店): two poles, a striped
+/// cloth roof, a plank counter of wares. No walls: you're just starting out.
+PixelSprite _buildStall() {
+  final c = PixelCanvas(104, 78);
+  // back poles
+  for (final px in [13, 87]) {
+    c.rect(px, 18, 4, 48, 'b');
+    c.rampV(px, 18, 4, 48, ['c', 'b', 'a']);
+  }
+  // cloth roof — cream + market-red stripes, slightly peaked front
+  const ry = 15;
+  for (var i = 12; i < 92; i++) {
+    final cream = (((i - 12) ~/ 9) % 2) == 0;
+    c.vline(i, ry, 8, cream ? 'i' : 'N');
+  }
+  c.hline(12, ry, 80, 'i');
+  c.hline(12, ry + 7, 80, '-');
+  for (var s = 12; s < 92; s += 9) {
+    final cream = (((s - 12) ~/ 9) % 2) == 0;
+    for (var k = 0; k < 3; k++) {
+      c.hline(s + k, ry + 8 + k, 9 - 2 * k, cream ? 'g' : 'M');
+    }
+  }
+  // hanging coin-sign
+  c.rect(46, 28, 12, 9, 'c');
+  c.rampV(46, 28, 12, 9, ['d', 'c', 'b']);
+  c.border(46, 28, 12, 9, 'K');
+  c.discShaded(52, 32, 2, ['x', 'w', 'v']);
+  // plank counter with wares
+  const cy = 50;
+  c.rect(9, cy, 86, 10, 'c');
+  c.rampV(9, cy, 86, 10, ['d', 'c', 'b', 'a']);
+  c.hline(9, cy, 86, 'e');
+  c.rect(14, cy + 10, 4, 8, 'b'); // legs
+  c.rect(86, cy + 10, 4, 8, 'b');
+  c.discShaded(22, cy - 2, 3, ['d', 'c', 'b']); // sack
+  c.discShaded(31, cy - 1, 2, ['O', 'N']); // produce
+  c.discShaded(37, cy - 1, 2, ['U', 'T']);
+  c.rect(62, cy - 5, 12, 6, 'c'); // crate
+  c.rampH(62, cy - 5, 12, 6, ['b', 'c', 'd', 'c', 'b']);
+  c.hline(62, cy - 3, 12, 'a');
+  // ground
+  c.rect(4, 66, 96, 3, 'Q');
+  c.rampV(4, 66, 96, 3, ['R', 'Q', 'P']);
+  c.shadow(52, 72, 44, 2, '-');
+  c.outline('K');
+  c.selout('K', '@');
+  return c.toSprite(kArtPal);
+}
+
+/// An arched window (stone frame, leaded glass) for the emporium.
+void _archWindow(PixelCanvas c, int x, int y, int w, int h) {
+  c.rect(x - 2, y, w + 4, h, 'f'); // stone frame
+  c.rect(x, y + 3, w, h - 3, 'o'); // glass
+  c.rampV(x, y + 3, w, h - 3, ['p', 'o', 'n']);
+  for (var i = 0; i < 4; i++) {
+    // arched top
+    c.hline(x - 2 + i, y + i, w + 4 - 2 * i, i < 2 ? 'f' : 'o');
+  }
+  c.vline(x + w ~/ 2, y + 3, h - 3, 'n');
+  c.hline(x, y + h ~/ 2, w, 'n');
+  c.set(x + 1, y + 4, '#');
+  c.border(x - 2, y, w + 4, h, 'K');
+}
+
+/// Tier 2 — a grand emporium (王国御用達/大陸商会): a pillared stone facade
+/// under a gold-trimmed pediment with pennants, arched windows, a grand door.
+PixelSprite _buildEmporium() {
+  final c = PixelCanvas(104, 78);
+  // PEDIMENT (triangular top)
+  for (var y = 0; y <= 10; y++) {
+    final half = y * 5 + 5;
+    c.hline(52 - half, y, half * 2, y < 4 ? 'h' : 'g');
+  }
+  c.set(52, 0, 'x'); // gold finial
+  c.rect(7, 2, 2, 9, 'b'); // pennant poles
+  c.rect(9, 2, 7, 4, 'M');
+  c.rect(95, 2, 2, 9, 'b');
+  c.rect(88, 2, 7, 4, 'M');
+  // ENTABLATURE with a gold rule
+  c.rect(3, 10, 98, 5, 'g');
+  c.hline(3, 10, 98, 'i');
+  c.hline(3, 12, 98, 'w');
+  c.hline(3, 13, 98, 'v');
+  // WALL (stone/plaster)
+  c.rect(15, 15, 74, 49, 'h');
+  c.rampV(15, 15, 74, 49, ['i', 'h', 'g', 'f']);
+  // COLUMNS at the sides
+  for (final px in [6, 90]) {
+    c.rect(px, 15, 8, 49, 'h');
+    c.rampH(px, 15, 8, 49, ['i', 'h', 'g', 'f']);
+    c.vline(px + 2, 15, 49, 'g');
+    c.vline(px + 5, 15, 49, 'g');
+    c.rect(px - 1, 15, 10, 3, 'g'); // capital
+    c.rect(px - 1, 61, 10, 3, 'g'); // base
+    c.border(px, 15, 8, 49, 'f');
+  }
+  // GRAND SIGN plaque with a gold emblem
+  c.rect(24, 17, 56, 10, 'a');
+  c.rect(25, 18, 54, 8, 'g');
+  c.rampV(25, 18, 54, 8, ['i', 'h', 'g']);
+  c.hline(34, 21, 40, 'w');
+  c.hline(34, 22, 40, 'v');
+  c.discShaded(30, 22, 3, ['x', 'w', 'v', 'u']);
+  // ARCHED WINDOWS
+  _archWindow(c, 20, 32, 13, 20);
+  _archWindow(c, 71, 32, 13, 20);
+  // GRAND ARCHED DOOR
+  const dx = 44, dw = 16, dy = 34;
+  for (var y = 30; y < dy; y++) {
+    final hw = y - 30;
+    c.hline(dx + hw, y, dw - 2 * hw, 'a');
+  }
+  c.rect(dx, dy, dw, 30, 'a');
+  c.rect(dx + 1, dy, dw - 2, 29, 'c');
+  c.rampV(dx + 1, dy, dw - 2, 29, ['d', 'c', 'b', 'a']);
+  c.vline(dx + dw ~/ 2, dy, 29, 'b');
+  c.rect(dx + dw ~/ 2 - 3, dy + 14, 2, 4, 'w'); // gold handles
+  c.rect(dx + dw ~/ 2 + 1, dy + 14, 2, 4, 'w');
+  // BASE — stone steps
+  c.rect(3, 64, 98, 4, 'R');
+  c.rampV(3, 64, 98, 4, ['S', 'R', 'Q']);
+  c.rect(1, 68, 102, 3, 'Q');
+  c.rampV(1, 68, 102, 3, ['R', 'Q', 'P']);
+  c.shadow(52, 74, 48, 2, '-');
+  c.outline('K');
+  c.selout('K', '@');
+  return c.toSprite(kArtPal);
 }
 
 PixelSprite _buildKonbini() {

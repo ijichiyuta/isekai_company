@@ -393,11 +393,12 @@ class _ShopView extends StatelessWidget {
                           alignment: const Alignment(0.62, -0.5),
                           child: PixelView(art.window, pixelSize: 2),
                         ),
-                        // Storefront on the floor line.
+                        // Storefront on the floor line — grows with your rank
+                        // (露店 → 店舗 → 大商会).
                         Align(
                           alignment: const Alignment(0, -0.02),
                           child: PixelView(
-                            art.shop,
+                            art.shopForRank(s.rank),
                             pixelSize: 3,
                             semanticLabel: '自分の商店',
                           ),

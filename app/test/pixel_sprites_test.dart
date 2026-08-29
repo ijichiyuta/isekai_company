@@ -15,6 +15,8 @@ void main() {
       ...kIconSprites,
       'shop': shop,
       'konbini': konbini,
+      'stall': stallHd,
+      'emporium': emporiumHd,
       'hero': hero,
       'customer': customer,
       'crate': crate,
@@ -48,6 +50,8 @@ void main() {
       ...kIconSprites,
       'shop': shop,
       'konbini': konbini,
+      'stall': stallHd,
+      'emporium': emporiumHd,
       'hero': hero,
       'customer': customer,
       'crate': crate,
@@ -150,7 +154,16 @@ void main() {
             child: Column(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                PixelView(shopHd, pixelSize: 5),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  crossAxisAlignment: CrossAxisAlignment.end,
+                  children: [
+                    for (final s in [stallHd, shopHd, emporiumHd]) ...[
+                      PixelView(s, pixelSize: 4),
+                      const SizedBox(width: 24),
+                    ],
+                  ],
+                ),
                 const SizedBox(height: 40),
                 Row(
                   mainAxisAlignment: MainAxisAlignment.center,

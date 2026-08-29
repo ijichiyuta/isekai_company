@@ -212,6 +212,14 @@ void main() {
     );
   });
 
+  testWidgets('scene: メイン画面（大商会）', (tester) async {
+    if (!Platform.isMacOS) return;
+    await _loadFonts();
+    final g = _seeded(loadTestBalanceMarket());
+    g.state.rank = 5; // 大陸商会 → grand emporium
+    await shot(tester, g, const MainScreen(), 'main_emporium');
+  });
+
   testWidgets('scene: メイン画面（冬）', (tester) async {
     if (!Platform.isMacOS) return;
     await _loadFonts();

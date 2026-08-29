@@ -19,6 +19,8 @@ Widget _app({bool tutorial = false}) {
       // No filesystem in widget tests — run the game in-memory (no persistence).
       saveStoreProvider.overrideWith((ref) async => null),
       tutorialActiveProvider.overrideWith((ref) => tutorial),
+      // Skip the title screen so tests pump straight into the game.
+      titleActiveProvider.overrideWith((ref) => false),
     ],
     child: const IsekaiApp(),
   );

@@ -13,6 +13,7 @@ import 'package:isekai_app/ui/develop_screen.dart';
 import 'package:isekai_app/ui/event_dialog.dart';
 import 'package:isekai_app/ui/invention_overlay.dart';
 import 'package:isekai_app/ui/main_screen.dart';
+import 'package:isekai_app/ui/title_screen.dart';
 import 'package:isekai_app/ui/onboarding.dart';
 import 'package:isekai_app/ui/order_screen.dart';
 import 'package:isekai_app/ui/production_screen.dart';
@@ -165,6 +166,17 @@ void main() {
       matchesGoldenFile('goldens/scene_$name.png'),
     );
   }
+
+  testWidgets('scene: タイトル', (tester) async {
+    if (!Platform.isMacOS) return;
+    await _loadFonts();
+    await shot(
+      tester,
+      _seeded(loadTestBalanceMarket()),
+      TitleScreen(onStart: () {}, onFull: () {}, hasProgress: false),
+      'title',
+    );
+  });
 
   testWidgets('scene: メイン画面（中盤）', (tester) async {
     if (!Platform.isMacOS) return;

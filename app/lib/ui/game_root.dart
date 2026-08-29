@@ -5,11 +5,17 @@ import '../game/providers.dart';
 import 'develop_screen.dart';
 import 'main_screen.dart';
 import 'onboarding.dart';
+import 'paywall.dart';
+import 'title_screen.dart';
 
 /// Test/debug hook to force-skip onboarding (set false). Real persistence lives
 /// in meta: [GameController.tutorialDone] (§C-6) drives the 2周目 / relaunch
 /// auto-skip. In production this stays true and tutorialDone gates the flow.
 final tutorialActiveProvider = StateProvider<bool>((ref) => true);
+
+/// Show the title screen on launch (§12.2 #1). Tests override this to false to
+/// pump straight into the game.
+final titleActiveProvider = StateProvider<bool>((ref) => true);
 
 /// Sequences the first-run experience: onboarding intro → guided pudding
 /// develop → free play. After the tutorial (or a skip), it's just [MainScreen].
@@ -20,6 +26,7 @@ class GameRoot extends ConsumerStatefulWidget {
 }
 
 class _GameRootState extends ConsumerState<GameRoot> {
+  bool _started = false; // title screen dismissed?
   bool _introDone = false;
   bool _guided = false;
 
@@ -50,6 +57,14 @@ class _GameRootState extends ConsumerState<GameRoot> {
     final done = ref.watch(
       gameControllerProvider.select((g) => g.tutorialDone),
     );
+    // Title screen first (§12.2 #1) — establishes the world before play.
+    if (ref.watch(titleActiveProvider) && !_started) {
+      return TitleScreen(
+        hasProgress: done,
+        onStart: () => setState(() => _started = true),
+        onFull: () => showPaywall(context),
+      );
+    }
     final hook = ref.watch(tutorialActiveProvider); // test/debug force-skip
     if (hook && !done && !_introDone) {
       return OnboardingFlow(onDone: _finishIntro);

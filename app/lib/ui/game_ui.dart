@@ -124,6 +124,89 @@ class _PixelButtonState extends State<PixelButton> {
   }
 }
 
+/// A flat, ink-bordered app bar (no Material elevation/tint) to match the
+/// panels — pass a PixelTitle as [title].
+PreferredSizeWidget pixelAppBar({required Widget title, List<Widget>? actions}) {
+  return AppBar(
+    title: title,
+    centerTitle: true,
+    backgroundColor: kPanel,
+    foregroundColor: kInkText,
+    elevation: 0,
+    scrolledUnderElevation: 0,
+    shape: const Border(bottom: BorderSide(color: kInk, width: 2)),
+    actions: actions,
+  );
+}
+
+/// A list row as a beveled panel (replaces Material ListTile). [onTap] makes it
+/// a pressable panel; otherwise it's a static card.
+class PixelListTile extends StatelessWidget {
+  const PixelListTile({
+    super.key,
+    this.leading,
+    required this.title,
+    this.subtitle,
+    this.trailing,
+    this.onTap,
+  });
+  final Widget? leading;
+  final Widget title;
+  final Widget? subtitle;
+  final Widget? trailing;
+  final VoidCallback? onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    final row = Row(
+      children: [
+        if (leading != null)
+          Padding(padding: const EdgeInsets.only(right: 10), child: leading),
+        Expanded(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              DefaultTextStyle.merge(
+                style: const TextStyle(
+                  fontWeight: FontWeight.bold,
+                  fontSize: 15,
+                  color: kInkText,
+                ),
+                child: title,
+              ),
+              if (subtitle != null)
+                Padding(
+                  padding: const EdgeInsets.only(top: 2),
+                  child: DefaultTextStyle.merge(
+                    style: const TextStyle(fontSize: 12, color: Color(0xFF8A6A44)),
+                    child: subtitle!,
+                  ),
+                ),
+            ],
+          ),
+        ),
+        if (trailing != null)
+          Padding(padding: const EdgeInsets.only(left: 8), child: trailing),
+      ],
+    );
+    final box = PixelBox(
+      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
+      child: row,
+    );
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
+      child: onTap == null
+          ? box
+          : GestureDetector(
+              behavior: HitTestBehavior.opaque,
+              onTap: onTap,
+              child: box,
+            ),
+    );
+  }
+}
+
 /// A chunky segmented progress bar in a sunken well (replaces the smooth
 /// Material LinearProgressIndicator). [value] is 0..1.
 class PixelMeter extends StatelessWidget {

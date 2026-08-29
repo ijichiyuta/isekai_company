@@ -6,8 +6,24 @@ import '../game/format.dart';
 import '../game/game_controller.dart';
 import '../game/providers.dart';
 import 'background.dart';
+import 'game_ui.dart';
 import 'pixel/pixel_art.dart';
 import 'pixel/sprites.dart' as art;
+
+/// A selectable pill rendered as a pixel button (gold when selected).
+Widget _chip(String label, bool selected, VoidCallback? onTap) => PixelButton(
+  onTap: onTap,
+  fill: selected ? kAccent : kPanel,
+  padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+  child: Text(
+    label,
+    style: TextStyle(
+      fontWeight: selected ? FontWeight.bold : FontWeight.w600,
+      fontSize: 13,
+      color: kInkText,
+    ),
+  ),
+);
 
 /// PB開発 (requirements §4, §12.2): pick 2 material slots + 1 method. Missing
 /// materials are auto-ordered so the loop stays smooth for new players. The
@@ -52,7 +68,7 @@ class _DevelopScreenState extends ConsumerState<DevelopScreen> {
     return AppBackground(
       child: Scaffold(
         backgroundColor: Colors.transparent,
-        appBar: AppBar(title: PixelTitle(art.beaker, 'PB開発')),
+        appBar: pixelAppBar(title: PixelTitle(art.beaker, 'PB開発')),
         // The primary action is pinned so it never scrolls off (the recipe list
         // grows as more materials/recipes are added).
         bottomNavigationBar: SafeArea(
@@ -66,18 +82,37 @@ class _DevelopScreenState extends ConsumerState<DevelopScreen> {
                     padding: EdgeInsets.only(bottom: 6),
                     child: Text(
                       '資金が足りません',
-                      style: TextStyle(color: Colors.red),
+                      style: TextStyle(
+                        color: Color(0xFFB23A2E),
+                        fontWeight: FontWeight.bold,
+                      ),
                     ),
                   ),
                 SizedBox(
                   width: double.infinity,
-                  child: FilledButton.icon(
-                    onPressed: canDevelop && affordable
+                  child: PixelButton(
+                    onTap: canDevelop && affordable
                         ? () => _develop(game, context)
                         : null,
-                    icon: const Icon(Icons.science),
-                    label: Text(
-                      canDevelop ? '開発する（素材費 ${cost}G）' : '素材を2つ選んでください',
+                    fill: canDevelop && affordable ? kAccent : kPanel,
+                    padding: const EdgeInsets.symmetric(vertical: 12),
+                    child: Center(
+                      child: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          PixelView(art.beaker, height: 18),
+                          const SizedBox(width: 6),
+                          Text(
+                            canDevelop
+                                ? '開発する（素材費 ${cost}G）'
+                                : '素材を2つ選んでください',
+                            style: const TextStyle(
+                              fontWeight: FontWeight.bold,
+                              color: kInkText,
+                            ),
+                          ),
+                        ],
+                      ),
                     ),
                   ),
                 ),
@@ -89,51 +124,54 @@ class _DevelopScreenState extends ConsumerState<DevelopScreen> {
           padding: const EdgeInsets.all(16),
           children: [
             if (widget.tutorial)
-              Container(
-                width: double.infinity,
-                margin: const EdgeInsets.only(bottom: 12),
-                padding: const EdgeInsets.all(10),
-                decoration: BoxDecoration(
-                  color: const Color(0xFFFFF2CC),
-                  borderRadius: BorderRadius.circular(8),
-                  border: Border.all(color: const Color(0xFFC8991F)),
-                ),
-                child: const Text(
-                  '前世の記憶がひらめく——「小麦 × 卵 ＋ 冷却」で作れるはず！\n'
-                  '下の「開発する」を押してみよう。',
-                  style: TextStyle(fontSize: 13),
+              Padding(
+                padding: const EdgeInsets.only(bottom: 12),
+                child: PixelBox(
+                  fill: const Color(0xFFFBEBBE),
+                  padding: const EdgeInsets.all(10),
+                  child: const Text(
+                    '前世の記憶がひらめく——「小麦 × 卵 ＋ 冷却」で作れるはず！\n'
+                    '下の「開発する」を押してみよう。',
+                    style: TextStyle(fontSize: 13, color: kInkText),
+                  ),
                 ),
               ),
             _slot('素材スロット 1', _matA, (i) => setState(() => _matA = i), b),
             const SizedBox(height: 12),
             _slot('素材スロット 2', _matB, (i) => setState(() => _matB = i), b),
             const SizedBox(height: 12),
-            const Text('製法', style: TextStyle(fontWeight: FontWeight.bold)),
+            const Text(
+              '製法',
+              style: TextStyle(fontWeight: FontWeight.bold, color: kInkText),
+            ),
             const SizedBox(height: 6),
             Wrap(
               spacing: 6,
+              runSpacing: 6,
               children: [
                 for (var i = 0; i < b.methods.length; i++)
-                  ChoiceChip(
-                    label: Text(b.methods[i]),
-                    selected: _method == i,
-                    onSelected: (_) => setState(() => _method = i),
+                  _chip(
+                    b.methods[i],
+                    _method == i,
+                    () => setState(() => _method = i),
                   ),
               ],
             ),
-            const Divider(height: 32),
+            const SizedBox(height: 20),
             Text(
               '発見済みレシピ（${game.state.discoveries}種）',
-              style: const TextStyle(fontWeight: FontWeight.bold),
+              style: const TextStyle(
+                fontWeight: FontWeight.bold,
+                color: kInkText,
+              ),
             ),
             const SizedBox(height: 8),
             for (final r in b.recipes)
               if (game.state.discovered[r.id])
-                ListTile(
-                  dense: true,
+                PixelListTile(
                   leading: PixelView(
                     art.categoryIcon(r.category),
-                    height: 26,
+                    height: 28,
                     semanticLabel: categoryJa(r.category),
                   ),
                   title: Text(r.name),
@@ -154,17 +192,20 @@ class _DevelopScreenState extends ConsumerState<DevelopScreen> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text(label, style: const TextStyle(fontWeight: FontWeight.bold)),
+        Text(
+          label,
+          style: const TextStyle(fontWeight: FontWeight.bold, color: kInkText),
+        ),
         const SizedBox(height: 6),
         Wrap(
           spacing: 6,
           runSpacing: 6,
           children: [
             for (final m in b.materials)
-              ChoiceChip(
-                label: Text('${m.name} (${m.cost}G)'),
-                selected: selected == m.id,
-                onSelected: (_) => onPick(m.id),
+              _chip(
+                '${m.name} (${m.cost}G)',
+                selected == m.id,
+                () => onPick(m.id),
               ),
           ],
         ),

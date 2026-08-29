@@ -5,6 +5,7 @@ import 'package:isekai_core/isekai_core.dart';
 import '../game/format.dart';
 import '../game/providers.dart';
 import 'background.dart';
+import 'game_ui.dart';
 import 'pixel/pixel_art.dart';
 import 'pixel/sprites.dart' as art;
 
@@ -20,19 +21,35 @@ class OrderScreen extends ConsumerWidget {
     return AppBackground(
       child: Scaffold(
         backgroundColor: Colors.transparent,
-        appBar: AppBar(
+        appBar: pixelAppBar(
           title: PixelTitle(art.cart, '発注'),
           actions: [
             Padding(
-              padding: const EdgeInsets.only(right: 12),
+              padding: const EdgeInsets.only(right: 10),
               child: Center(
-                child: Row(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    PixelView(art.coin, height: 16, semanticLabel: '資金'),
-                    const SizedBox(width: 4),
-                    Text(formatG(game.state.funds)),
-                  ],
+                child: PixelBox(
+                  raised: false,
+                  fill: const Color(0xFFF6EBCB),
+                  bevel: 1.5,
+                  outline: 1.5,
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 8,
+                    vertical: 3,
+                  ),
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      PixelView(art.coin, height: 16, semanticLabel: '資金'),
+                      const SizedBox(width: 4),
+                      Text(
+                        formatG(game.state.funds),
+                        style: const TextStyle(
+                          fontWeight: FontWeight.bold,
+                          color: kInkText,
+                        ),
+                      ),
+                    ],
+                  ),
                 ),
               ),
             ),
@@ -43,27 +60,42 @@ class OrderScreen extends ConsumerWidget {
             const _ReservationBanner(),
             Expanded(
               child: ListView(
+                padding: const EdgeInsets.symmetric(vertical: 8),
                 children: [
                   for (final m in b.materials)
-                    ListTile(
+                    PixelListTile(
                       leading: PixelView(
                         art.materialIcon(m.id),
-                        height: 26,
+                        height: 30,
                         semanticLabel: m.name,
                       ),
                       title: Text(m.name),
                       subtitle: Text(
                         '単価 ${m.cost}G ・ 在庫 ${game.state.materialStock[m.id]}',
                       ),
-                      trailing: Wrap(
-                        spacing: 4,
+                      trailing: Row(
+                        mainAxisSize: MainAxisSize.min,
                         children: [
                           for (final qty in [1, 10])
-                            OutlinedButton(
-                              onPressed: game.isAlive
-                                  ? () => game.reserve(OrderMaterial(m.id, qty))
-                                  : null,
-                              child: Text('+$qty'),
+                            Padding(
+                              padding: const EdgeInsets.only(left: 4),
+                              child: PixelButton(
+                                onTap: game.isAlive
+                                    ? () =>
+                                          game.reserve(OrderMaterial(m.id, qty))
+                                    : null,
+                                padding: const EdgeInsets.symmetric(
+                                  horizontal: 10,
+                                  vertical: 6,
+                                ),
+                                child: Text(
+                                  '+$qty',
+                                  style: const TextStyle(
+                                    fontWeight: FontWeight.bold,
+                                    color: kInkText,
+                                  ),
+                                ),
+                              ),
                             ),
                         ],
                       ),
@@ -87,17 +119,27 @@ class _ReservationBanner extends ConsumerWidget {
     final n = ref.watch(gameControllerProvider).pending.length;
     if (n == 0) {
       return const Padding(
-        padding: EdgeInsets.all(8),
-        child: Text('タップで来週の予約を積みます', style: TextStyle(fontSize: 12)),
+        padding: EdgeInsets.all(10),
+        child: Text(
+          'タップで来週の予約を積みます',
+          style: TextStyle(fontSize: 12, color: kInkText),
+        ),
       );
     }
     return Container(
       width: double.infinity,
-      color: const Color(0xFFEFC9A0),
+      decoration: const BoxDecoration(
+        color: Color(0xFFF3D9A9),
+        border: Border(bottom: BorderSide(color: kInk, width: 2)),
+      ),
       padding: const EdgeInsets.all(8),
       child: Text(
         '来週の予約: $n 件（メイン画面で週を進めると反映）',
-        style: const TextStyle(fontSize: 12),
+        style: const TextStyle(
+          fontSize: 12,
+          fontWeight: FontWeight.w600,
+          color: kInkText,
+        ),
       ),
     );
   }

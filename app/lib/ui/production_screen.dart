@@ -6,6 +6,7 @@ import '../game/format.dart';
 import '../game/game_controller.dart';
 import '../game/providers.dart';
 import 'background.dart';
+import 'game_ui.dart';
 import 'pixel/pixel_art.dart';
 import 'pixel/sprites.dart' as art;
 
@@ -26,27 +27,33 @@ class ProductionScreen extends ConsumerWidget {
     return AppBackground(
       child: Scaffold(
         backgroundColor: Colors.transparent,
-        appBar: AppBar(title: PixelTitle(art.factoryIcon, '生産')),
+        appBar: pixelAppBar(title: PixelTitle(art.factoryIcon, '生産')),
         body: ListView(
           children: [
             _UpgradePanel(game: game),
             Padding(
-              padding: const EdgeInsets.all(12),
+              padding: const EdgeInsets.fromLTRB(16, 4, 16, 8),
               child: Text(
                 '週あたり生産能力: ${game.weeklyCapacity} 個'
                 '（従業員 ${game.state.employees}人・設備Lv${game.equipmentLevel}）',
+                style: const TextStyle(color: kInkText, fontSize: 13),
               ),
             ),
             if (known.isEmpty)
               const Padding(
                 padding: EdgeInsets.all(24),
-                child: Center(child: Text('まずPB開発でレシピを発見しましょう')),
+                child: Center(
+                  child: Text(
+                    'まずPB開発でレシピを発見しましょう',
+                    style: TextStyle(color: kInkText),
+                  ),
+                ),
               ),
             for (final r in known)
-              ListTile(
+              PixelListTile(
                 leading: PixelView(
                   art.categoryIcon(r.category),
-                  height: 26,
+                  height: 28,
                   semanticLabel: categoryJa(r.category),
                 ),
                 title: Text(r.name),
@@ -54,26 +61,41 @@ class ProductionScreen extends ConsumerWidget {
                   '完成品在庫 ${game.state.productStock[r.id]} '
                   '・ 素材 ${b.materials[r.matA].name}/${b.materials[r.matB].name}',
                 ),
-                trailing: Wrap(
-                  spacing: 4,
+                trailing: Row(
+                  mainAxisSize: MainAxisSize.min,
                   children: [
                     for (final qty in [1, 5])
-                      OutlinedButton(
-                        // Reserve the needed materials too, so production
-                        // succeeds regardless of order (§2.1 予約制; applied
-                        // when the week advances).
-                        onPressed: game.isAlive
-                            ? () {
-                                if (r.matA == r.matB) {
-                                  game.reserve(OrderMaterial(r.matA, qty * 2));
-                                } else {
-                                  game.reserve(OrderMaterial(r.matA, qty));
-                                  game.reserve(OrderMaterial(r.matB, qty));
+                      Padding(
+                        padding: const EdgeInsets.only(left: 4),
+                        child: PixelButton(
+                          // Reserve the needed materials too, so production
+                          // succeeds regardless of order (§2.1 予約制; applied
+                          // when the week advances).
+                          onTap: game.isAlive
+                              ? () {
+                                  if (r.matA == r.matB) {
+                                    game.reserve(
+                                      OrderMaterial(r.matA, qty * 2),
+                                    );
+                                  } else {
+                                    game.reserve(OrderMaterial(r.matA, qty));
+                                    game.reserve(OrderMaterial(r.matB, qty));
+                                  }
+                                  game.reserve(Produce(r.id, qty));
                                 }
-                                game.reserve(Produce(r.id, qty));
-                              }
-                            : null,
-                        child: Text('作+$qty'),
+                              : null,
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 10,
+                            vertical: 6,
+                          ),
+                          child: Text(
+                            '作+$qty',
+                            style: const TextStyle(
+                              fontWeight: FontWeight.bold,
+                              color: kInkText,
+                            ),
+                          ),
+                        ),
                       ),
                   ],
                 ),
@@ -103,18 +125,18 @@ class _UpgradePanel extends StatelessWidget {
     final eqCost = game.equipUpgradeCost();
     final qCost = game.qualityUpgradeCost();
     final priceMult = (game.qualityMultPercent / 100).toStringAsFixed(2);
-    return Card(
-      margin: const EdgeInsets.all(12),
-      child: Padding(
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(12, 12, 12, 4),
+      child: PixelBox(
         padding: const EdgeInsets.all(12),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             const Text(
               '設備・品質への再投資',
-              style: TextStyle(fontWeight: FontWeight.bold),
+              style: TextStyle(fontWeight: FontWeight.bold, color: kInkText),
             ),
-            const SizedBox(height: 8),
+            const SizedBox(height: 10),
             _UpgradeRow(
               label: '設備レベル ${game.equipmentLevel} / ${game.equipMaxLevel}',
               sub: '週次生産能力を拡大',
@@ -130,7 +152,7 @@ class _UpgradePanel extends StatelessWidget {
                 _toast(context, '設備強化を予約（次の週に適用）');
               },
             ),
-            const Divider(height: 16),
+            const SizedBox(height: 10),
             _UpgradeRow(
               label:
                   '品質 ★${game.qualityStar} / ${game.qualityMaxStar}'
@@ -177,17 +199,32 @@ class _UpgradeRow extends StatelessWidget {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Text(label, style: const TextStyle(fontWeight: FontWeight.w600)),
+              Text(
+                label,
+                style: const TextStyle(
+                  fontWeight: FontWeight.w600,
+                  color: kInkText,
+                ),
+              ),
               Text(
                 sub,
-                style: const TextStyle(fontSize: 12, color: Colors.grey),
+                style: const TextStyle(fontSize: 12, color: Color(0xFF8A6A44)),
               ),
             ],
           ),
         ),
-        FilledButton.tonal(
-          onPressed: enabled ? onTap : null,
-          child: Text(costLabel),
+        const SizedBox(width: 8),
+        PixelButton(
+          onTap: enabled ? onTap : null,
+          fill: enabled ? kAccent : kPanel,
+          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+          child: Text(
+            costLabel,
+            style: const TextStyle(
+              fontWeight: FontWeight.bold,
+              color: kInkText,
+            ),
+          ),
         ),
       ],
     );

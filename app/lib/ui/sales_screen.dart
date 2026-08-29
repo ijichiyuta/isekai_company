@@ -4,6 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../game/format.dart';
 import '../game/providers.dart';
 import 'background.dart';
+import 'game_ui.dart';
 import 'pixel/pixel_art.dart';
 import 'pixel/sprites.dart' as art;
 
@@ -24,7 +25,7 @@ class SalesScreen extends ConsumerWidget {
     return AppBackground(
       child: Scaffold(
         backgroundColor: Colors.transparent,
-        appBar: AppBar(title: PixelTitle(art.storefront, '販売')),
+        appBar: pixelAppBar(title: PixelTitle(art.storefront, '販売')),
         body: Column(
           children: [
             Padding(
@@ -32,28 +33,59 @@ class SalesScreen extends ConsumerWidget {
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  Text('累計売上 ${formatG(game.state.totalRevenue)}'),
-                  const Text('自動販売中', style: TextStyle(color: Colors.green)),
+                  Text(
+                    '累計売上 ${formatG(game.state.totalRevenue)}',
+                    style: const TextStyle(
+                      fontWeight: FontWeight.bold,
+                      color: kInkText,
+                    ),
+                  ),
+                  const Text(
+                    '自動販売中',
+                    style: TextStyle(
+                      color: Color(0xFF2F7D3A),
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
                 ],
               ),
             ),
             Expanded(
               child: known.isEmpty
-                  ? const Center(child: Text('販売できる商品がまだありません'))
+                  ? const Center(
+                      child: Text(
+                        '販売できる商品がまだありません',
+                        style: TextStyle(color: kInkText),
+                      ),
+                    )
                   : ListView(
+                      padding: const EdgeInsets.only(bottom: 8),
                       children: [
                         for (final r in known)
-                          ListTile(
-                            dense: true,
+                          PixelListTile(
                             leading: PixelView(
                               art.categoryIcon(r.category),
-                              height: 24,
+                              height: 28,
                               semanticLabel: categoryJa(r.category),
                             ),
                             title: Text(r.name),
                             subtitle: Text('売値 ${r.basePrice}G'),
-                            trailing: Text(
-                              '在庫 ${game.state.productStock[r.id]}',
+                            trailing: PixelBox(
+                              raised: false,
+                              fill: const Color(0xFFF6EBCB),
+                              bevel: 1.5,
+                              outline: 1.5,
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 8,
+                                vertical: 4,
+                              ),
+                              child: Text(
+                                '在庫 ${game.state.productStock[r.id]}',
+                                style: const TextStyle(
+                                  color: kInkText,
+                                  fontWeight: FontWeight.w600,
+                                ),
+                              ),
                             ),
                           ),
                       ],
@@ -63,7 +95,7 @@ class SalesScreen extends ConsumerWidget {
               padding: EdgeInsets.all(12),
               child: Text(
                 '※ 販売は自動。手動値付け・棚割りは今後のアップデートで追加予定',
-                style: TextStyle(fontSize: 12, color: Colors.grey),
+                style: TextStyle(fontSize: 12, color: Color(0xFF8A6A44)),
               ),
             ),
           ],

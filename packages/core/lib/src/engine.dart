@@ -190,19 +190,20 @@ class Engine {
     final season = (s.week % 48) ~/ 12; // 48wk/yr, 12/season (matches app cal)
     var trendOnset = false;
 
-    /// Demand weight (x100) of a product: season × active-trend multipliers.
-    /// 100 everywhere when there's no market (→ uniform water-fill).
+    /// Ambient demand weight (x100): SEASON only. Trends are no longer folded in
+    /// here — doing so let a trend-blind player auto-capture the spike (M-Fun-2).
+    /// A live trend now pays out as a SEPARATE bonus pool (§7, below) that only
+    /// the trending category's stock can absorb, so reacting to the forecast is
+    /// a real decision. 100 everywhere with no market (→ uniform water-fill,
+    /// byte-identical to pre-v0.9).
     int weightOf(int recipeId) {
       if (market == null) return 100;
       final cat = market.categoryIndex(balance.recipes[recipeId].category);
-      var w = market.seasonMultOf(cat, season);
-      if (s.trendForecastWeeks == 0 &&
-          s.trendActiveWeeks > 0 &&
-          s.trendCategory == cat) {
-        w = w * s.trendMultX100 ~/ 100;
-      }
+      final w = market.seasonMultOf(cat, season);
       return w < 1 ? 1 : w;
     }
+    final trendLive =
+        market != null && s.trendForecastWeeks == 0 && s.trendActiveWeeks > 0;
 
     // --- 2b. sales ---
     // Shared weekly demand POOL (requirements §6: the market is finite). A
@@ -216,6 +217,7 @@ class Engine {
     pool = pool * jitter ~/ 100;
     // 棚割りの極意 (§8.4 #11 sales_bonus) widens the demand pool.
     if (s.salesBonusX100 != 0) pool = pool * (100 + s.salesBonusX100) ~/ 100;
+    final basePool = pool; // snapshot: the trend bonus (2c) scales off this
     var active = <int>[];
     for (var i = 0; i < balance.recipes.length; i++) {
       if (s.productStock[i] > 0) active.add(i);
@@ -256,6 +258,49 @@ class Engine {
         if (s.productStock[i] > 0) next.add(i);
       }
       active = next;
+    }
+
+    // --- 2c. trend bonus (M-Fun-2 §7): EXTRA demand only the trending category
+    // can absorb. Stocking the forecast category ahead of the spike is now a
+    // real, rewarded decision (a trend-blind player captures only whatever
+    // trending stock they happen to hold). Uniform fill among trending stock,
+    // scaled off the base pool by (mult-1). Consumes NO RNG and never runs
+    // without a market → the no-market tick stays byte-identical (§2.2).
+    if (trendLive) {
+      var bonus = basePool * (s.trendMultX100 - 100) ~/ 100;
+      var tActive = <int>[
+        for (var i = 0; i < balance.recipes.length; i++)
+          if (s.productStock[i] > 0 &&
+              market!.categoryIndex(balance.recipes[i].category) ==
+                  s.trendCategory)
+            i,
+      ];
+      while (bonus > 0 && tActive.isNotEmpty) {
+        final share = bonus ~/ tActive.length;
+        if (share == 0) {
+          for (final i in tActive) {
+            if (bonus <= 0) break;
+            s.productStock[i] -= 1;
+            weeklyRevenue =
+                clampCap(weeklyRevenue + _unitPrice(balance.recipes[i], s));
+            weeklySold += 1;
+            bonus -= 1;
+          }
+          break;
+        }
+        final next = <int>[];
+        for (final i in tActive) {
+          final stock = s.productStock[i];
+          final sold = stock < share ? stock : share;
+          s.productStock[i] -= sold;
+          weeklyRevenue = clampCap(
+              weeklyRevenue + sold * _unitPrice(balance.recipes[i], s));
+          weeklySold += sold;
+          bonus -= sold;
+          if (s.productStock[i] > 0) next.add(i);
+        }
+        tActive = next;
+      }
     }
 
     // Advance the trend AFTER this week's sales (so a live trend applies for its

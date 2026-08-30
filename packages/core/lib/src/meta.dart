@@ -123,6 +123,11 @@ const Set<String> functionalModTypes = {
   'order_discount',
   'grant_recipes', // pre-discovers staple recipes at life start (fromMeta)
   'speed3', // unlocks the ×3 speed control (app-level effect)
+  // Invention-hint nodes (M-Fun-1 slice 2): display-only aids in the 商品開発
+  // screen (no GameState/tick effect — determinism baseline unchanged). They
+  // steer the deduction toward hidden recipes, so they genuinely "ship" now.
+  'reveal_material', // 記憶の索引: reveals a hidden recipe's material(s)
+  'hint_inherit', // 閃きの残滓: fully reveals a fraction of recipes' combos
 };
 
 /// Whether [u]'s effect is wired into the simulation today (see

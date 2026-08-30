@@ -154,6 +154,23 @@ class GameController extends ChangeNotifier {
     (u) => u.modType == 'speed3' && _meta.isUnlocked(u.id),
   );
 
+  // --- Invention hints (M-Fun-1 slice 2): 魂の記憶 aids that steer 商品開発's
+  // deduction. Display-only — summed from owned unlocks, no engine effect. ---
+
+  /// How many of a hidden recipe's materials 記憶の索引 (reveal_material) shows.
+  int get revealMaterialCount => _sumMod('reveal_material');
+
+  /// Percent of undiscovered recipes 閃きの残滓 (hint_inherit) fully reveals.
+  int get hintInheritPercent => _sumMod('hint_inherit');
+
+  int _sumMod(String modType) {
+    var n = 0;
+    for (final u in balance.unlocks) {
+      if (u.modType == modType) n += u.modValue * _meta.levelOf(u.id);
+    }
+    return n;
+  }
+
   // --- Monetization (P3) ---
   bool get isFull => _entitlements.isFull;
   bool get iapAvailable => _iap.available;

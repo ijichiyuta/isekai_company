@@ -102,6 +102,12 @@ class _DevelopScreenState extends ConsumerState<DevelopScreen> {
         if (!s.discovered[r.id] && r.band <= s.allowedBandMax) r,
     ];
 
+    // 魂の記憶 invention aids (M-Fun-1 slice 2, display-only): 記憶の索引 reveals
+    // material(s); 閃きの残滓 fully reveals a fraction of recipes (stable by id).
+    final revealCount = game.revealMaterialCount;
+    final inheritPct = game.hintInheritPercent;
+    bool inheritedOf(RecipeDef r) => inheritPct > 0 && r.id % 100 < inheritPct;
+
     return AppBackground(
       child: Scaffold(
         backgroundColor: Colors.transparent,
@@ -208,14 +214,24 @@ class _DevelopScreenState extends ConsumerState<DevelopScreen> {
                             runSpacing: 6,
                             children: [
                               for (final r in ideas)
-                                _ideaCard(r, _targetId == r.id),
+                                _ideaCard(
+                                  r,
+                                  _targetId == r.id,
+                                  inheritedOf(r),
+                                ),
                             ],
                           ),
                         ),
                       ),
                     ),
                   const SizedBox(height: 14),
-                  if (_targetId != null) _riddleBox(b.recipes[_targetId!]),
+                  if (_targetId != null)
+                    _riddleBox(
+                      b,
+                      b.recipes[_targetId!],
+                      revealCount,
+                      inheritedOf(b.recipes[_targetId!]),
+                    ),
                   _slot(
                     '素材スロット 1',
                     _matA,
@@ -296,9 +312,10 @@ class _DevelopScreenState extends ConsumerState<DevelopScreen> {
     ),
   );
 
-  /// One 前世の記憶 card: category icon + name (+✦ for an invention). Tapping it
-  /// sets the deduction target (tap again to clear).
-  Widget _ideaCard(RecipeDef r, bool selected) => PixelButton(
+  /// One 前世の記憶 card: category icon + name (+✦ for an invention, + a lit
+  /// bulb when 閃きの残滓 has made this memory vivid). Tapping sets the deduction
+  /// target (tap again to clear).
+  Widget _ideaCard(RecipeDef r, bool selected, bool inherited) => PixelButton(
     onTap: () => setState(() {
       _targetId = selected ? null : r.id;
       _resultMsg = null;
@@ -322,56 +339,96 @@ class _DevelopScreenState extends ConsumerState<DevelopScreen> {
           const SizedBox(width: 4),
           PixelView(art.sparkle, height: 12),
         ],
+        if (inherited) ...[
+          const SizedBox(width: 3),
+          const Icon(Icons.lightbulb, size: 13, color: Color(0xFFC8991F)),
+        ],
       ],
     ),
   );
 
   /// The selected memory's riddle: what to reproduce + the past-life flavor as
-  /// the clue the player deduces from.
-  Widget _riddleBox(RecipeDef r) => Padding(
-    padding: const EdgeInsets.only(bottom: 14),
-    child: PixelBox(
-      fill: const Color(0xFFEAF3E0),
-      padding: const EdgeInsets.all(11),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            children: [
-              PixelView(art.categoryIcon(r.category), height: 22),
-              const SizedBox(width: 6),
-              Flexible(
-                child: Text(
-                  '「${r.name}」を再現する',
-                  style: const TextStyle(
-                    fontWeight: FontWeight.bold,
-                    fontSize: 15,
-                    color: kInkText,
+  /// the clue. When 魂の記憶 aids are owned, a 手がかり line reveals material(s)
+  /// (記憶の索引) or the whole combo (閃きの残滓, for "vivid" memories).
+  Widget _riddleBox(Balance b, RecipeDef r, int revealCount, bool inherited) {
+    String? hint;
+    if (inherited) {
+      hint =
+          '記憶が鮮明——${b.materials[r.matA].name} × ${b.materials[r.matB].name} ＋ ${methodJa(b.methods[r.method])}';
+    } else if (revealCount >= 2) {
+      hint =
+          '手がかり：素材は「${b.materials[r.matA].name}」と「${b.materials[r.matB].name}」';
+    } else if (revealCount == 1) {
+      hint = '手がかり：素材のひとつは「${b.materials[r.matA].name}」';
+    }
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 14),
+      child: PixelBox(
+        fill: const Color(0xFFEAF3E0),
+        padding: const EdgeInsets.all(11),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              children: [
+                PixelView(art.categoryIcon(r.category), height: 22),
+                const SizedBox(width: 6),
+                Flexible(
+                  child: Text(
+                    '「${r.name}」を再現する',
+                    style: const TextStyle(
+                      fontWeight: FontWeight.bold,
+                      fontSize: 15,
+                      color: kInkText,
+                    ),
                   ),
+                ),
+              ],
+            ),
+            if (r.desc.isNotEmpty) ...[
+              const SizedBox(height: 6),
+              Text(
+                r.desc,
+                style: const TextStyle(
+                  fontSize: 12.5,
+                  height: 1.35,
+                  color: Color(0xFF6B5330),
                 ),
               ),
             ],
-          ),
-          if (r.desc.isNotEmpty) ...[
             const SizedBox(height: 6),
-            Text(
-              r.desc,
-              style: const TextStyle(
-                fontSize: 12.5,
-                height: 1.35,
-                color: Color(0xFF6B5330),
-              ),
+            const Text(
+              '前世の知識で、素材2つと製法を推理しよう。',
+              style: TextStyle(fontSize: 12, color: kInkText),
             ),
+            if (hint != null) ...[
+              const SizedBox(height: 7),
+              Row(
+                children: [
+                  const Icon(
+                    Icons.lightbulb,
+                    size: 15,
+                    color: Color(0xFFC8991F),
+                  ),
+                  const SizedBox(width: 5),
+                  Flexible(
+                    child: Text(
+                      hint,
+                      style: const TextStyle(
+                        fontSize: 12.5,
+                        fontWeight: FontWeight.w700,
+                        color: Color(0xFF8A6A1E),
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ],
           ],
-          const SizedBox(height: 6),
-          const Text(
-            '前世の知識で、素材2つと製法を推理しよう。',
-            style: TextStyle(fontSize: 12, color: kInkText),
-          ),
-        ],
+        ),
       ),
-    ),
-  );
+    );
+  }
 
   Widget _resultBox() => PixelBox(
     raised: false,

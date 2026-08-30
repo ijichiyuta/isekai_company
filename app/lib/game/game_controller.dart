@@ -315,6 +315,24 @@ class GameController extends ChangeNotifier {
     notifyListeners();
   }
 
+  /// A non-mutating preview of what the NEXT life starts with (the 魂の記憶 head
+  /// start) — mirrors [rebirth]'s auto-grant + fromMeta so the player SEES the
+  /// snowball their points buy (the §14.3 fresh-start pull). Clones meta via
+  /// JSON so nothing real is touched.
+  GameState previewNextLife() {
+    final m = MetaState.fromJson(_meta.toJson());
+    m.ensureUnlockSlots(balance.unlocks.length);
+    for (final u in balance.unlocks) {
+      if (u.tier == 'auto' && m.levelOf(u.id) == 0) m.unlockLevels[u.id] = 1;
+    }
+    return GameState.fromMeta(
+      balance,
+      _baseSeed + lifeNumber + 1,
+      m,
+      lifeNumber: lifeNumber + 1,
+    );
+  }
+
   /// Grant every not-yet-owned 'auto' tier unlock (non-paid, condition-met on
   /// completing a life — §8.4 #3 開始ランク露店).
   void _grantAutoUnlocks() {

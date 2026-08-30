@@ -128,6 +128,7 @@ const Set<String> functionalModTypes = {
   // steer the deduction toward hidden recipes, so they genuinely "ship" now.
   'reveal_material', // 記憶の索引: reveals a hidden recipe's material(s)
   'hint_inherit', // 閃きの残滓: fully reveals a fraction of recipes' combos
+  'trend_lead', // 先読み発注: longer trend forecast window (§7 lead time)
 };
 
 /// Whether [u]'s effect is wired into the simulation today (see

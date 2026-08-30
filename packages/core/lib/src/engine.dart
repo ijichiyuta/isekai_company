@@ -324,7 +324,10 @@ class Engine {
         final mspan = market.trendMultMaxX100 - market.trendMultMinX100 + 1;
         s.trendMultX100 =
             market.trendMultMinX100 + s.rng.economy.nextInt(mspan);
-        s.trendForecastWeeks = market.trendForecastWeeks;
+        // 先読み発注 (§8.4 #10): a longer forecast window = more lead time to
+        // stock the category (trendLeadX100 = 100 by default → unchanged).
+        s.trendForecastWeeks =
+            market.trendForecastWeeks * s.trendLeadX100 ~/ 100;
         trendOnset = true;
       }
     }

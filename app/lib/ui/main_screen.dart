@@ -213,7 +213,7 @@ class _TrendBar extends StatelessWidget {
             child: Text(
               active
                   ? '流行中：$cat 需要×$mult（あと$weeks週）— 今「$cat」を並べて稼ごう！'
-                  : 'まもなく流行：$cat（あと$weeks週）— 今のうちに仕込もう',
+                  : 'まもなく流行：$cat 需要×$mult（あと$weeks週）— 今のうちに仕込もう',
               style: const TextStyle(
                 fontSize: 12,
                 fontWeight: FontWeight.w700,

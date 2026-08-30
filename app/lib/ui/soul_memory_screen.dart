@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:isekai_core/isekai_core.dart';
 
+import '../game/format.dart';
 import '../game/game_controller.dart';
 import '../game/providers.dart';
 import 'background.dart';
@@ -20,6 +21,8 @@ class SoulMemoryScreen extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final game = ref.watch(gameControllerProvider);
     final s = game.unlockSummary;
+    final preview = game.previewNextLife();
+    final previewRank = game.balance.ranks[preview.rank].name;
     return AppBackground(
       child: Scaffold(
         backgroundColor: Colors.transparent,
@@ -48,6 +51,51 @@ class SoulMemoryScreen extends ConsumerWidget {
                       style: const TextStyle(
                         fontSize: 13,
                         color: Color(0xFF8A6A44),
+                      ),
+                    ),
+                    const SizedBox(height: 10),
+                    // §14.3 fresh-start pull: SHOW the head start the points buy,
+                    // so 転生 reads as an exciting jump-start, not a reset.
+                    PixelBox(
+                      raised: false,
+                      fill: const Color(0xFFEAF3E0),
+                      bevel: 1,
+                      outline: 1.5,
+                      padding: const EdgeInsets.all(10),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          const Row(
+                            children: [
+                              Icon(
+                                Icons.autorenew,
+                                size: 15,
+                                color: Color(0xFF3C6B2E),
+                              ),
+                              SizedBox(width: 5),
+                              Text(
+                                '次の人生のスタート',
+                                style: TextStyle(
+                                  fontWeight: FontWeight.bold,
+                                  fontSize: 13,
+                                  color: kInkText,
+                                ),
+                              ),
+                            ],
+                          ),
+                          const SizedBox(height: 5),
+                          Text(
+                            '資金 ${gold(preview.funds)}・$previewRank'
+                            '${preview.discoveries > 0 ? '・発見済み ${preview.discoveries}種' : ''}'
+                            '${preview.equipmentLevel > 0 ? '・設備Lv${preview.equipmentLevel}' : ''}'
+                            '${preview.qualityStar > 0 ? '・品質★${preview.qualityStar}' : ''}',
+                            style: const TextStyle(
+                              fontSize: 12.5,
+                              height: 1.35,
+                              color: kInkText,
+                            ),
+                          ),
+                        ],
                       ),
                     ),
                     if (!game.isFull && s.fullLocked > 0) ...[

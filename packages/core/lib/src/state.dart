@@ -47,6 +47,13 @@ class GameState {
   int trendActiveWeeks;
   int trendMultX100;
 
+  /// 先読み発注 (§8.4 #10 trend_lead): forecast-window multiplier (x100). 100 =
+  /// no boost; 200 = a trend is announced twice as many weeks ahead, giving the
+  /// player more lead time to stock the category (synergy with the M-Fun-2 trend
+  /// bonus). Set from meta at life start; a headless [initial] keeps it 100 so
+  /// the determinism baseline (and market-less byte-identity) is untouched.
+  int trendLeadX100;
+
   final List<int> materialStock; // by material id
   final List<int> productStock; // by recipe id
   final List<bool> discovered; // by recipe id
@@ -88,6 +95,7 @@ class GameState {
     required this.trendForecastWeeks,
     required this.trendActiveWeeks,
     required this.trendMultX100,
+    required this.trendLeadX100,
     required this.materialStock,
     required this.productStock,
     required this.discovered,
@@ -125,6 +133,7 @@ class GameState {
         trendForecastWeeks: 0,
         trendActiveWeeks: 0,
         trendMultX100: 0,
+        trendLeadX100: 100,
         materialStock: List<int>.filled(b.materials.length, 0),
         productStock: List<int>.filled(b.recipes.length, 0),
         discovered: List<bool>.filled(b.recipes.length, false),
@@ -160,6 +169,7 @@ class GameState {
         allowedBandMax: allowedBandMax, lifeNumber: lifeNumber);
     var addFunds = 0, addEmp = 0, addRank = 0, addEquip = 0, addQuality = 0;
     var fundsPct = 0, prod = 0, sales = 0, order = 0, grantRecipes = 0;
+    var trendLead = 0;
     for (final u in b.unlocks) {
       final lvl = meta.levelOf(u.id);
       if (lvl <= 0) continue;
@@ -184,10 +194,15 @@ class GameState {
           order += u.modValue * lvl;
         case 'grant_recipes':
           grantRecipes += u.modValue * lvl;
+        case 'trend_lead':
+          trendLead += u.modValue * lvl; // 先読み発注 §8.4 #10 (forecast ×N)
         default:
           break; // feature-gated; no effect until its feature exists
       }
     }
+    // 先読み発注: a trend is announced [trendLead]× as many weeks ahead (100 = no
+    // boost). Applied at onset by the engine; default keeps market ticks stable.
+    if (trendLead > 0) s.trendLeadX100 = trendLead * 100;
     // 基本レシピの継承 (§8.4 #5): pre-discover the first N band-1 staples so 2周目
     // starts with a working product line. Discovered (not invented) — no bonus.
     if (grantRecipes > 0) {
@@ -239,6 +254,7 @@ class GameState {
         if (trendForecastWeeks != 0) 'trend_fc': trendForecastWeeks,
         if (trendActiveWeeks != 0) 'trend_act': trendActiveWeeks,
         if (trendMultX100 != 0) 'trend_mult': trendMultX100,
+        if (trendLeadX100 != 100) 'trend_lead': trendLeadX100,
         // Defensive copies: a snapshot must not alias the live lists, or a
         // later tick's in-place mutation would corrupt it (snapshot+journal
         // save, requirements §17.1). fromJson already copies on the way in.
@@ -279,6 +295,7 @@ class GameState {
         trendForecastWeeks: (m['trend_fc'] as int?) ?? 0,
         trendActiveWeeks: (m['trend_act'] as int?) ?? 0,
         trendMultX100: (m['trend_mult'] as int?) ?? 0,
+        trendLeadX100: (m['trend_lead'] as int?) ?? 100,
         materialStock: (m['material_stock'] as List).cast<int>().toList(),
         productStock: (m['product_stock'] as List).cast<int>().toList(),
         discovered: (m['discovered'] as List).cast<bool>().toList(),

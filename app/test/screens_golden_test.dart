@@ -18,6 +18,7 @@ import 'package:isekai_app/ui/title_screen.dart';
 import 'package:isekai_app/ui/onboarding.dart';
 import 'package:isekai_app/ui/order_screen.dart';
 import 'package:isekai_app/ui/production_screen.dart';
+import 'package:isekai_app/ui/rankup_overlay.dart';
 import 'package:isekai_app/ui/sales_screen.dart';
 import 'package:isekai_app/ui/settings_screen.dart';
 import 'package:isekai_app/ui/soul_memory_screen.dart';
@@ -428,7 +429,13 @@ void main() {
           children: [
             Container(color: const Color(0xFFF3E9D2)),
             InventionOverlay(
-              event: const InventionEvent(0, 'プリン', 300, 30, desc: '前世ではコンビニの定番デザート。とろける甘い卵菓子を、この世界の住民はまだ知らない。'),
+              event: const InventionEvent(
+                0,
+                'プリン',
+                300,
+                30,
+                desc: '前世ではコンビニの定番デザート。とろける甘い卵菓子を、この世界の住民はまだ知らない。',
+              ),
               onDismiss: () {},
             ),
           ],
@@ -439,6 +446,37 @@ void main() {
     await expectLater(
       find.byType(InventionOverlay),
       matchesGoldenFile('goldens/scene_invention.png'),
+    );
+  });
+
+  testWidgets('scene: 昇格演出', (tester) async {
+    if (!Platform.isMacOS) return;
+    await _loadFonts();
+    _canvas(tester);
+    await tester.pumpWidget(
+      MaterialApp(
+        debugShowCheckedModeBanner: false,
+        theme: buildTheme().copyWith(
+          textTheme: buildTheme().textTheme.apply(
+            fontFamily: 'Hiragino',
+            fontFamilyFallback: const ['AppleColorEmoji'],
+          ),
+        ),
+        home: Stack(
+          children: [
+            Container(color: const Color(0xFFF3E9D2)),
+            RankUpOverlay(
+              event: const RankUpEvent(4, '御用達商会'),
+              onDismiss: () {},
+            ),
+          ],
+        ),
+      ),
+    );
+    await tester.pump(const Duration(milliseconds: 700));
+    await expectLater(
+      find.byType(RankUpOverlay),
+      matchesGoldenFile('goldens/scene_rankup.png'),
     );
   });
 }

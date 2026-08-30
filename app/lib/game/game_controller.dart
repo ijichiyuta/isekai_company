@@ -42,6 +42,15 @@ class InventionEvent {
   });
 }
 
+/// A rank promotion that just happened (§12.5). Surfaced so the UI can play a
+/// full-screen 昇格演出 — the first-layer loop's milestone celebration (the shop
+/// visibly grows). [rank] is the NEW rank index; it drives the grown shop art.
+class RankUpEvent {
+  final int rank;
+  final String rankName;
+  const RankUpEvent(this.rank, this.rankName);
+}
+
 /// A year just closed — the §12.4 「章」決算. Surfaced so the UI can show a
 /// short annual review before the next chapter.
 class ChapterReview {
@@ -183,6 +192,16 @@ class GameController extends ChangeNotifier {
   List<Command> get pending => List.unmodifiable(_pending);
   InventionEvent? get pendingInvention =>
       _inventionQueue.isEmpty ? null : _inventionQueue.first;
+
+  /// A rank-up awaiting its celebration overlay, or null. Shown after any
+  /// pending inventions (§12.5 — inventions take priority).
+  RankUpEvent? _pendingRankUp;
+  RankUpEvent? get pendingRankUp => _pendingRankUp;
+  void acknowledgeRankUp() {
+    _pendingRankUp = null;
+    notifyListeners();
+  }
+
   bool get isAlive => _state.alive;
 
   /// Last week's sales, surfaced so the loop's "profit" node is visible (§3.1).
@@ -253,6 +272,7 @@ class GameController extends ChangeNotifier {
     lifeNumber++;
     _lifeScore = null;
     _inventionQueue.clear();
+    _pendingRankUp = null;
     _pending.clear();
     lastWeekRevenue = 0;
     lastWeekSold = 0;
@@ -467,6 +487,19 @@ class GameController extends ChangeNotifier {
         );
       }
       // Auto-pause so the overlay isn't undercut by a running clock (§12.5).
+      _speed = GameSpeed.paused;
+      clock.stop();
+    }
+
+    // A rank-up is a first-layer milestone (§12.5) → queue its celebration and
+    // auto-pause so the shop-grows overlay isn't undercut by a running clock.
+    // Guarded on `alive`: a final tick that both ranks up and ends the life
+    // shows the life-end banner instead (the overlay is skipped).
+    if (result.rankedUp && _state.alive) {
+      _pendingRankUp = RankUpEvent(
+        _state.rank,
+        balance.ranks[_state.rank].name,
+      );
       _speed = GameSpeed.paused;
       clock.stop();
     }

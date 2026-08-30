@@ -19,6 +19,7 @@ import 'pixel/pixel_art.dart';
 import 'pixel/sprites.dart' as art;
 import 'production_screen.dart';
 import 'progress.dart';
+import 'rankup_overlay.dart';
 import 'sales_screen.dart';
 import 'settings_screen.dart';
 import 'soul_memory_screen.dart';
@@ -33,6 +34,7 @@ class MainScreen extends ConsumerWidget {
     // The controller auto-pauses when it raises an invention (see step()), so
     // the overlay just reads the pending event here.
     final invention = game.pendingInvention;
+    final rankUp = game.pendingRankUp;
     final event = game.pendingEvent;
     return Stack(
       children: [
@@ -51,12 +53,15 @@ class MainScreen extends ConsumerWidget {
           ),
           bottomNavigationBar: _BottomNav(game: game),
         ),
-        // Inventions take priority; then pending events (§3.7).
+        // Overlay priority (§12.5): inventions first, then the rank-up
+        // celebration, then a pending event decision (§3.7).
         if (invention != null)
           InventionOverlay(
             event: invention,
             onDismiss: game.acknowledgeInvention,
           )
+        else if (rankUp != null && game.isAlive)
+          RankUpOverlay(event: rankUp, onDismiss: game.acknowledgeRankUp)
         else if (event != null && game.isAlive)
           EventDialog(event: event, onChoose: game.chooseEvent),
         if (!game.isAlive) _LifeEndBanner(game: game),
@@ -88,7 +93,7 @@ class _Hud extends StatelessWidget {
         children: [
           // The HUD stays compact (coin icon + "資金" already say ゴールド);
           // the ゴールド unit is spelled out in the roomier price/cost contexts.
-          _stat(art.coin, formatG(s.funds), '資金'),
+          _pulse(s.week, _stat(art.coin, formatG(s.funds), '資金')),
           const SizedBox(width: 8),
           _stat(art.star, '${s.fame}', '名声'),
           const Spacer(),
@@ -125,6 +130,18 @@ class _Hud extends StatelessWidget {
       ),
     );
   }
+
+  // A gentle once-per-week scale pulse so the funds readout visibly REACTS when
+  // money lands (paint-only Transform, no layout thrash). Keyed on the week so
+  // it re-fires each tick in sync with the weekly coin-pop.
+  Widget _pulse(int weekKey, Widget child) => TweenAnimationBuilder<double>(
+    key: ValueKey(weekKey),
+    tween: Tween(begin: 1.09, end: 1.0),
+    duration: const Duration(milliseconds: 260),
+    curve: Curves.easeOut,
+    builder: (context, s, c) => Transform.scale(scale: s, child: c),
+    child: child,
+  );
 
   // A sunken "readout" plate — icon + value, like a little status window.
   Widget _stat(PixelSprite sprite, String value, String label) => Semantics(
@@ -784,6 +801,24 @@ class _WeeklyResult extends StatelessWidget {
                 ],
               ),
             ),
+          // A coin "pop" each week a sale lands — the most frequent good thing
+          // in the game finally gets felt feedback. Keyed on the week so the
+          // tween restarts once per tick (visual only; sound would spam at ×3).
+          if (r > 0)
+            TweenAnimationBuilder<double>(
+              key: ValueKey(game.state.week),
+              tween: Tween(begin: 0, end: 1),
+              duration: const Duration(milliseconds: 520),
+              curve: Curves.easeOutBack, // overshoots ~1.1 then settles = a pop
+              builder: (context, t, child) => Transform.scale(
+                scale: t,
+                child: Opacity(opacity: t.clamp(0.0, 1.0), child: child),
+              ),
+              child: Padding(
+                padding: const EdgeInsets.only(right: 5),
+                child: PixelView(art.coin, height: 16),
+              ),
+            ),
           Text(
             r > 0 ? '先週の売上 +${gold(r)}（${game.lastWeekSold}個）' : '先週の売上 —',
             style: const TextStyle(fontSize: 13),
@@ -1026,6 +1061,40 @@ class _LifeEndBanner extends StatelessWidget {
                           style: const TextStyle(
                             fontSize: 12,
                             color: Colors.grey,
+                          ),
+                        ),
+                      ],
+                      // §14.3 の2周目カロット: surface the concrete pull to play
+                      // again — inventions the player hasn't yet made this run.
+                      if (game.balance.recipes.length - game.state.discoveries >
+                          0) ...[
+                        const SizedBox(height: 12),
+                        PixelBox(
+                          raised: false,
+                          fill: const Color(0xFFEAF3E0),
+                          bevel: 1,
+                          outline: 1.5,
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 10,
+                            vertical: 8,
+                          ),
+                          child: Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              PixelView(art.beaker, height: 18),
+                              const SizedBox(width: 6),
+                              Flexible(
+                                child: Text(
+                                  '次の人生：まだ見ぬ商品 '
+                                  '${game.balance.recipes.length - game.state.discoveries} 種を発明できる',
+                                  style: const TextStyle(
+                                    fontSize: 13,
+                                    fontWeight: FontWeight.w700,
+                                    color: kInkText,
+                                  ),
+                                ),
+                              ),
+                            ],
                           ),
                         ),
                       ],
